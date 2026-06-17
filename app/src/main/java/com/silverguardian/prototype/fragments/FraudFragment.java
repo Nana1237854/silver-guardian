@@ -30,7 +30,7 @@ import java.util.List;
  * 防诈骗知识推送 — 每日一推 + 历史列表。
  * OkHttp 拉取远程数据，网络异常时使用本地兜底。
  */
-public class FraudFragment extends Fragment {
+public class FraudFragment extends BaseFragment {
     private final List<FraudTip> visible = new ArrayList<>();
     private FraudAdapter adapter;
     private TextView loadingHint;
@@ -171,7 +171,4 @@ public class FraudFragment extends Fragment {
         return view;
     }
 
-    private int dp(int value) {
-        return Math.round(getResources().getDisplayMetrics().density * value);
-    }
 }

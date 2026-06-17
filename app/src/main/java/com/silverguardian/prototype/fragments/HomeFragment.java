@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends BaseFragment {
 
     @Nullable
     @Override
@@ -264,6 +264,4 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
-    private int sp(int base) { return FontScaleHelper.sp(requireContext(), base); }
-    private int dp(int value) { return FontScaleHelper.dp(requireContext(), value); }
 }

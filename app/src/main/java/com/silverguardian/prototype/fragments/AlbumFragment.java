@@ -37,7 +37,7 @@ import java.util.Map;
  * 亲情相册  —  GalleryPermissionHelper 处理权限, AlbumGroup 管理分组。
  * 交互: 相册列表 ⇄ 照片网格, 长按删除相册, 创建后直接进入。
  */
-public class AlbumFragment extends Fragment {
+public class AlbumFragment extends BaseFragment {
 
     private GalleryPermissionHelper permHelper;
     private LinearLayout root;
@@ -54,7 +54,7 @@ public class AlbumFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater i, @Nullable ViewGroup c, @Nullable Bundle s) {
         root = new LinearLayout(requireContext());
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(c(R.color.bg_page));
+        root.setBackgroundColor(color(R.color.bg_page));
         root.setPadding(dp(16), dp(16), dp(16), dp(110));
         permHelper = new GalleryPermissionHelper(this);
         buildAlbumList();
@@ -274,13 +274,13 @@ public class AlbumFragment extends Fragment {
         TextView v = new TextView(requireContext());
         v.setText(s); v.setTextSize(sz);
         if (b) v.setTypeface(null, android.graphics.Typeface.BOLD);
-        v.setTextColor(c(R.color.text_primary));
+        v.setTextColor(color(R.color.text_primary));
         return v;
     }
 
     private TextView chip(String s) {
         TextView v = txt(s, 15, true);
-        v.setTextColor(c(R.color.primary));
+        v.setTextColor(color(R.color.primary));
         v.setBackgroundResource(R.drawable.bg_chip_soft);
         v.setPadding(dp(14), dp(9), dp(14), dp(9));
         return v;
@@ -296,7 +296,4 @@ public class AlbumFragment extends Fragment {
         return new LinearLayout.LayoutParams(w, h, wt);
     }
 
-    private int c(int id) { return getResources().getColor(id); }
-    private int dp(int v) { return Math.round(getResources().getDisplayMetrics().density * v); }
-    private void toast(String s) { Toast.makeText(requireContext(), s, Toast.LENGTH_SHORT).show(); }
 }

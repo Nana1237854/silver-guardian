@@ -28,7 +28,7 @@ import com.silverguardian.prototype.utils.FontScaleHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MedicineFragment extends Fragment {
+public class MedicineFragment extends BaseFragment {
     private MedicineAdapter adapter;
     private final List<Medicine> visible = new ArrayList<>();
     private Spinner typeFilter;
@@ -155,7 +155,7 @@ public class MedicineFragment extends Fragment {
         return editText;
     }
 
-    private int sp(int base) { return FontScaleHelper.sp(requireContext(), base); }
+    // sp() inherited from BaseFragment
 
     private class MedicineAdapter extends RecyclerView.Adapter<MedicineViewHolder> {
         @NonNull @Override public MedicineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

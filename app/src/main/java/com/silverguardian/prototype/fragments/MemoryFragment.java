@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * 记忆回忆 — 生活记事 CRUD，支持分类筛选。
  */
-public class MemoryFragment extends Fragment {
+public class MemoryFragment extends BaseFragment {
     private final List<MemoryRecord> visible = new ArrayList<>();
     private MemoryAdapter adapter;
     private Spinner categorySpinner;
@@ -208,7 +208,4 @@ public class MemoryFragment extends Fragment {
         }
     }
 
-    private int dp(int value) {
-        return Math.round(getResources().getDisplayMetrics().density * value);
-    }
 }

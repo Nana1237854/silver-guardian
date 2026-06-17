@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import com.silverguardian.prototype.utils.FontScaleHelper;
 
 import com.silverguardian.prototype.BluetoothActivity;
 import com.silverguardian.prototype.ChatDetailActivity;
@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class HealthFragment extends Fragment {
+public class HealthFragment extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull android.view.LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -207,7 +207,4 @@ public class HealthFragment extends Fragment {
         return view;
     }
 
-    private int sp(int base) { return FontScaleHelper.sp(requireContext(), base); }
-
-    private int dp(int value) { return FontScaleHelper.dp(requireContext(), value); }
 }

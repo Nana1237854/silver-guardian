@@ -16,8 +16,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-
 import com.silverguardian.prototype.BluetoothActivity;
 import com.silverguardian.prototype.ChildModeActivity;
 import com.silverguardian.prototype.LoginActivity;
@@ -25,7 +23,7 @@ import com.silverguardian.prototype.MainActivity;
 import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 
-public class SettingsFragment extends Fragment {
+public class SettingsFragment extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull android.view.LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -209,7 +207,4 @@ public class SettingsFragment extends Fragment {
             .show();
     }
 
-    private int dp(int value) {
-        return Math.round(getResources().getDisplayMetrics().density * value);
-    }
 }

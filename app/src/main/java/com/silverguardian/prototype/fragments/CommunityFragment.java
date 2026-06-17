@@ -29,7 +29,7 @@ import java.util.List;
  * 点击导航通过 Intent 调起高德地图 App。
  * 正式集成高德 3D Map SDK 需在 build.gradle 添加依赖并申请 Key。
  */
-public class CommunityFragment extends Fragment {
+public class CommunityFragment extends BaseFragment {
     private static final int REQUEST_LOCATION = 201;
     private LinearLayout resultContainer;
     private TextView statusText;
@@ -214,7 +214,4 @@ public class CommunityFragment extends Fragment {
         }
     }
 
-    private int dp(int value) {
-        return Math.round(getResources().getDisplayMetrics().density * value);
-    }
 }
