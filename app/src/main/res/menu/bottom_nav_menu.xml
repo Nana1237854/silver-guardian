@@ -1,23 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/bottom_health"
-        android:icon="@drawable/ic_health"
-        android:title="@string/tab_health" />
-    <item
-        android:id="@+id/bottom_medicine"
-        android:icon="@drawable/ic_medicine"
-        android:title="@string/tab_medicine" />
-    <item
-        android:id="@+id/bottom_home"
-        android:icon="@drawable/ic_home"
-        android:title="@string/tab_home" />
-    <item
-        android:id="@+id/bottom_album"
-        android:icon="@drawable/ic_album"
-        android:title="@string/tab_album" />
-    <item
-        android:id="@+id/bottom_settings"
-        android:icon="@drawable/ic_logout"
-        android:title="@string/tab_settings" />
+    <item android:id="@+id/bottom_health" android:icon="@drawable/ic_health" android:title="@string/tab_health" />
+    <item android:id="@+id/bottom_medicine" android:icon="@drawable/ic_medicine" android:title="@string/tab_medicine" />
+    <item android:id="@+id/bottom_home" android:icon="@drawable/ic_home" android:title="@string/tab_home" />
+    <item android:id="@+id/bottom_community" android:icon="@drawable/ic_health" android:title="@string/tab_community" />
+    <item android:id="@+id/bottom_fraud" android:icon="@drawable/ic_album" android:title="@string/tab_fraud" />
+    <item android:id="@+id/bottom_album" android:icon="@drawable/ic_album" android:title="@string/tab_album" />
+    <item android:id="@+id/bottom_settings" android:icon="@drawable/ic_logout" android:title="@string/tab_settings" />
 </menu>

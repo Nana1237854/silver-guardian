@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="primary_dark">#8FB9A9</color>
-    <color name="primary">#8CCDB3</color>
+    <color name="primary">#5B9A7A</color>
     <color name="sidebar_bg">#F6FBF8</color>
     <color name="sidebar_text">#7A8F86</color>
     <color name="sidebar_active">#CFEADE</color>

@@ -9,14 +9,15 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.silverguardian.prototype.BluetoothActivity;
 import com.silverguardian.prototype.ChatDetailActivity;
+import com.silverguardian.prototype.MainActivity;
 import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.data.MockData;
 
@@ -70,7 +71,7 @@ public class HealthFragment extends Fragment {
     private View greetingCard() {
         LinearLayout card = card();
         card.setGravity(Gravity.CENTER);
-        TextView hi = title("Hi 颜荣柒，今天的状态");
+        TextView hi = title("Hi 颜爷爷，今天的状态");
         hi.setTextSize(16);
         hi.setTextColor(getResources().getColor(R.color.text_secondary));
         card.addView(hi);
@@ -80,7 +81,7 @@ public class HealthFragment extends Fragment {
         return card;
     }
 
-    private View healthMetric(String title, String value, String meta, String badge) {
+    private View healthMetric(String label, String value, String meta, String badge) {
         LinearLayout card = card();
         card.setOrientation(LinearLayout.HORIZONTAL);
         card.setGravity(Gravity.CENTER_VERTICAL);
@@ -93,10 +94,11 @@ public class HealthFragment extends Fragment {
         LinearLayout texts = new LinearLayout(requireContext());
         texts.setOrientation(LinearLayout.VERTICAL);
         texts.setPadding(dp(16), 0, 0, 0);
-        texts.addView(title(title));
-        TextView valueText = title(value);
-        valueText.setTextSize(22);
-        texts.addView(valueText);
+        TextView labelView = title(label);
+        texts.addView(labelView);
+        TextView valueView = title(value);
+        valueView.setTextSize(22);
+        texts.addView(valueView);
         texts.addView(body(meta));
         card.addView(texts, new LinearLayout.LayoutParams(0, -2, 1));
 
@@ -125,27 +127,41 @@ public class HealthFragment extends Fragment {
         LinearLayout row = new LinearLayout(requireContext());
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(0, dp(12), 0, 0);
-        TextView add = chip("添加健康数据");
+
+        // 一键呼叫按钮（红色醒目）
+        TextView callBtn = chip("📞 一键呼叫");
+        callBtn.setTextColor(getResources().getColor(R.color.surface_white));
+        callBtn.setBackgroundResource(R.drawable.bg_button_sos);
+        callBtn.setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).oneTapCall();
+            }
+        });
+        callBtn.setOnLongClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).oneTapCallLongPress();
+            }
+            return true;
+        });
+        row.addView(callBtn);
+
+        TextView add = chip("添加数据");
+        LinearLayout.LayoutParams addParams = new LinearLayout.LayoutParams(-2, -2);
+        addParams.leftMargin = dp(10);
+        add.setLayoutParams(addParams);
         add.setOnClickListener(v -> {
             MockData.addHealthData("heart_rate", "69", "正常");
             startActivity(new Intent(requireContext(), ChatDetailActivity.class).putExtra("chat_title", "健康档案新增完成"));
         });
         row.addView(add);
+
         TextView bt = chip("蓝牙导入");
+        LinearLayout.LayoutParams btParams = new LinearLayout.LayoutParams(-2, -2);
+        btParams.leftMargin = dp(10);
+        bt.setLayoutParams(btParams);
         bt.setOnClickListener(v -> startActivity(new Intent(requireContext(), BluetoothActivity.class)));
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, -2);
-        params.leftMargin = dp(10);
-        row.addView(bt, params);
-        TextView sos = chip("SOS");
-        sos.setOnClickListener(v -> new AlertDialog.Builder(requireContext())
-            .setTitle("SOS 紧急呼叫")
-            .setMessage("已准备联系家属：大明、小柔。")
-            .setPositiveButton("发送", (d, w) -> MockData.addEmergencyAlert("SOS 求助已发送给家属"))
-            .setNegativeButton("取消", null)
-            .show());
-        LinearLayout.LayoutParams sosParams = new LinearLayout.LayoutParams(-2, -2);
-        sosParams.leftMargin = dp(10);
-        row.addView(sos, sosParams);
+        row.addView(bt);
+
         hsv.addView(row);
         return hsv;
     }

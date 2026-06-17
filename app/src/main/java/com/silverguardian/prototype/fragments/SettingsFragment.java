@@ -5,9 +5,13 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,6 +22,7 @@ import com.silverguardian.prototype.BluetoothActivity;
 import com.silverguardian.prototype.ChildModeActivity;
 import com.silverguardian.prototype.LoginActivity;
 import com.silverguardian.prototype.R;
+import com.silverguardian.prototype.utils.FontScaleHelper;
 
 public class SettingsFragment extends Fragment {
     @Nullable
@@ -31,11 +36,13 @@ public class SettingsFragment extends Fragment {
         root.setPadding(dp(20), dp(28), dp(20), dp(110));
         scrollView.addView(root, new ScrollView.LayoutParams(-1, -2));
 
-        TextView title = title("设置");
+        TextView title = titleView("设置");
         title.setTextSize(28);
         root.addView(title);
 
         root.addView(profileCard());
+        root.addView(fontSizeCard());
+        root.addView(highContrastCard());
         root.addView(featureCard("子女模式", "查看家人健康状况与提醒", "👪", v -> startActivity(new Intent(requireContext(), ChildModeActivity.class))));
         root.addView(featureCard("蓝牙设备", "连接血压计、血氧仪等", "⌁", v -> startActivity(new Intent(requireContext(), BluetoothActivity.class))));
         root.addView(featureCard("防诈提醒", "学习防诈知识，守护财产安全", "盾", v -> openSimpleDialog("防诈提醒", "已内置冒充客服、保健品讲座、亲友借钱等常见提醒。")));
@@ -52,7 +59,7 @@ public class SettingsFragment extends Fragment {
         LinearLayout card = card();
         card.setOrientation(LinearLayout.HORIZONTAL);
         card.setGravity(Gravity.CENTER_VERTICAL);
-        TextView avatar = title("颜");
+        TextView avatar = titleView("颜");
         avatar.setTextSize(30);
         avatar.setGravity(Gravity.CENTER);
         avatar.setBackgroundResource(R.drawable.bg_circle_gray);
@@ -61,12 +68,61 @@ public class SettingsFragment extends Fragment {
         LinearLayout info = new LinearLayout(requireContext());
         info.setOrientation(LinearLayout.VERTICAL);
         info.setPadding(dp(18), 0, 0, 0);
-        info.addView(title("颜爷爷"));
+        info.addView(titleView("颜爷爷"));
         info.addView(body("已守护 128 天\n72 岁 · 男性"));
         card.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView arrow = body("›");
-        arrow.setTextSize(32);
-        card.addView(arrow);
+        return card;
+    }
+
+    private View fontSizeCard() {
+        LinearLayout card = card();
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+
+        LinearLayout texts = new LinearLayout(requireContext());
+        texts.setOrientation(LinearLayout.VERTICAL);
+        texts.addView(titleView("大字模式"));
+        texts.addView(body("调整全局字体大小，方便阅读"));
+        card.addView(texts, new LinearLayout.LayoutParams(0, -2, 1));
+
+        Spinner spinner = new Spinner(requireContext());
+        String[] modes = {"标准", "加大", "特大"};
+        spinner.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, modes));
+        spinner.setSelection(FontScaleHelper.getFontModeIndex(requireContext()));
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int current = FontScaleHelper.getFontModeIndex(requireContext());
+                if (position != current) {
+                    FontScaleHelper.setFontMode(requireContext(), position);
+                    Toast.makeText(requireContext(), "字体模式已更改，切换页面后生效", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+        card.addView(spinner, new LinearLayout.LayoutParams(dp(150), -2));
+        return card;
+    }
+
+    private View highContrastCard() {
+        LinearLayout card = card();
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+
+        LinearLayout texts = new LinearLayout(requireContext());
+        texts.setOrientation(LinearLayout.VERTICAL);
+        texts.addView(titleView("高对比度"));
+        texts.addView(body("增强文字与背景的对比度"));
+
+        card.addView(texts, new LinearLayout.LayoutParams(0, -2, 1));
+
+        TextView toggle = chip(FontScaleHelper.isHighContrast(requireContext()) ? "✓ 已开启" : "○ 已关闭");
+        toggle.setOnClickListener(v -> {
+            boolean current = FontScaleHelper.isHighContrast(requireContext());
+            FontScaleHelper.setHighContrast(requireContext(), !current);
+            toggle.setText(!current ? "✓ 已开启" : "○ 已关闭");
+            Toast.makeText(requireContext(), "高对比度模式已" + (!current ? "开启" : "关闭"), Toast.LENGTH_SHORT).show();
+        });
+        card.addView(toggle);
         return card;
     }
 
@@ -76,7 +132,7 @@ public class SettingsFragment extends Fragment {
         card.setGravity(Gravity.CENTER_VERTICAL);
         card.setOnClickListener(listener);
 
-        TextView icon = title(mark);
+        TextView icon = titleView(mark);
         icon.setTextSize(22);
         icon.setGravity(Gravity.CENTER);
         icon.setBackgroundResource(R.drawable.bg_chip_soft);
@@ -85,7 +141,7 @@ public class SettingsFragment extends Fragment {
         LinearLayout texts = new LinearLayout(requireContext());
         texts.setOrientation(LinearLayout.VERTICAL);
         texts.setPadding(dp(16), 0, 0, 0);
-        texts.addView(title(title));
+        texts.addView(titleView(title));
         texts.addView(body(subtitle));
         card.addView(texts, new LinearLayout.LayoutParams(0, -2, 1));
 
@@ -105,7 +161,7 @@ public class SettingsFragment extends Fragment {
         return card;
     }
 
-    private TextView title(String text) {
+    private TextView titleView(String text) {
         TextView view = new TextView(requireContext());
         view.setText(text);
         view.setTextSize(20);
@@ -120,6 +176,17 @@ public class SettingsFragment extends Fragment {
         view.setTextSize(14);
         view.setTextColor(getResources().getColor(R.color.text_secondary));
         view.setPadding(0, dp(4), 0, 0);
+        return view;
+    }
+
+    private TextView chip(String text) {
+        TextView view = new TextView(requireContext());
+        view.setText(text);
+        view.setTextSize(15);
+        view.setTypeface(null, android.graphics.Typeface.BOLD);
+        view.setTextColor(getResources().getColor(R.color.primary));
+        view.setBackgroundResource(R.drawable.bg_chip_soft);
+        view.setPadding(dp(16), dp(10), dp(16), dp(10));
         return view;
     }
 
