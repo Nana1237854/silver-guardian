@@ -20,14 +20,18 @@ public class ReminderBroadcastReceiver extends BroadcastReceiver {
     private static final String CHANNEL_ID = "medicine_reminder";
     private static TextToSpeech tts;
 
+    // 提取为 package-visible 以便测试
+    static String buildReminderMessage(String userName, String medicineName) {
+        if (medicineName == null || medicineName.isEmpty()) medicineName = "药品";
+        if (userName == null || userName.isEmpty()) userName = "老人家";
+        return userName + "，该吃「" + medicineName + "」了，请按时服药。";
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String medicineName = intent.getStringExtra("medicine_name");
         String userName = intent.getStringExtra("user_name");
-        if (medicineName == null) medicineName = "药品";
-        if (userName == null) userName = "老人家";
-
-        String message = userName + "，该吃「" + medicineName + "」了，请按时服药。";
+        String message = buildReminderMessage(userName, medicineName);
 
         // 通知栏
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

@@ -55,23 +55,9 @@ public class FraudApiClient {
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                List<FraudItem> items = new ArrayList<>();
                 try {
                     String body = response.body() != null ? response.body().string() : "";
-                    JSONObject json = new JSONObject(body);
-                    JSONArray data = json.optJSONArray("data");
-                    if (data != null) {
-                        for (int i = 0; i < data.length(); i++) {
-                            JSONObject obj = data.getJSONObject(i);
-                            FraudItem item = new FraudItem();
-                            item.title = obj.optString("title", "防诈骗提示");
-                            item.category = obj.optString("category", "电信诈骗");
-                            item.summary = obj.optString("summary", "");
-                            item.detail = obj.optString("detail", "");
-                            item.measures = obj.optString("measures", "");
-                            items.add(item);
-                        }
-                    }
+                    List<FraudItem> items = parseFraudResponse(body);
                     new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(items));
                 } catch (Exception e) {
                     Log.e(TAG, "JSON parse error: " + e.getMessage());
@@ -87,5 +73,25 @@ public class FraudApiClient {
         public String summary;
         public String detail;
         public String measures;
+    }
+
+    // 提取为 package-visible 以便测试
+    static List<FraudItem> parseFraudResponse(String json) throws Exception {
+        List<FraudItem> items = new ArrayList<>();
+        JSONObject root = new JSONObject(json);
+        JSONArray data = root.optJSONArray("data");
+        if (data != null) {
+            for (int i = 0; i < data.length(); i++) {
+                JSONObject obj = data.getJSONObject(i);
+                FraudItem item = new FraudItem();
+                item.title = obj.optString("title", "防诈骗提示");
+                item.category = obj.optString("category", "电信诈骗");
+                item.summary = obj.optString("summary", "");
+                item.detail = obj.optString("detail", "");
+                item.measures = obj.optString("measures", "");
+                items.add(item);
+            }
+        }
+        return items;
     }
 }
