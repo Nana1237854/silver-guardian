@@ -12,6 +12,7 @@ public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) return;
+        TtsHelper.init(context);  // 开机后预初始化TTS
 
         // 重启后恢复所有用药闹钟
         try {

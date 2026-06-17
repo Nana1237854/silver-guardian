@@ -18,6 +18,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.fragments.AlbumFragment;
 import com.silverguardian.prototype.fragments.HealthFragment;
+import com.silverguardian.prototype.reminder.TtsHelper;
 import com.silverguardian.prototype.fragments.HomeFragment;
 import com.silverguardian.prototype.fragments.MedicineFragment;
 import com.silverguardian.prototype.fragments.SettingsFragment;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MockData.init(this);
+        TtsHelper.init(this);  // 预初始化TTS，确保BroadcastReceiver触发时已就绪
         int userId = getIntent().getIntExtra("user_id", 1);
         MockData.setActiveUser(userId);
         setContentView(R.layout.activity_main);
@@ -62,6 +64,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void switchFragment(Fragment fragment) {
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, fragment).commit();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        TtsHelper.release();
     }
 
     public void openHealth() {
