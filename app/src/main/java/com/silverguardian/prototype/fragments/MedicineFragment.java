@@ -50,6 +50,18 @@ public class MedicineFragment extends BaseFragment {
         });
 
         view.findViewById(R.id.add_medicine_fab).setOnClickListener(v -> showAddMedicineDialog());
+
+        // 验收用：长按 FAB 触发一次 TTS 语音播报测试
+        view.findViewById(R.id.add_medicine_fab).setOnLongClickListener(v -> {
+            android.content.Intent i = new android.content.Intent(requireContext(),
+                com.silverguardian.prototype.reminder.ReminderBroadcastReceiver.class);
+            i.putExtra("medicine_name", "硝苯地平缓释片");
+            i.putExtra("user_name", "颜爷爷");
+            requireContext().sendBroadcast(i);
+            Toast.makeText(requireContext(), "已发送测试用药提醒（通知+TTS语音）", Toast.LENGTH_LONG).show();
+            return true;
+        });
+
         refresh();
         return view;
     }
