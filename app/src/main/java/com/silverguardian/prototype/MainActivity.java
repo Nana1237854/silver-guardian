@@ -68,6 +68,14 @@ public class MainActivity extends AppCompatActivity {
         ((BottomNavigationView) findViewById(R.id.bottom_navigation)).setSelectedItemId(R.id.bottom_health);
     }
 
+    public void switchToFraud() {
+        switchFragment(new com.silverguardian.prototype.fragments.FraudFragment());
+    }
+
+    public void switchToMemory() {
+        switchFragment(new com.silverguardian.prototype.fragments.MemoryFragment());
+    }
+
     // === 一键呼叫 ===
     public void oneTapCall() {
         List<FamilyMember> members = MockData.getFamilyMembers();

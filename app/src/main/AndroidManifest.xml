@@ -40,6 +40,7 @@
         <activity android:name=".PhotoDetailActivity" android:exported="false" />
         <activity android:name=".ChildModeActivity" android:exported="false" />
         <activity android:name=".BluetoothActivity" android:exported="false" />
+        <activity android:name=".CommunityActivity" android:exported="false" />
         <activity android:name=".FraudDetailActivity" android:exported="false" />
 
         <receiver android:name=".reminder.ReminderBroadcastReceiver" android:exported="false" />

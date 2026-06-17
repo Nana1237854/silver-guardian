@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment;
 import com.silverguardian.prototype.BluetoothActivity;
 import com.silverguardian.prototype.ChildModeActivity;
 import com.silverguardian.prototype.LoginActivity;
+import com.silverguardian.prototype.MainActivity;
 import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 
@@ -45,8 +46,9 @@ public class SettingsFragment extends Fragment {
         root.addView(highContrastCard());
         root.addView(featureCard("子女模式", "查看家人健康状况与提醒", "👪", v -> startActivity(new Intent(requireContext(), ChildModeActivity.class))));
         root.addView(featureCard("蓝牙设备", "连接血压计、血氧仪等", "⌁", v -> startActivity(new Intent(requireContext(), BluetoothActivity.class))));
-        root.addView(featureCard("防诈提醒", "学习防诈知识，守护财产安全", "盾", v -> openSimpleDialog("防诈提醒", "已内置冒充客服、保健品讲座、亲友借钱等常见提醒。")));
-        root.addView(featureCard("记忆回忆", "生活记事与回忆珍藏", "▣", v -> openSimpleDialog("记忆回忆", "可记录家庭、健康、爱好等重要记忆。")));
+        root.addView(featureCard("便民查询", "附近菜市场/医院/药店搜索与导航", "📍", v -> startActivity(new Intent(requireContext(), com.silverguardian.prototype.CommunityActivity.class))));
+        root.addView(featureCard("防诈提醒", "每日推送防电信诈骗知识", "盾", v -> switchToFragment("fraud")));
+        root.addView(featureCard("记忆回忆", "生活记事与回忆珍藏", "▣", v -> switchToFragment("memory")));
         root.addView(featureCard("健康数据授权", "管理数据分享与隐私权限", "锁", v -> openSimpleDialog("健康数据授权", "本原生版本默认所有数据仅保存在本机 SQLite。")));
         root.addView(featureCard("退出登录", "返回老人档案选择页面", "↩", v -> {
             startActivity(new Intent(requireContext(), LoginActivity.class));
@@ -187,6 +189,16 @@ public class SettingsFragment extends Fragment {
         view.setBackgroundResource(R.drawable.bg_chip_soft);
         view.setPadding(dp(16), dp(10), dp(16), dp(10));
         return view;
+    }
+
+    private void switchToFragment(String name) {
+        if (!(getActivity() instanceof MainActivity)) return;
+        MainActivity main = (MainActivity) getActivity();
+        if ("fraud".equals(name)) {
+            main.switchToFraud();
+        } else if ("memory".equals(name)) {
+            main.switchToMemory();
+        }
     }
 
     private void openSimpleDialog(String title, String message) {
