@@ -27,6 +27,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.silverguardian.prototype.PhotoDetailActivity;
 import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.AlbumPhoto;
@@ -204,14 +206,15 @@ public class AlbumFragment extends Fragment {
     }
 
     private class PhotoViewHolder extends RecyclerView.ViewHolder {
-        TextView title, category, message, favorite, placeholder;
+        TextView title, category, message, favorite;
+        ImageView image;
         PhotoViewHolder(View v) {
             super(v);
             title = v.findViewById(R.id.photo_title);
             category = v.findViewById(R.id.photo_category);
             message = v.findViewById(R.id.photo_message);
             favorite = v.findViewById(R.id.photo_favorite);
-            placeholder = v.findViewById(R.id.photo_placeholder);
+            image = v.findViewById(R.id.photo_image);
         }
 
         void bind(AlbumPhoto photo) {
@@ -219,7 +222,15 @@ public class AlbumFragment extends Fragment {
             category.setText(photo.category + " · " + photo.uploadedBy);
             message.setText(photo.familyMessage);
             favorite.setVisibility(photo.favorite ? View.VISIBLE : View.GONE);
-            placeholder.setText(photo.title.substring(0, 1));
+            if (photo.url != null && !photo.url.isEmpty()) {
+                try {
+                    Glide.with(image.getContext()).load(Uri.parse(photo.url)).placeholder(android.R.drawable.ic_menu_gallery).centerCrop().into(image);
+                } catch (Exception e) {
+                    image.setImageResource(android.R.drawable.ic_menu_gallery);
+                }
+            } else {
+                image.setImageResource(android.R.drawable.ic_menu_gallery);
+            }
             itemView.setOnClickListener(v -> showPhotoDetail(photo));
             itemView.setOnLongClickListener(v -> {
                 MockData.toggleFavorite(photo);
@@ -230,15 +241,15 @@ public class AlbumFragment extends Fragment {
     }
 
     private void showPhotoDetail(AlbumPhoto photo) {
-        new AlertDialog.Builder(requireContext())
-            .setTitle(photo.title)
-            .setMessage("分类：" + photo.category + "\n场景：" + photo.sceneTag + "\n说明：" + photo.description + "\n\n家属留言：\n" + photo.familyMessage)
-            .setPositiveButton(photo.favorite ? "取消收藏" : "收藏", (d, w) -> {
-                MockData.toggleFavorite(photo);
-                refresh();
-            })
-            .setNegativeButton("关闭", null)
-            .show();
+        Intent intent = new Intent(requireContext(), PhotoDetailActivity.class);
+        intent.putExtra("photo_title", photo.title);
+        intent.putExtra("photo_url", photo.url);
+        intent.putExtra("photo_category", photo.category);
+        intent.putExtra("photo_message", photo.familyMessage);
+        intent.putExtra("photo_scene_tag", photo.sceneTag);
+        intent.putExtra("photo_description", photo.description);
+        intent.putExtra("photo_favorite", photo.favorite);
+        startActivity(intent);
     }
 
     private TextView title(String text) {
