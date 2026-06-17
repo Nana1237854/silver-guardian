@@ -26,6 +26,14 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 import com.silverguardian.prototype.data.MockData;
@@ -326,26 +334,102 @@ public class ChatDetailActivity extends AppCompatActivity {
         MockData.addChatMessage(text, ChatMessage.TYPE_USER);
         input.setText("");
         adapter.notifyItemInserted(messages.size() - 1);
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            String reply = generateReply(text);
-            messages.add(new ChatMessage(reply, ChatMessage.TYPE_AI, MockData.now()));
-            MockData.addChatMessage(reply, ChatMessage.TYPE_AI);
-            adapter.notifyItemInserted(messages.size() - 1);
-        }, 500);
+
+        // 显示"正在输入"
+        String apiKey = getString(R.string.zhipu_api_key);
+        if (apiKey.startsWith("PUT_") || apiKey.length() < 10) {
+            // Key 未配置 → 降级为本地模拟回复
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                String reply = fallbackReply(text);
+                appendAiReply(reply);
+            }, 500);
+            return;
+        }
+        callZhipuApi(text, apiKey);
     }
 
-    private String generateReply(String text) {
-        if (text.contains("血压") || text.contains("高血压")) {
-            return "建议今天先坐下休息 5 分钟后复测。若多次高于 140/90，请联系家属或医生。硝苯地平、缬沙坦等降压药需要遵医嘱使用，我已帮你加入用药提醒候选。";
-        }
-        if (text.contains("睡")) {
-            return "今晚可以提前 20 分钟放下手机，睡前做 3 分钟慢呼吸。下午后少喝浓茶和咖啡，若连续失眠超过一周建议咨询医生。";
-        }
-        if (text.contains("运动")) {
-            return "更推荐饭后慢走 20-30 分钟、扶椅抬腿和肩颈伸展。避免搬重物或一次走太远，运动时带上手机并留意胸闷、头晕。";
-        }
-        return "收到。我会结合你的健康档案、用药提醒和家属信息，给出温和且安全的建议。若症状明显或持续不适，请优先联系医生或家人。";
+    private void callZhipuApi(String userMessage, String apiKey) {
+        new Thread(() -> {
+            try {
+                URL url = new URL("https://open.bigmodel.cn/api/paas/v4/chat/completions");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setRequestProperty("Authorization", "Bearer " + apiKey);
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(30000);
+
+                JSONObject body = new JSONObject();
+                body.put("model", "glm-4-flash");
+                JSONArray msgs = new JSONArray();
+                JSONObject sys = new JSONObject();
+                sys.put("role", "system");
+                sys.put("content", SYSTEM_PROMPT);
+                msgs.put(sys);
+                JSONObject user = new JSONObject();
+                user.put("role", "user");
+                user.put("content", userMessage);
+                msgs.put(user);
+                body.put("messages", msgs);
+                body.put("temperature", 0.7);
+                body.put("max_tokens", 500);
+
+                OutputStream os = conn.getOutputStream();
+                os.write(body.toString().getBytes("UTF-8"));
+                os.close();
+
+                if (conn.getResponseCode() == 200) {
+                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) sb.append(line);
+                    br.close();
+                    JSONObject resp = new JSONObject(sb.toString());
+                    String reply = resp.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
+                    new Handler(Looper.getMainLooper()).post(() -> appendAiReply(reply));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> appendAiReply(fallbackReply(userMessage)));
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> appendAiReply(fallbackReply(userMessage)));
+            }
+        }).start();
     }
+
+    private void appendAiReply(String reply) {
+        messages.add(new ChatMessage(reply, ChatMessage.TYPE_AI, MockData.now()));
+        MockData.addChatMessage(reply, ChatMessage.TYPE_AI);
+        adapter.notifyItemInserted(messages.size() - 1);
+    }
+
+    private String fallbackReply(String text) {
+        if (text.contains("血压") || text.contains("高血压"))
+            return "建议先休息5分钟后复测。若多次高于140/90，请联系家属或医生。硝苯地平、缬沙坦等降压药需遵医嘱使用。";
+        if (text.contains("睡"))
+            return "今晚可以提前20分钟放下手机，睡前做3分钟慢呼吸。若连续失眠超过一周建议咨询医生。";
+        if (text.contains("运动") || text.contains("跑"))
+            return "推荐饭后慢走20-30分钟、扶椅抬腿和肩颈伸展。避免搬重物或一次走太远，运动时留意胸闷头晕。若您提到的活动强度较大，我建议改为更温和的方式保护关节和心脏。";
+        return "收到。我会结合您的健康档案和用药情况给出温和且安全的建议。若症状明显或持续不适，请优先联系医生或家人。";
+    }
+
+    // 智谱 GLM-4 系统提示词（与原Vue项目后端一致）
+    private static final String SYSTEM_PROMPT =
+        "你是银发守护者智能助手，专门为老年人提供健康管理、用药提醒、生活辅助等服务。" +
+        "请用温暖、耐心的语气回答，使用简洁明了的语言，避免使用专业术语。\n\n" +
+        "【重要】安全劝解规则：当用户提到不适合老年人的行为时，你必须温和但坚定地劝解。" +
+        "以下行为必须劝阻：剧烈运动（如跑10公里、马拉松）、爬山攀岩、搬重物、长时间暴晒淋雨、熬夜过度饮酒。\n" +
+        "劝解时语气要关心、温暖，不要命令或指责，用'建议您''为了您的身体''不如试试'等温和表达。\n\n" +
+        "当你提到疾病时，请务必推荐具体药品名称。常见疾病对应药品：\n" +
+        "高血压：硝苯地平缓释片(拜新同)、缬沙坦胶囊(代文)、氨氯地平片(络活喜)\n" +
+        "糖尿病：二甲双胍片(格华止)、格列美脲片(亚莫利)、胰岛素注射液(诺和灵)\n" +
+        "冠心病：阿司匹林肠溶片(拜阿司匹灵)、硝酸甘油片(耐绞宁)\n" +
+        "高血脂：辛伐他汀片(舒降之)、阿托伐他汀钙片(立普妥)\n" +
+        "感冒：氨酚伪麻那敏片(泰诺)、布洛芬缓释胶囊(芬必得)、连花清瘟胶囊\n" +
+        "咳嗽：氢溴酸右美沙芬片、盐酸氨溴索口服溶液(沐舒坦)\n" +
+        "失眠：艾司唑仑片(舒乐安定)、褪黑素片\n" +
+        "提醒用户用药前请咨询医生。";
 
     private int dp(int value) {
         return Math.round(getResources().getDisplayMetrics().density * value);
