@@ -1,18 +1,28 @@
 package com.silverguardian.prototype.fragments;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,9 +35,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AlbumFragment extends Fragment {
+    private static final int PICK_IMAGE = 501;
+    private static final int REQUEST_READ_IMAGES = 502;
     private final List<AlbumPhoto> visible = new ArrayList<>();
     private PhotoAdapter adapter;
     private Spinner categorySpinner;
+    private Uri pendingImageUri;
 
     @Nullable
     @Override
@@ -81,9 +94,30 @@ public class AlbumFragment extends Fragment {
     }
 
     private void showUploadDialog() {
+        pendingImageUri = null;
         LinearLayout form = new LinearLayout(requireContext());
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(36, 8, 36, 0);
+
+        ImageView preview = new ImageView(requireContext());
+        preview.setLayoutParams(new LinearLayout.LayoutParams(dp(200), dp(200)));
+        preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        preview.setBackgroundColor(0xFFE5ECE7);
+        preview.setImageResource(android.R.drawable.ic_menu_gallery);
+        form.addView(preview);
+
+        TextView pickBtn = new TextView(requireContext());
+        pickBtn.setText("📷 从相册选择照片");
+        pickBtn.setTextSize(18);
+        pickBtn.setTextColor(getResources().getColor(R.color.primary));
+        pickBtn.setGravity(android.view.Gravity.CENTER);
+        pickBtn.setBackgroundResource(R.drawable.bg_chip_soft);
+        pickBtn.setPadding(dp(14), dp(12), dp(14), dp(12));
+        LinearLayout.LayoutParams pickParams = new LinearLayout.LayoutParams(-1, -2);
+        pickParams.topMargin = dp(12);
+        pickBtn.setLayoutParams(pickParams);
+        form.addView(pickBtn);
+
         EditText title = input("照片标题");
         Spinner category = new Spinner(requireContext());
         category.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, new String[]{"家庭", "旅行", "日常", "节日"}));
@@ -91,18 +125,66 @@ public class AlbumFragment extends Fragment {
         form.addView(title);
         form.addView(category);
         form.addView(message);
+
+        pickBtn.setOnClickListener(v -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.READ_MEDIA_IMAGES}, REQUEST_READ_IMAGES);
+                    return;
+                }
+            } else {
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_READ_IMAGES);
+                    return;
+                }
+            }
+            openGallery();
+        });
+
         new AlertDialog.Builder(requireContext())
             .setTitle("上传照片")
             .setView(form)
             .setPositiveButton("保存", (d, w) -> {
                 String photoTitle = title.getText().toString().trim();
                 if (photoTitle.isEmpty()) photoTitle = "新的回忆";
+                String imagePath = pendingImageUri != null ? pendingImageUri.toString() : "";
                 MockData.addPhoto(photoTitle, category.getSelectedItem().toString(), message.getText().toString().trim());
+                if (!imagePath.isEmpty()) {
+                    AlbumPhoto added = MockData.getPhotos().isEmpty() ? null : MockData.getPhotos().get(0);
+                    if (added != null) added.url = imagePath;
+                }
                 refreshCategories();
                 refresh();
+                Toast.makeText(requireContext(), "照片已上传", Toast.LENGTH_SHORT).show();
             })
             .setNegativeButton("取消", null)
             .show();
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, PICK_IMAGE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE && resultCode == getActivity().RESULT_OK && data != null) {
+            pendingImageUri = data.getData();
+            Toast.makeText(requireContext(), "已选择照片", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_READ_IMAGES) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openGallery();
+            } else {
+                Toast.makeText(requireContext(), "需要相册权限才能选择照片，请在系统设置中授权", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private EditText input(String hint) {
