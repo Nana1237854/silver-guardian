@@ -5,53 +5,55 @@ import android.os.Handler;
 import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.silverguardian.prototype.MainActivity;
 
 import java.util.Locale;
 
-/**
- * TTS 单例 — 逐个尝试多个引擎直到成功初始化中文TTS。
- */
 public class TtsHelper {
     private static final String TAG = "TtsHelper";
+    private static final int MAX_RETRIES = 5;
 
-    // 按优先级排列的候选引擎包名
-    private static final String[] ENGINE_CANDIDATES = {
-        "com.google.android.tts",           // Google TTS
-        "com.iflytek.speechcloud",           // 科大讯飞
-        "com.xiaomi.mibrain.speech",         // 小米小爱
-        "com.huawei.hiai",                   // 华为智慧语音
-        "com.oppo.engine.talkback",          // OPPO
-        "com.android.providers.settings",    // 系统默认（会失败但兜底）
+    private static final String[] CANDIDATES = {
+        "com.google.android.tts", "com.iflytek.speechcloud",
+        "com.xiaomi.mibrain.speech", "com.huawei.hiai",
+        "com.oppo.engine.talkback",
     };
 
     private static TextToSpeech instance;
     private static volatile boolean ready;
     private static String pendingMessage;
     private static Context appContext;
-    private static int engineIndex;
+    private static int retryCount;
 
     public static void init(Context context) {
         if (instance != null) return;
         appContext = context.getApplicationContext();
-        engineIndex = -1;
-        tryNextEngine();
+        retryCount = 0;
+        tryEngine(-1);
     }
 
-    private static void tryNextEngine() {
+    private static void tryEngine(int idx) {
         if (instance != null) { instance.shutdown(); instance = null; }
         ready = false;
-        engineIndex++;
 
-        if (engineIndex >= ENGINE_CANDIDATES.length) {
-            // 所有候选引擎都失败了，回退到默认引擎
-            Log.e(TAG, "所有候选引擎均失败, 使用默认引擎最后尝试");
-            instance = new TextToSpeech(appContext, status -> onInit(status, "default"));
+        if (retryCount >= MAX_RETRIES) {
+            Log.e(TAG, "TTS 不可用 (已尝试 " + retryCount + " 次), 仅使用通知栏提醒");
+            return;
+        }
+        retryCount++;
+
+        if (idx + 1 >= CANDIDATES.length) {
+            // 所有候选引擎失败，最后一次用默认引擎
+            Log.d(TAG, "尝试默认引擎");
+            instance = new TextToSpeech(appContext, s -> onInit(s, "default"));
             return;
         }
 
-        String engine = ENGINE_CANDIDATES[engineIndex];
-        Log.d(TAG, "尝试引擎[" + engineIndex + "]: " + engine);
-        instance = new TextToSpeech(appContext, status -> onInit(status, engine), engine);
+        String engine = CANDIDATES[idx + 1];
+        Log.d(TAG, "尝试引擎: " + engine);
+        instance = new TextToSpeech(appContext, s -> onInit(s, engine), engine);
     }
 
     private static void onInit(int status, String engine) {
@@ -60,27 +62,29 @@ public class TtsHelper {
             if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED)
                 r = instance.setLanguage(Locale.SIMPLIFIED_CHINESE);
             if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.w(TAG, engine + " 不支持中文, 尝试下一个");
-                tryNextEngine();
+                Log.w(TAG, engine + " 不支持中文");
+                tryEngine(-1); // 继续尝试
             } else {
                 instance.setSpeechRate(0.8f);
                 ready = true;
-                Log.d(TAG, "TTS 成功: " + engine + ", 语言=" + instance.getLanguage());
+                Log.d(TAG, "TTS 就绪: " + engine);
                 if (pendingMessage != null) {
                     instance.speak(pendingMessage, TextToSpeech.QUEUE_FLUSH, null, "med");
                     pendingMessage = null;
                 }
             }
         } else {
-            Log.w(TAG, engine + " 初始化失败 status=" + status + ", 尝试下一个");
-            new Handler(Looper.getMainLooper()).postDelayed(TtsHelper::tryNextEngine, 500);
+            Log.w(TAG, engine + " 失败 status=" + status);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> tryEngine(-1), 300);
         }
     }
 
     public static void speak(String message) {
         if (instance != null && ready) {
             instance.speak(message, TextToSpeech.QUEUE_FLUSH, null, "med");
-        } else if (instance != null) {
+        } else if (retryCount >= MAX_RETRIES) {
+            Log.w(TAG, "TTS 不可用, 跳过语音播报");
+        } else {
             pendingMessage = message;
         }
     }
