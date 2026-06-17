@@ -19,12 +19,14 @@ import androidx.core.content.ContextCompat;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
+import com.amap.api.maps.MapsInitializer;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
+import com.amap.api.services.core.ServiceSettings;
 import com.amap.api.services.poisearch.PoiResult;
 import com.amap.api.services.poisearch.PoiSearch;
 import com.amap.api.services.route.RouteSearch;
@@ -99,6 +101,12 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
         root.addView(back);
 
         setContentView(root);
+
+        // 高德 SDK 隐私合规（必须在所有 API 调用前设置）
+        MapsInitializer.updatePrivacyShow(this, true, true);
+        MapsInitializer.updatePrivacyAgree(this, true);
+        ServiceSettings.updatePrivacyShow(this, true, true);
+        ServiceSettings.updatePrivacyAgree(this, true);
 
         mapView.onCreate(savedInstanceState);
         initMap();
