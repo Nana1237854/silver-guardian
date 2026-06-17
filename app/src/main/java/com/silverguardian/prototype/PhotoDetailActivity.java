@@ -4,11 +4,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -27,6 +27,8 @@ public class PhotoDetailActivity extends AppCompatActivity {
         String sceneTag = getIntent().getStringExtra("photo_scene_tag");
         String description = getIntent().getStringExtra("photo_description");
         boolean favorite = getIntent().getBooleanExtra("photo_favorite", false);
+        int position = getIntent().getIntExtra("photo_position", -1);
+        int totalCount = getIntent().getIntExtra("photo_total", 1);
 
         if (title == null) title = "照片详情";
 
@@ -37,6 +39,23 @@ public class PhotoDetailActivity extends AppCompatActivity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(24), dp(24), dp(24), dp(48));
         scroll.addView(root);
+
+        // 翻页导航
+        if (position >= 0 && totalCount > 0) {
+            LinearLayout navRow = new LinearLayout(this);
+            navRow.setOrientation(LinearLayout.HORIZONTAL);
+            navRow.setGravity(Gravity.CENTER);
+            navRow.setPadding(0, 0, 0, dp(12));
+
+            TextView navText = new TextView(this);
+            navText.setText((position + 1) + " / " + totalCount);
+            navText.setTextSize(16);
+            navText.setTextColor(getColor(R.color.text_secondary));
+            navText.setGravity(Gravity.CENTER);
+            navRow.addView(navText, new LinearLayout.LayoutParams(0, -2, 1));
+
+            root.addView(navRow);
+        }
 
         // 图片
         ImageView imageView = new ImageView(this);
@@ -52,7 +71,6 @@ public class PhotoDetailActivity extends AppCompatActivity {
         } else {
             imageView.setImageResource(android.R.drawable.ic_menu_gallery);
         }
-
         root.addView(imageView, new LinearLayout.LayoutParams(-1, dp(300)));
 
         // 标题
@@ -64,7 +82,6 @@ public class PhotoDetailActivity extends AppCompatActivity {
         titleView.setPadding(0, dp(20), 0, dp(8));
         root.addView(titleView);
 
-        // 收藏标记
         if (favorite) {
             TextView favTag = new TextView(this);
             favTag.setText("❤️ 已收藏");
@@ -75,21 +92,12 @@ public class PhotoDetailActivity extends AppCompatActivity {
             root.addView(favTag);
         }
 
-        // 详情
-        if (category != null && !category.isEmpty()) {
-            root.addView(infoRow("分类", category));
-        }
-        if (sceneTag != null && !sceneTag.isEmpty()) {
-            root.addView(infoRow("场景", sceneTag));
-        }
-        if (description != null && !description.isEmpty()) {
-            root.addView(infoRow("说明", description));
-        }
-        if (message != null && !message.isEmpty()) {
-            root.addView(infoRow("家属留言", message));
-        }
+        if (category != null && !category.isEmpty()) root.addView(infoRow("分类", category));
+        if (sceneTag != null && !sceneTag.isEmpty()) root.addView(infoRow("场景", sceneTag));
+        if (description != null && !description.isEmpty()) root.addView(infoRow("说明", description));
+        if (message != null && !message.isEmpty()) root.addView(infoRow("家属留言", message));
 
-        // 返回按钮
+        // 返回
         TextView back = new TextView(this);
         back.setText("↩ 返回相册");
         back.setTextSize(18);
@@ -107,20 +115,17 @@ public class PhotoDetailActivity extends AppCompatActivity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(0, dp(10), 0, 0);
-
-        TextView labelView = new TextView(this);
-        labelView.setText(label + "：");
-        labelView.setTextSize(15);
-        labelView.setTextColor(getColor(R.color.text_secondary));
-        row.addView(labelView);
-
-        TextView valueView = new TextView(this);
-        valueView.setText(value);
-        valueView.setTextSize(15);
-        valueView.setTextColor(getColor(R.color.text_primary));
-        valueView.setPadding(dp(8), 0, 0, 0);
-        row.addView(valueView);
-
+        TextView lv = new TextView(this);
+        lv.setText(label + "：");
+        lv.setTextSize(15);
+        lv.setTextColor(getColor(R.color.text_secondary));
+        row.addView(lv);
+        TextView vv = new TextView(this);
+        vv.setText(value);
+        vv.setTextSize(15);
+        vv.setTextColor(getColor(R.color.text_primary));
+        vv.setPadding(dp(8), 0, 0, 0);
+        row.addView(vv);
         return row;
     }
 

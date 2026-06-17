@@ -299,6 +299,12 @@ public class MockData {
         return photo;
     }
 
+    public static void deletePhoto(AlbumPhoto photo) {
+        requireLoaded();
+        photos.remove(photo);
+        if (dbHelper != null) dbHelper.getWritableDatabase().delete("album_photos", "id=?", new String[]{String.valueOf(photo.id)});
+    }
+
     public static void toggleFavorite(AlbumPhoto photo) {
         requireLoaded();
         photo.favorite = !photo.favorite;

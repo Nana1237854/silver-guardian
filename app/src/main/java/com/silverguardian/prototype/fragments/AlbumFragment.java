@@ -100,6 +100,9 @@ public class AlbumFragment extends Fragment {
         allPhotos.addAll(MockData.getPhotos());
 
         albumGroups.clear();
+        // "全部照片" 作为第一个相册
+        albumGroups.add(new AlbumGroup("全部照片", allPhotos));
+        // 按分类分组
         Map<String, List<AlbumPhoto>> grouped = new LinkedHashMap<>();
         for (AlbumPhoto p : allPhotos) {
             String cat = p.category != null ? p.category : "其他";
@@ -126,8 +129,8 @@ public class AlbumFragment extends Fragment {
             .setPositiveButton("创建", (d, w) -> {
                 String name = input.getText().toString().trim();
                 if (!name.isEmpty()) {
-                    MockData.addPhoto("新照片", name, "");
-                    showAlbumList();
+                    // 创建后直接进入该相册，方便立即添加照片
+                    showPhotoGrid(name);
                 }
             })
             .setNegativeButton("取消", null)
@@ -308,6 +311,23 @@ public class AlbumFragment extends Fragment {
                 image.setImageResource(android.R.drawable.ic_menu_gallery);
             }
             itemView.setOnClickListener(v -> showPhotoGrid(group.name));
+            // 长按删除相册（"全部照片"不可删除）
+            if (!"全部照片".equals(group.name)) {
+                itemView.setOnLongClickListener(v -> {
+                    new AlertDialog.Builder(requireContext())
+                        .setTitle("删除相册「" + group.name + "」")
+                        .setMessage("将删除该相册下的所有照片，确定吗？")
+                        .setPositiveButton("删除", (d, w) -> {
+                            for (AlbumPhoto p : new ArrayList<>(allPhotos)) {
+                                if (group.name.equals(p.category)) MockData.deletePhoto(p);
+                            }
+                            showAlbumList();
+                        })
+                        .setNegativeButton("取消", null)
+                        .show();
+                    return true;
+                });
+            }
         }
     }
 
@@ -351,6 +371,8 @@ public class AlbumFragment extends Fragment {
                 intent.putExtra("photo_scene_tag", photo.sceneTag);
                 intent.putExtra("photo_description", photo.description);
                 intent.putExtra("photo_favorite", photo.favorite);
+                intent.putExtra("photo_position", getAdapterPosition());
+                intent.putExtra("photo_total", albumPhotos.size());
                 startActivity(intent);
             });
             itemView.setOnLongClickListener(v -> {
