@@ -23,6 +23,7 @@ import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.Medicine;
 import com.silverguardian.prototype.models.MedicineLibraryItem;
+import com.silverguardian.prototype.utils.FontScaleHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -149,10 +150,12 @@ public class MedicineFragment extends Fragment {
     private EditText input(String hint) {
         EditText editText = new EditText(requireContext());
         editText.setHint(hint);
-        editText.setTextSize(18);
+        editText.setTextSize(sp(18));
         editText.setSingleLine(false);
         return editText;
     }
+
+    private int sp(int base) { return FontScaleHelper.sp(requireContext(), base); }
 
     private class MedicineAdapter extends RecyclerView.Adapter<MedicineViewHolder> {
         @NonNull @Override public MedicineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

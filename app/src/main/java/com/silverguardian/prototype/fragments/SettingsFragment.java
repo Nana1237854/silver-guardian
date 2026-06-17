@@ -94,7 +94,7 @@ public class SettingsFragment extends Fragment {
                 int current = FontScaleHelper.getFontModeIndex(requireContext());
                 if (position != current) {
                     FontScaleHelper.setFontMode(requireContext(), position);
-                    Toast.makeText(requireContext(), "字体模式已更改，切换页面后生效", Toast.LENGTH_SHORT).show();
+                    requireActivity().recreate();
                 }
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
@@ -119,8 +119,7 @@ public class SettingsFragment extends Fragment {
         toggle.setOnClickListener(v -> {
             boolean current = FontScaleHelper.isHighContrast(requireContext());
             FontScaleHelper.setHighContrast(requireContext(), !current);
-            toggle.setText(!current ? "✓ 已开启" : "○ 已关闭");
-            Toast.makeText(requireContext(), "高对比度模式已" + (!current ? "开启" : "关闭"), Toast.LENGTH_SHORT).show();
+            requireActivity().recreate();
         });
         card.addView(toggle);
         return card;

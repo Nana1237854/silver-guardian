@@ -40,7 +40,19 @@ public class FontScaleHelper {
     }
 
     public static int dp(Context context, int baseDp) {
-        float scale = getTextScale(context);
-        return Math.round(baseDp * scale * context.getResources().getDisplayMetrics().density);
+        return Math.round(baseDp * context.getResources().getDisplayMetrics().density);
+    }
+
+    // 高对比度颜色切换
+    public static int textPrimary(Context context) {
+        return isHighContrast(context) ? android.graphics.Color.BLACK : 0xFF202420;
+    }
+
+    public static int textSecondary(Context context) {
+        return isHighContrast(context) ? android.graphics.Color.DKGRAY : 0xFF8C978F;
+    }
+
+    public static int bgPage(Context context) {
+        return isHighContrast(context) ? android.graphics.Color.WHITE : 0xFFEEF7F1;
     }
 }

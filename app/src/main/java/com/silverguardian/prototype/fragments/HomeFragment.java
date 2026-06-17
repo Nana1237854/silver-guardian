@@ -19,43 +19,32 @@ import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.FamilyMember;
 import com.silverguardian.prototype.models.HealthData;
+import com.silverguardian.prototype.utils.FontScaleHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * 首页中枢 — 健康快报 + 家属列表 + AI 对话入口。
- */
 public class HomeFragment extends Fragment {
 
     @Nullable
     @Override
     public View onCreateView(@NonNull android.view.LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ScrollView scroll = new ScrollView(requireContext());
-        scroll.setBackgroundColor(getResources().getColor(R.color.bg_page));
+        scroll.setBackgroundColor(FontScaleHelper.bgPage(requireContext()));
 
         LinearLayout root = new LinearLayout(requireContext());
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(20), dp(20), dp(20), dp(110));
         scroll.addView(root);
 
-        // 日期 + 天气
         root.addView(dateWeatherRow());
-
-        // AI 对话入口卡片
         root.addView(aiEntryCard());
-
-        // 健康快报
         root.addView(sectionHeader("❤️ 健康快报"));
         root.addView(healthSnapshotCard());
-
-        // 家属列表
         root.addView(sectionHeader("👨‍👩‍👧‍👦 家人"));
         root.addView(familyListCard());
-
-        // 快捷操作
         root.addView(sectionHeader("快捷操作"));
         root.addView(quickActions());
 
@@ -70,9 +59,9 @@ public class HomeFragment extends Fragment {
 
         TextView date = new TextView(requireContext());
         date.setText(new SimpleDateFormat("yyyy年M月d日 EEEE", Locale.CHINESE).format(new Date()));
-        date.setTextSize(20);
+        date.setTextSize(sp(20));
         date.setTypeface(null, android.graphics.Typeface.BOLD);
-        date.setTextColor(getResources().getColor(R.color.text_primary));
+        date.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         row.addView(date, new LinearLayout.LayoutParams(0, -2, 1));
 
         TextView weather = chip("☀️ 晴 26°C");
@@ -87,23 +76,23 @@ public class HomeFragment extends Fragment {
 
         TextView icon = new TextView(requireContext());
         icon.setText("🤖");
-        icon.setTextSize(40);
+        icon.setTextSize(sp(40));
         icon.setGravity(Gravity.CENTER);
         icon.setPadding(0, 0, 0, dp(8));
         card.addView(icon);
 
         TextView title = new TextView(requireContext());
         title.setText("智能守护助手");
-        title.setTextSize(24);
+        title.setTextSize(sp(24));
         title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setTextColor(getResources().getColor(R.color.text_primary));
+        title.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         title.setGravity(Gravity.CENTER);
         card.addView(title);
 
         TextView hint = new TextView(requireContext());
         hint.setText("点击开始 AI 对话 · 健康咨询 · 药品推荐");
-        hint.setTextSize(15);
-        hint.setTextColor(getResources().getColor(R.color.text_secondary));
+        hint.setTextSize(sp(15));
+        hint.setTextColor(FontScaleHelper.textSecondary(requireContext()));
         hint.setGravity(Gravity.CENTER);
         hint.setPadding(0, dp(6), 0, dp(4));
         card.addView(hint);
@@ -114,7 +103,6 @@ public class HomeFragment extends Fragment {
 
     private View healthSnapshotCard() {
         LinearLayout card = card();
-
         List<HealthData> data = MockData.getHealthData();
         String[][] priority = {{"heart_rate", "心率"}, {"blood_pressure", "血压"}, {"blood_sugar", "血糖"}, {"steps", "步数"}, {"temperature", "体温"}};
         int shown = 0;
@@ -128,11 +116,8 @@ public class HomeFragment extends Fragment {
             }
         }
         if (shown == 0) {
-            TextView empty = body("暂无健康数据，去健康探索添加吧");
-            card.addView(empty);
+            card.addView(body("暂无健康数据，去健康探索添加吧"));
         }
-
-        // 查看详情
         TextView detail = chip("查看详情 →");
         detail.setGravity(Gravity.CENTER);
         detail.setOnClickListener(v -> {
@@ -149,30 +134,26 @@ public class HomeFragment extends Fragment {
         row.setPadding(0, dp(6), 0, dp(6));
 
         TextView labelView = body(label);
-        labelView.setTextSize(15);
         row.addView(labelView, new LinearLayout.LayoutParams(dp(72), -2));
 
         TextView valueView = new TextView(requireContext());
         valueView.setText(value);
-        valueView.setTextSize(15);
+        valueView.setTextSize(sp(15));
         valueView.setTypeface(null, android.graphics.Typeface.BOLD);
-        valueView.setTextColor(getResources().getColor(R.color.text_primary));
+        valueView.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         row.addView(valueView, new LinearLayout.LayoutParams(0, -2, 1));
 
-        TextView statusView = miniChip(status);
-        row.addView(statusView);
+        row.addView(miniChip(status));
         return row;
     }
 
     private View familyListCard() {
         LinearLayout card = card();
-
         List<FamilyMember> members = MockData.getFamilyMembers();
         if (members.isEmpty()) {
             card.addView(body("暂无家属信息"));
             return card;
         }
-
         for (FamilyMember m : members) {
             LinearLayout row = new LinearLayout(requireContext());
             row.setOrientation(LinearLayout.HORIZONTAL);
@@ -186,14 +167,13 @@ public class HomeFragment extends Fragment {
 
             TextView nameView = new TextView(requireContext());
             nameView.setText(m.name + "（" + m.relationship + "）");
-            nameView.setTextSize(16);
-            nameView.setTextColor(getResources().getColor(R.color.text_primary));
+            nameView.setTextSize(sp(16));
+            nameView.setTextColor(FontScaleHelper.textPrimary(requireContext()));
             nameView.setPadding(dp(10), 0, 0, 0);
             row.addView(nameView, new LinearLayout.LayoutParams(0, -2, 1));
 
             if (m.phone != null && !m.phone.isEmpty()) {
-                TextView phone = miniChip(m.phone);
-                row.addView(phone);
+                row.addView(miniChip(m.phone));
             }
             card.addView(row);
         }
@@ -203,21 +183,12 @@ public class HomeFragment extends Fragment {
     private View quickActions() {
         LinearLayout row = new LinearLayout(requireContext());
         row.setOrientation(LinearLayout.HORIZONTAL);
-
         row.addView(quickActionBtn("📞 一键呼叫", v -> {
             if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).oneTapCall();
         }));
         row.addView(quickActionBtn("🩺 健康档案", v -> {
             if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).openHealth();
         }));
-        row.addView(quickActionBtn("💊 用药提醒", v -> {
-            if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).findViewById(R.id.bottom_navigation).callOnClick();
-            // Navigate to medicine via MainActivity
-            com.google.android.material.bottomnavigation.BottomNavigationView nav =
-                getActivity().findViewById(R.id.bottom_navigation);
-            if (nav != null) nav.setSelectedItemId(R.id.bottom_medicine);
-        }));
-
         return row;
     }
 
@@ -231,8 +202,8 @@ public class HomeFragment extends Fragment {
 
         TextView tv = new TextView(requireContext());
         tv.setText(text);
-        tv.setTextSize(13);
-        tv.setTextColor(getResources().getColor(R.color.text_primary));
+        tv.setTextSize(sp(13));
+        tv.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         tv.setGravity(Gravity.CENTER);
         btn.addView(tv);
 
@@ -241,8 +212,6 @@ public class HomeFragment extends Fragment {
         btn.setLayoutParams(params);
         return btn;
     }
-
-    // ========== Utils ==========
 
     private LinearLayout card() {
         LinearLayout card = new LinearLayout(requireContext());
@@ -258,9 +227,9 @@ public class HomeFragment extends Fragment {
     private TextView sectionHeader(String text) {
         TextView view = new TextView(requireContext());
         view.setText(text);
-        view.setTextSize(18);
+        view.setTextSize(sp(18));
         view.setTypeface(null, android.graphics.Typeface.BOLD);
-        view.setTextColor(getResources().getColor(R.color.text_primary));
+        view.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         view.setPadding(0, dp(4), 0, dp(8));
         return view;
     }
@@ -268,17 +237,17 @@ public class HomeFragment extends Fragment {
     private TextView body(String text) {
         TextView view = new TextView(requireContext());
         view.setText(text);
-        view.setTextSize(15);
-        view.setTextColor(getResources().getColor(R.color.text_secondary));
+        view.setTextSize(sp(15));
+        view.setTextColor(FontScaleHelper.textSecondary(requireContext()));
         return view;
     }
 
     private TextView chip(String text) {
         TextView view = new TextView(requireContext());
         view.setText(text);
-        view.setTextSize(14);
+        view.setTextSize(sp(14));
         view.setTypeface(null, android.graphics.Typeface.BOLD);
-        view.setTextColor(getResources().getColor(R.color.primary));
+        view.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         view.setBackgroundResource(R.drawable.bg_chip_soft);
         view.setPadding(dp(14), dp(8), dp(14), dp(8));
         return view;
@@ -287,15 +256,14 @@ public class HomeFragment extends Fragment {
     private TextView miniChip(String text) {
         TextView view = new TextView(requireContext());
         view.setText(text);
-        view.setTextSize(12);
+        view.setTextSize(sp(12));
         view.setTypeface(null, android.graphics.Typeface.BOLD);
-        view.setTextColor(getResources().getColor(R.color.primary));
+        view.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         view.setBackgroundResource(R.drawable.bg_chip_soft);
         view.setPadding(dp(8), dp(4), dp(8), dp(4));
         return view;
     }
 
-    private int dp(int value) {
-        return Math.round(getResources().getDisplayMetrics().density * value);
-    }
+    private int sp(int base) { return FontScaleHelper.sp(requireContext(), base); }
+    private int dp(int value) { return FontScaleHelper.dp(requireContext(), value); }
 }

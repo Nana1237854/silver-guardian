@@ -20,6 +20,7 @@ import com.silverguardian.prototype.ChatDetailActivity;
 import com.silverguardian.prototype.MainActivity;
 import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.data.MockData;
+import com.silverguardian.prototype.utils.FontScaleHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -30,7 +31,7 @@ public class HealthFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull android.view.LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ScrollView scrollView = new ScrollView(requireContext());
-        scrollView.setBackgroundColor(getResources().getColor(R.color.bg_page));
+        scrollView.setBackgroundColor(FontScaleHelper.bgPage(requireContext()));
 
         LinearLayout root = new LinearLayout(requireContext());
         root.setOrientation(LinearLayout.VERTICAL);
@@ -55,8 +56,8 @@ public class HealthFragment extends Fragment {
         card.setBackgroundResource(R.drawable.bg_card_accent);
         TextView date = new TextView(requireContext());
         date.setText(new SimpleDateFormat("M月d日 EEEE", Locale.CHINESE).format(new Date()) + "\n☀ 26°C 晴");
-        date.setTextSize(18);
-        date.setTextColor(getResources().getColor(R.color.text_primary));
+        date.setTextSize(sp(18));
+        date.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         date.setGravity(Gravity.CENTER);
         card.addView(date);
         TextView mascot = new TextView(requireContext());
@@ -180,17 +181,17 @@ public class HealthFragment extends Fragment {
     private TextView title(String text) {
         TextView view = new TextView(requireContext());
         view.setText(text);
-        view.setTextSize(18);
+        view.setTextSize(sp(18));
         view.setTypeface(null, android.graphics.Typeface.BOLD);
-        view.setTextColor(getResources().getColor(R.color.text_primary));
+        view.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         return view;
     }
 
     private TextView body(String text) {
         TextView view = new TextView(requireContext());
         view.setText(text);
-        view.setTextSize(15);
-        view.setTextColor(getResources().getColor(R.color.text_secondary));
+        view.setTextSize(sp(15));
+        view.setTextColor(FontScaleHelper.textSecondary(requireContext()));
         view.setPadding(0, dp(6), 0, dp(6));
         return view;
     }
@@ -198,15 +199,15 @@ public class HealthFragment extends Fragment {
     private TextView chip(String text) {
         TextView view = new TextView(requireContext());
         view.setText(text);
-        view.setTextSize(15);
+        view.setTextSize(sp(15));
         view.setTypeface(null, android.graphics.Typeface.BOLD);
-        view.setTextColor(getResources().getColor(R.color.primary));
+        view.setTextColor(FontScaleHelper.textPrimary(requireContext()));
         view.setBackgroundResource(R.drawable.bg_chip_soft);
         view.setPadding(dp(16), dp(10), dp(16), dp(10));
         return view;
     }
 
-    private int dp(int value) {
-        return Math.round(getResources().getDisplayMetrics().density * value);
-    }
+    private int sp(int base) { return FontScaleHelper.sp(requireContext(), base); }
+
+    private int dp(int value) { return FontScaleHelper.dp(requireContext(), value); }
 }
