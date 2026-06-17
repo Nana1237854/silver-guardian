@@ -1,8 +1,14 @@
 package com.silverguardian.prototype;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.widget.Button;
@@ -10,11 +16,17 @@ import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
 
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.ChatMessage;
@@ -23,9 +35,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChatDetailActivity extends AppCompatActivity {
+    private static final int REQUEST_RECORD_AUDIO = 401;
+
     private final List<ChatMessage> messages = new ArrayList<>();
     private ChatAdapter adapter;
     private EditText input;
+    private SpeechRecognizer speechRecognizer;
+    private Button voiceButton;
+    private boolean isListening = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,10 +138,10 @@ public class ChatDetailActivity extends AppCompatActivity {
         input.setPadding(dp(18), dp(14), dp(18), dp(14));
         inputRow.addView(input, new LinearLayout.LayoutParams(0, dp(56), 1));
 
-        Button voice = pillButton("🎙");
+        voiceButton = pillButton("🎙");
         LinearLayout.LayoutParams voiceParams = new LinearLayout.LayoutParams(dp(54), dp(54));
         voiceParams.leftMargin = dp(10);
-        inputRow.addView(voice, voiceParams);
+        inputRow.addView(voiceButton, voiceParams);
 
         Button send = pillButton("➜");
         LinearLayout.LayoutParams sendParams = new LinearLayout.LayoutParams(dp(54), dp(54));
@@ -136,11 +153,123 @@ public class ChatDetailActivity extends AppCompatActivity {
         messages.addAll(MockData.getWelcomeMessages());
         adapter.notifyDataSetChanged();
 
+        // 初始化语音识别
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        speechRecognizer.setRecognitionListener(recognitionListener);
+
         menu.setOnClickListener(v -> drawer.openDrawer(Gravity.START));
         close.setOnClickListener(v -> finish());
-        voice.setOnClickListener(v -> input.setText("帮我分析一下今天的健康档案"));
+        voiceButton.setOnClickListener(v -> startVoiceInput());
         send.setOnClickListener(v -> send());
     }
+
+    // ========== 语音输入 ==========
+
+    private void startVoiceInput() {
+        if (isListening) {
+            speechRecognizer.stopListening();
+            isListening = false;
+            voiceButton.setText("🎙");
+            return;
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO);
+            return;
+        }
+        beginListening();
+    }
+
+    private void beginListening() {
+        isListening = true;
+        voiceButton.setText("⏹");
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-CN");
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        speechRecognizer.startListening(intent);
+    }
+
+    private final RecognitionListener recognitionListener = new RecognitionListener() {
+        @Override public void onReadyForSpeech(Bundle params) {
+            Toast.makeText(ChatDetailActivity.this, "请说话...", Toast.LENGTH_SHORT).show();
+        }
+        @Override public void onBeginningOfSpeech() {}
+        @Override public void onRmsChanged(float rmsdB) {}
+        @Override public void onBufferReceived(byte[] buffer) {}
+
+        @Override
+        public void onEndOfSpeech() {
+            isListening = false;
+            voiceButton.setText("🎙");
+        }
+
+        @Override
+        public void onError(int error) {
+            isListening = false;
+            voiceButton.setText("🎙");
+            String msg;
+            switch (error) {
+                case SpeechRecognizer.ERROR_AUDIO: msg = "录音错误"; break;
+                case SpeechRecognizer.ERROR_CLIENT: msg = "客户端错误"; break;
+                case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS: msg = "权限不足"; break;
+                case SpeechRecognizer.ERROR_NETWORK: msg = "网络错误"; break;
+                case SpeechRecognizer.ERROR_NETWORK_TIMEOUT: msg = "网络超时"; break;
+                case SpeechRecognizer.ERROR_NO_MATCH: msg = "未识别到语音，请再试一次"; break;
+                case SpeechRecognizer.ERROR_RECOGNIZER_BUSY: msg = "语音服务忙碌"; break;
+                case SpeechRecognizer.ERROR_SERVER: msg = "服务器错误"; break;
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT: msg = "语音超时"; break;
+                default: msg = "识别出错（错误码 " + error + "）"; break;
+            }
+            Toast.makeText(ChatDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onResults(Bundle results) {
+            isListening = false;
+            voiceButton.setText("🎙");
+            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if (matches != null && !matches.isEmpty()) {
+                input.setText(matches.get(0));
+                input.setSelection(input.getText().length());
+            }
+        }
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+            ArrayList<String> matches = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if (matches != null && !matches.isEmpty()) {
+                input.setText(matches.get(0));
+                input.setSelection(input.getText().length());
+            }
+        }
+
+        @Override public void onEvent(int eventType, Bundle params) {}
+    };
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_RECORD_AUDIO) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                beginListening();
+            } else {
+                Toast.makeText(this, "需要麦克风权限才能使用语音输入", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy();
+            speechRecognizer = null;
+        }
+    }
+
+    // ========== 侧边栏 ==========
 
     private LinearLayout drawerPanel() {
         LinearLayout panel = new LinearLayout(this);
