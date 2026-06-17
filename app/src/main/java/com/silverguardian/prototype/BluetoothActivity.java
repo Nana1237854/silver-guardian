@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -114,15 +115,20 @@ public class BluetoothActivity extends AppCompatActivity {
         }
 
         bluetoothAdapter = btManager.getAdapter();
-        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
-            statusText.setText("⚠️ 蓝牙未开启或不可用，使用模拟模式");
+        if (bluetoothAdapter == null) {
+            statusText.setText("⚠️ 此设备不支持蓝牙");
             loadMockDevices();
+            return;
+        }
+        if (!bluetoothAdapter.isEnabled()) {
+            statusText.setText("📱 请先开启蓝牙");
+            startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1);
             return;
         }
 
         leScanner = bluetoothAdapter.getBluetoothLeScanner();
         if (leScanner == null) {
-            statusText.setText("⚠️ 不支持 BLE 扫描，使用模拟模式");
+            statusText.setText("⚠️ BLE 不可用，使用模拟模式");
             loadMockDevices();
             return;
         }
@@ -178,6 +184,19 @@ public class BluetoothActivity extends AppCompatActivity {
                 statusText.setText("扫描完成，发现 " + foundDevices.size() + " 个设备");
             }
         }, 5000);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                initBluetooth();
+            } else {
+                statusText.setText("⚠️ 蓝牙未开启，使用模拟模式");
+                loadMockDevices();
+            }
+        }
     }
 
     private final ScanCallback scanCallback = new ScanCallback() {
