@@ -20,7 +20,9 @@ import com.silverguardian.prototype.fragments.AlbumFragment;
 import com.silverguardian.prototype.fragments.CommunityFragment;
 import com.silverguardian.prototype.fragments.FraudFragment;
 import com.silverguardian.prototype.fragments.HealthFragment;
+import com.silverguardian.prototype.fragments.HomeFragment;
 import com.silverguardian.prototype.fragments.MedicineFragment;
+import com.silverguardian.prototype.fragments.MemoryFragment;
 import com.silverguardian.prototype.fragments.SettingsFragment;
 import com.silverguardian.prototype.models.FamilyMember;
 
@@ -30,10 +32,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CALL_PHONE = 101;
     private HealthFragment healthFragment;
     private MedicineFragment medicineFragment;
+    private HomeFragment homeFragment;
     private AlbumFragment albumFragment;
     private SettingsFragment settingsFragment;
     private CommunityFragment communityFragment;
     private FraudFragment fraudFragment;
+    private MemoryFragment memoryFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,17 +49,19 @@ public class MainActivity extends AppCompatActivity {
 
         healthFragment = new HealthFragment();
         medicineFragment = new MedicineFragment();
+        homeFragment = new HomeFragment();
         albumFragment = new AlbumFragment();
         settingsFragment = new SettingsFragment();
         communityFragment = new CommunityFragment();
         fraudFragment = new FraudFragment();
+        memoryFragment = new MemoryFragment();
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.bottom_health) { switchFragment(healthFragment); return true; }
             if (id == R.id.bottom_medicine) { switchFragment(medicineFragment); return true; }
-            if (id == R.id.bottom_home) { startActivity(new Intent(this, ChatDetailActivity.class).putExtra("chat_title", "银发守护助手")); return false; }
+            if (id == R.id.bottom_home) { switchFragment(homeFragment); return true; }
             if (id == R.id.bottom_album) { switchFragment(albumFragment); return true; }
             if (id == R.id.bottom_community) { switchFragment(communityFragment); return true; }
             if (id == R.id.bottom_fraud) { switchFragment(fraudFragment); return true; }
