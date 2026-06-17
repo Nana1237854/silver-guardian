@@ -17,7 +17,7 @@
 
 "银发守护者"是一款面向老年人群体的智慧生活助手 Android 应用。针对老年群体数字使用门槛高、健康管理不便、易受电信诈骗等问题，系统提供大字体/高对比度界面、AI 智能健康对话、定时用药管理与语音播报提醒、一键紧急呼叫亲友、社区便民地图查询、防诈骗知识每日推送等功能，助力老年人安全、便捷地融入智能生活。
 
-系统采用 Android 原生开发技术栈：XML 布局 + Activity/Fragment 导航架构 + SQLite 本地数据存储 + SharedPreferences 用户偏好管理。同时集成了高德地图 SDK（社区便民查询）、OkHttp 第三方网络库（防诈骗内容拉取）、系统 TTS 语音引擎（用药语音播报）、SpeechRecognizer（AI 对话语音输入）、BluetoothLeScanner（健康设备蓝牙连接）等扩展能力。
+系统采用 Android 原生开发技术栈：XML 布局 + Activity/Fragment 导航架构 + SQLite 本地数据存储 + SharedPreferences 用户偏好管理。同时集成了高德地图 SDK（社区便民查询）、OkHttp 第三方网络库（防诈骗内容拉取）、系统 TTS 语音引擎（用药语音播报）、SpeechRecognizer（AI 对话语音输入）、BluetoothLeScanner（健康设备蓝牙连接）等扩展能力。代码架构经过多轮重构，提取了 BaseFragment 基类消除重复、ElderlyDbHelper 独立 DB 层可测试、ChatAdapter 独立适配器复用、GalleryPermissionHelper 统一权限管理等。
 
 系统面向两类用户：（1）老人——主要使用者，通过 PIN 码登录后进行健康管理、用药打卡、AI 智能对话等操作；（2）家属——通过子女监控面板查看老人健康数据、服药状态，并为老人上传照片到亲情相册。
 
@@ -159,7 +159,7 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 1. 用户点击"添加药品"按钮，填写药品名称、类型、服用时间（如"08:00,20:00"）、用法（口服/外用/注射）、说明；
 2. 支持从药品库搜索关键字（如"高血压"→自动填充硝苯地平缓释片等），减少输入负担；
 3. 系统通过 `AlarmManager.setRepeating()` 为每个服药时间设置闹钟；
-4. 闹钟触发时，`ReminderBroadcastReceiver` 接收广播，同时执行两件事：通过 `NotificationManager` 发送通知栏消息、通过 `TextToSpeech.speak()` 语音播报提醒内容（如"颜爷爷，该吃硝苯地平缓释片了"）；
+4. 闹钟触发时，`ReminderBroadcastReceiver` 接收广播，执行两件事：通过 `NotificationManager` 发送通知栏消息、通过 `TtsHelper.speak()` 调用系统默认 TTS 引擎语音播报提醒内容（如"颜爷爷，该吃硝苯地平缓释片了"）；
 5. 用户点击通知进入用药提醒 Tab，在药品卡片上点击 CheckBox 完成服药打卡；
 6. 打卡记录存入 `medicine_taken` 表，同一用户同一药品同一天只能打卡一次（UNIQUE 约束）；
 7. `BootReceiver` 监听设备开机广播，自动恢复所有闹钟。
@@ -441,20 +441,23 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 **使用的技术**：OkHttp 4.12.0。
 
 **实现方式**：
-- `FraudApiClient` 封装 OkHttp 客户端，配置 10 秒超时，异步 GET 请求防诈骗 API；
+- `FraudApiClient` 封装 OkHttp 客户端，配置 `followRedirects(true)` + `followSslRedirects(true)`，10 秒超时，异步 GET 请求防诈骗 API；
+- 防诈骗数据托管于 GitHub Raw (`raw.githubusercontent.com/Nana1237854/silver-guardian/master/app/src/main/assets/fraud_api_data.json`)，包含 10 条防诈骗知识；
 - 回调通过 `Handler(Looper.getMainLooper())` 切回主线程更新 UI；
-- `parseFraudResponse()` 方法提取为静态方法，可独立测试 JSON 解析逻辑；
+- `parseFraudResponse()` 方法提取为静态方法，可独立测试 JSON 解析逻辑（6 个 JUnit 测试覆盖）；
 - 网络异常时自动从 `assets/fraud_tips.json` 加载本地兜底数据；
 - 此方法同时满足"第三方网络请求库"技术考察点（区别于课程教的 HttpURLConnection）。
 
 ### 4.7 TTS 语音播报（用药提醒）
 
-**使用的技术**：`android.speech.tts.TextToSpeech`。
+**使用的技术**：`android.speech.tts.TextToSpeech`，通过 `TtsHelper` 单例管理。
 
 **实现方式**：
-- `ReminderBroadcastReceiver` 收到闹钟广播后，在发送通知的同时初始化 TTS 引擎；
+- `TtsHelper.init()` 在 `MainActivity.onCreate()` 时预初始化，使用系统默认 TTS 引擎（与用户在 设置→文字转语音 中选择的引擎一致），不指定引擎包名确保兼容性；
 - 设置语言为 `Locale.CHINESE`，语速 0.8x（稍慢适合老人）；
-- 播报内容如"颜爷爷，该吃硝苯地平缓释片了，请按时服药"。
+- `ReminderBroadcastReceiver` 收到闹钟广播后调用 `TtsHelper.speak()` 语音播报「用户名，该吃XX药了，请按时服药」；
+- `TtsHelper` 初始化失败时自动重试最多 5 次，超限后静默降级为仅通知提醒；
+- `BootReceiver` 开机后也调用 `TtsHelper.init()` 确保重启后 TTS 可用。
 
 ### 4.8 SpeechRecognizer 语音输入
 
@@ -471,8 +474,10 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 **使用的技术**：`BluetoothLeScanner` + `ScanCallback`。
 
 **实现方式**：
+- 进入蓝牙页面时检查蓝牙状态：蓝牙未开启则弹出系统对话框 `ACTION_REQUEST_ENABLE` 引导用户开启；
 - 真机使用 `BluetoothLeScanner.startScan()` 扫描附近 BLE 设备，过滤健康相关设备（名称含 BP/OX/HR/血压/血氧/心率）；
-- 模拟器或无蓝牙硬件时自动降级为 3 个模拟设备（血压计、血氧仪、智能手环）；
+- 5 秒自动停止扫描，设备去重；
+- BluetoothLeScanner 不可用时自动降级为 3 个模拟设备（血压计、血氧仪、智能手环）；
 - 连接设备后通过 `MockData.addHealthData()` 写入 SQLite。
 
 ### 4.10 图片加载（Glide）
@@ -522,13 +527,16 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 | T30 | 便民查询-POI搜索 | 点搜索按钮（如"菜市场"） | 地图标注Marker，状态栏显示数量 | ✅ |
 | T31 | 便民查询-步行导航 | 点Marker详情→步行导航 | 显示步行距离和时间 | ✅ |
 | T32 | 便民查询-跳转导航 | 点"打开高德导航" | 跳转高德App或浏览器 | ✅ |
-| T33 | 防诈推送-列表加载 | 设置→防诈提醒→等待 | 显示防诈骗列表 | ✅ |
+| T33 | 防诈推送-远程拉取 | 设置→防诈提醒→有网 | 显示"已从网络获取10条" | ✅ |
 | T34 | 防诈推送-详情 | 点击某条目 | 显示完整案例+防范措施 | ✅ |
-| T35 | 防诈推送-网络兜底 | 断网后刷新 | 使用本地数据兜底 | ✅ |
+| T35 | 防诈推送-网络兜底 | 断网后刷新 | 显示"网络获取失败"回退本地数据 | ✅ |
 | T36 | 子女监控面板 | 设置→子女模式 | 健康/用药/SOS/家属四个模块展示 | ✅ |
 | T37 | 子女上传照片 | 子女模式→点上传→选图→保存 | 照片保存+老人端可见 | ✅ |
-| T38 | 蓝牙扫描 | 设置→蓝牙→扫描 | BLE扫描或模拟设备加载 | ✅ |
-| T39 | 蓝牙连接 | 点"连接"按钮 | 数据写入健康档案 | ✅ |
+| T38 | 蓝牙开启提示 | 设置→蓝牙（蓝牙关） | 弹出系统蓝牙开启对话框 | ✅ |
+| T39 | 蓝牙扫描 | 设置→蓝牙→开启→扫描 | BLE扫描或模拟设备加载 | ✅ |
+| T39b | 蓝牙模拟 | 点击"加载模拟设备" | 显示3个模拟设备列表 | ✅ |
+| T39c | 蓝牙连接 | 点"连接"按钮 | 数据写入健康档案 | ✅ |
+| T39d | TTS语音播报 | 用药提醒→长按+按钮 | 通知+TTS语音播报用药提醒 | ✅ |
 | T40 | 记忆管理 | 设置→记忆回忆→查看 | 记忆列表+分类筛选 | ✅ |
 | T41 | 新增记忆 | 点新增→输入内容+选分类→保存 | 新记忆出现在列表 | ✅ |
 | T42 | 删除记忆 | 长按记忆→确认 | 记忆消失 | ✅ |
