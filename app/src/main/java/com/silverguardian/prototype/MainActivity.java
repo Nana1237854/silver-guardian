@@ -17,12 +17,9 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.fragments.AlbumFragment;
-import com.silverguardian.prototype.fragments.CommunityFragment;
-import com.silverguardian.prototype.fragments.FraudFragment;
 import com.silverguardian.prototype.fragments.HealthFragment;
 import com.silverguardian.prototype.fragments.HomeFragment;
 import com.silverguardian.prototype.fragments.MedicineFragment;
-import com.silverguardian.prototype.fragments.MemoryFragment;
 import com.silverguardian.prototype.fragments.SettingsFragment;
 import com.silverguardian.prototype.models.FamilyMember;
 
@@ -35,9 +32,6 @@ public class MainActivity extends AppCompatActivity {
     private HomeFragment homeFragment;
     private AlbumFragment albumFragment;
     private SettingsFragment settingsFragment;
-    private CommunityFragment communityFragment;
-    private FraudFragment fraudFragment;
-    private MemoryFragment memoryFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,9 +46,6 @@ public class MainActivity extends AppCompatActivity {
         homeFragment = new HomeFragment();
         albumFragment = new AlbumFragment();
         settingsFragment = new SettingsFragment();
-        communityFragment = new CommunityFragment();
-        fraudFragment = new FraudFragment();
-        memoryFragment = new MemoryFragment();
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -63,12 +54,10 @@ public class MainActivity extends AppCompatActivity {
             if (id == R.id.bottom_medicine) { switchFragment(medicineFragment); return true; }
             if (id == R.id.bottom_home) { switchFragment(homeFragment); return true; }
             if (id == R.id.bottom_album) { switchFragment(albumFragment); return true; }
-            if (id == R.id.bottom_community) { switchFragment(communityFragment); return true; }
-            if (id == R.id.bottom_fraud) { switchFragment(fraudFragment); return true; }
             if (id == R.id.bottom_settings) { switchFragment(settingsFragment); return true; }
             return false;
         });
-        bottomNav.setSelectedItemId(R.id.bottom_health);
+        bottomNav.setSelectedItemId(R.id.bottom_home);
     }
 
     private void switchFragment(Fragment fragment) {
