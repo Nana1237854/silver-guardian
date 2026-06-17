@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_dark">#8FB9A9</color>
+    <color name="primary">#8CCDB3</color>
+    <color name="sidebar_bg">#F6FBF8</color>
+    <color name="sidebar_text">#7A8F86</color>
+    <color name="sidebar_active">#CFEADE</color>
+    <color name="accent_orange">#F2AF8A</color>
+    <color name="bg_page">#EEF7F1</color>
+    <color name="surface_white">#FFFFFF</color>
+    <color name="text_primary">#202420</color>
+    <color name="text_secondary">#8C978F</color>
+    <color name="sos_red">#dc2626</color>
+    <color name="sos_red_bg">#fee2e2</color>
+    <color name="health_heart">#7E70E5</color>
+    <color name="health_steps">#86CFA8</color>
+    <color name="health_blood_pressure">#A3D4F4</color>
+    <color name="health_blood_sugar">#86CFA8</color>
+    <color name="chat_ai_bg">#F7F8F7</color>
+    <color name="chat_user_bg">#FFFFFF</color>
+    <color name="divider">#E5ECE7</color>
+    <color name="favorite_pink">#F39AB3</color>
+    <color name="mint_soft">#DFF1E8</color>
+    <color name="mint_pill">#D3EBDD</color>
+    <color name="blush_soft">#F9E4E8</color>
+    <color name="shadow_soft">#12000000</color>
+    <color name="bottom_nav_bg">#FDFEFD</color>
+    <color name="bottom_nav_active">#DDEBDD</color>
+    <color name="nav_item_active">#5B9A7A</color>
+    <color name="nav_item_inactive">#8C978F</color>
+</resources>

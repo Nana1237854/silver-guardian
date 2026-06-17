@@ -1,0 +1,137 @@
+package com.silverguardian.prototype.fragments;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+
+import com.silverguardian.prototype.BluetoothActivity;
+import com.silverguardian.prototype.ChildModeActivity;
+import com.silverguardian.prototype.LoginActivity;
+import com.silverguardian.prototype.R;
+
+public class SettingsFragment extends Fragment {
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull android.view.LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        ScrollView scrollView = new ScrollView(requireContext());
+        scrollView.setBackgroundColor(getResources().getColor(R.color.bg_page));
+
+        LinearLayout root = new LinearLayout(requireContext());
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dp(20), dp(28), dp(20), dp(110));
+        scrollView.addView(root, new ScrollView.LayoutParams(-1, -2));
+
+        TextView title = title("设置");
+        title.setTextSize(28);
+        root.addView(title);
+
+        root.addView(profileCard());
+        root.addView(featureCard("子女模式", "查看家人健康状况与提醒", "👪", v -> startActivity(new Intent(requireContext(), ChildModeActivity.class))));
+        root.addView(featureCard("蓝牙设备", "连接血压计、血氧仪等", "⌁", v -> startActivity(new Intent(requireContext(), BluetoothActivity.class))));
+        root.addView(featureCard("防诈提醒", "学习防诈知识，守护财产安全", "盾", v -> openSimpleDialog("防诈提醒", "已内置冒充客服、保健品讲座、亲友借钱等常见提醒。")));
+        root.addView(featureCard("记忆回忆", "生活记事与回忆珍藏", "▣", v -> openSimpleDialog("记忆回忆", "可记录家庭、健康、爱好等重要记忆。")));
+        root.addView(featureCard("健康数据授权", "管理数据分享与隐私权限", "锁", v -> openSimpleDialog("健康数据授权", "本原生版本默认所有数据仅保存在本机 SQLite。")));
+        root.addView(featureCard("退出登录", "返回老人档案选择页面", "↩", v -> {
+            startActivity(new Intent(requireContext(), LoginActivity.class));
+            requireActivity().finish();
+        }));
+        return scrollView;
+    }
+
+    private View profileCard() {
+        LinearLayout card = card();
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        TextView avatar = title("颜");
+        avatar.setTextSize(30);
+        avatar.setGravity(Gravity.CENTER);
+        avatar.setBackgroundResource(R.drawable.bg_circle_gray);
+        card.addView(avatar, new LinearLayout.LayoutParams(dp(72), dp(72)));
+
+        LinearLayout info = new LinearLayout(requireContext());
+        info.setOrientation(LinearLayout.VERTICAL);
+        info.setPadding(dp(18), 0, 0, 0);
+        info.addView(title("颜爷爷"));
+        info.addView(body("已守护 128 天\n72 岁 · 男性"));
+        card.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView arrow = body("›");
+        arrow.setTextSize(32);
+        card.addView(arrow);
+        return card;
+    }
+
+    private View featureCard(String title, String subtitle, String mark, View.OnClickListener listener) {
+        LinearLayout card = card();
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setOnClickListener(listener);
+
+        TextView icon = title(mark);
+        icon.setTextSize(22);
+        icon.setGravity(Gravity.CENTER);
+        icon.setBackgroundResource(R.drawable.bg_chip_soft);
+        card.addView(icon, new LinearLayout.LayoutParams(dp(56), dp(56)));
+
+        LinearLayout texts = new LinearLayout(requireContext());
+        texts.setOrientation(LinearLayout.VERTICAL);
+        texts.setPadding(dp(16), 0, 0, 0);
+        texts.addView(title(title));
+        texts.addView(body(subtitle));
+        card.addView(texts, new LinearLayout.LayoutParams(0, -2, 1));
+
+        TextView arrow = body("›");
+        arrow.setTextSize(28);
+        card.addView(arrow);
+        return card;
+    }
+
+    private LinearLayout card() {
+        LinearLayout card = new LinearLayout(requireContext());
+        card.setPadding(dp(20), dp(18), dp(20), dp(18));
+        card.setBackgroundResource(R.drawable.bg_card_surface);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.topMargin = dp(16);
+        card.setLayoutParams(params);
+        return card;
+    }
+
+    private TextView title(String text) {
+        TextView view = new TextView(requireContext());
+        view.setText(text);
+        view.setTextSize(20);
+        view.setTypeface(null, android.graphics.Typeface.BOLD);
+        view.setTextColor(getResources().getColor(R.color.text_primary));
+        return view;
+    }
+
+    private TextView body(String text) {
+        TextView view = new TextView(requireContext());
+        view.setText(text);
+        view.setTextSize(14);
+        view.setTextColor(getResources().getColor(R.color.text_secondary));
+        view.setPadding(0, dp(4), 0, 0);
+        return view;
+    }
+
+    private void openSimpleDialog(String title, String message) {
+        new AlertDialog.Builder(requireContext())
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton("知道了", null)
+            .show();
+    }
+
+    private int dp(int value) {
+        return Math.round(getResources().getDisplayMetrics().density * value);
+    }
+}
