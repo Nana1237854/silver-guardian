@@ -111,7 +111,7 @@ public class ChatDetailActivity extends AppCompatActivity {
 
         RecyclerView list = new RecyclerView(this);
         list.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ChatAdapter();
+        adapter = new ChatAdapter(this, messages);
         list.setAdapter(adapter);
         main.addView(list, new LinearLayout.LayoutParams(-1, 0, 1));
 
@@ -349,44 +349,5 @@ public class ChatDetailActivity extends AppCompatActivity {
 
     private int dp(int value) {
         return Math.round(getResources().getDisplayMetrics().density * value);
-    }
-
-    private class ChatAdapter extends RecyclerView.Adapter<ChatHolder> {
-        @Override public ChatHolder onCreateViewHolder(android.view.ViewGroup parent, int viewType) {
-            LinearLayout row = new LinearLayout(parent.getContext());
-            row.setOrientation(LinearLayout.VERTICAL);
-            row.setPadding(dp(16), dp(8), dp(16), dp(8));
-            return new ChatHolder(row);
-        }
-        @Override public void onBindViewHolder(ChatHolder holder, int position) { holder.bind(messages.get(position)); }
-        @Override public int getItemCount() { return messages.size(); }
-    }
-
-    private class ChatHolder extends RecyclerView.ViewHolder {
-        private final LinearLayout container;
-        private final TextView bubble;
-        private final TextView time;
-
-        ChatHolder(LinearLayout itemView) {
-            super(itemView);
-            container = itemView;
-            bubble = new TextView(itemView.getContext());
-            bubble.setTextSize(16);
-            bubble.setLineSpacing(dp(4), 1f);
-            bubble.setPadding(dp(16), dp(12), dp(16), dp(12));
-            time = new TextView(itemView.getContext());
-            time.setTextSize(12);
-            time.setTextColor(getColor(R.color.text_secondary));
-            container.addView(bubble);
-            container.addView(time);
-        }
-
-        void bind(ChatMessage msg) {
-            container.setGravity(msg.isUser() ? Gravity.END : Gravity.START);
-            bubble.setText(msg.content);
-            bubble.setTextColor(getColor(R.color.text_primary));
-            bubble.setBackgroundResource(msg.isUser() ? R.drawable.bg_chat_user_bubble : R.drawable.bg_chat_ai_bubble);
-            time.setText(msg.time);
-        }
     }
 }
