@@ -26,12 +26,14 @@ import okhttp3.Response;
  */
 public class FraudApiClient {
     private static final String TAG = "FraudApiClient";
-    private static final String REMOTE_API = "https://api.liangmlk.cn/api/fraud/list?page=1&size=10";
+    private static final String REMOTE_API = "https://raw.githubusercontent.com/Nana1237854/silver-guardian/master/app/src/main/assets/fraud_api_data.json";
 
     private final OkHttpClient client;
 
     public FraudApiClient() {
         client = new OkHttpClient.Builder()
+            .followRedirects(true)
+            .followSslRedirects(true)
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .build();
