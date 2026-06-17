@@ -28,6 +28,6 @@
     <string name="logout">退出</string>
     <string name="add_medicine">添加药品提醒</string>
     <string name="upload_photo">上传照片</string>
-    <string name="zhipu_api_key">86aa8f0055e2458ba5d30d8a61881bb6.Z5q5z6EEnx9YZqNC</string>
+    <string name="zhipu_api_key">YOUR_ZHIPU_API_KEY</string>
     <string name="amap_key">YOUR_AMAP_KEY</string>
 </resources>

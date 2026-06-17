@@ -335,10 +335,15 @@ public class ChatDetailActivity extends AppCompatActivity {
         input.setText("");
         adapter.notifyItemInserted(messages.size() - 1);
 
-        // 显示"正在输入"
+        // 前置过滤：拦截明显与健康/用药/生活无关的问题
+        String blocked = checkOffTopic(text);
+        if (blocked != null) {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> appendAiReply(blocked), 300);
+            return;
+        }
+
         String apiKey = getString(R.string.zhipu_api_key);
         if (apiKey.startsWith("PUT_") || apiKey.length() < 10) {
-            // Key 未配置 → 降级为本地模拟回复
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 String reply = fallbackReply(text);
                 appendAiReply(reply);
@@ -346,6 +351,75 @@ public class ChatDetailActivity extends AppCompatActivity {
             return;
         }
         callZhipuApi(text, apiKey);
+    }
+
+    /** 返回 null 表示允许通过；返回非 null 字符串为拦截回复 */
+    private String checkOffTopic(String text) {
+        String t = text.toLowerCase().trim();
+
+        // 健康关键词（命中任一即放行）
+        String[] healthKeywords = {
+            "健康","病","医","药","疼","痛","痒","晕","吐","泻","咳","烧","感冒","发热",
+            "血压","血糖","心率","血氧","体温","体重","体脂","睡眠","失眠","运动","锻炼",
+            "饮食","吃饭","喝水","抽烟","喝酒","茶","咖啡","菜","水果","蔬菜","肉","鱼",
+            "过敏","皮肤","骨头","关节","腰","腿","膝盖","心脏","肝","肾","肺","胃","肠",
+            "脑","眼","耳","鼻","牙","口腔","手","脚","肩","颈","背","胸","腹",
+            "老年","养老","退休","孤独","焦虑","抑郁","心情","情绪","记忆力","忘记","痴呆",
+            "处方","医保","社保","挂号","检查","体检","手术","康复","护理","养生",
+            "药片","胶囊","剂量","副作用","空腹","饭后","睡前","早晨","晚上",
+            "散步","太极","瑜伽","广场舞","家务","买菜","超市","菜市场","药店","医院",
+            "摔倒","骨折","肿","出血","伤口","急救","求助","呼叫","家人","子女","老伴",
+            "头疼","头晕","胸闷","气短","心悸","乏力","没精神","食欲","胃口",
+            "高血压药","降糖药","降脂药","降压药","降血糖","糖尿病药"
+        };
+        for (String kw : healthKeywords) {
+            if (t.contains(kw)) return null; // 放行
+        }
+
+        // 明显无关的领域关键词（拦截并引导）
+        String[] blockedKeywords = {
+            "写代码","编程","python","java","c++","前端","后端","数据库","服务器",
+            "股票","炒股","期货","基金","理财","比特币","区块链","炒币",
+            "翻译","英文翻译","日文翻译","法语翻译",
+            "解方程","算数","微积分","几何","代数",
+            "写作文","写论文","写小说","写诗","诗歌",
+            "天气","航空","高铁","地铁","公交","航班",
+            "游戏","王者荣耀","吃鸡","原神","lol","dota","switch","ps5",
+            "政治","选举","党派","战争",
+            "汽车","房价","楼盘","房产",
+            "电影","电视剧","综艺","明星","八卦",
+            "法律","诉讼","合同","律师",
+            "招聘","求职","面试","简历","公司",
+            "减肥药","壮阳","丰胸","增高","美白针","玻尿酸"
+        };
+        for (String kw : blockedKeywords) {
+            if (t.contains(kw)) {
+                return "您问的问题和健康管理无关哦。我是您的「银发守护者」智能健康助手，" +
+                       "专门帮您解答健康、用药、生活调理方面的问题。\n\n" +
+                       "您可以问我：\n" +
+                       "• 高血压平时要注意什么？\n" +
+                       "• 降压药应该怎么吃？\n" +
+                       "• 适合老人的简单运动有哪些？\n" +
+                       "• 晚上睡不好怎么改善？\n" +
+                       "• 糖尿病人饮食要注意什么？";
+            }
+        }
+
+        // 问句很短且不匹配任何健康关键词 → 可能是在闲聊，放行给大模型判断并引导
+        if (t.length() < 6) return null;
+
+        // 中等问题长度但不在健康域 → 拦截
+        if (t.length() < 15) {
+            return "您问的问题我不太确定是否和健康相关。我是您的「银发守护者」智能健康助手，" +
+                   "专为老年人提供健康管理、用药提醒和生活辅助服务。\n\n" +
+                   "您可以试着告诉我：\n" +
+                   "• 身体哪里不舒服？\n" +
+                   "• 想了解什么药品？\n" +
+                   "• 生活中遇到了什么困扰？";
+        }
+
+        // 长文本放行给大模型（大模型自己判断并引导）
+        return null;
     }
 
     private void callZhipuApi(String userMessage, String apiKey) {
@@ -379,7 +453,9 @@ public class ChatDetailActivity extends AppCompatActivity {
                 os.write(body.toString().getBytes("UTF-8"));
                 os.close();
 
-                if (conn.getResponseCode() == 200) {
+                int code = conn.getResponseCode();
+                android.util.Log.d("ZhipuAPI", "Response code: " + code);
+                if (code == 200) {
                     BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
                     StringBuilder sb = new StringBuilder();
                     String line;
@@ -387,12 +463,15 @@ public class ChatDetailActivity extends AppCompatActivity {
                     br.close();
                     JSONObject resp = new JSONObject(sb.toString());
                     String reply = resp.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
+                    android.util.Log.d("ZhipuAPI", "Reply: " + reply.substring(0, Math.min(50, reply.length())));
                     new Handler(Looper.getMainLooper()).post(() -> appendAiReply(reply));
                 } else {
+                    android.util.Log.e("ZhipuAPI", "HTTP error: " + code);
                     new Handler(Looper.getMainLooper()).post(() -> appendAiReply(fallbackReply(userMessage)));
                 }
                 conn.disconnect();
             } catch (Exception e) {
+                android.util.Log.e("ZhipuAPI", "Exception: " + e.getMessage(), e);
                 new Handler(Looper.getMainLooper()).post(() -> appendAiReply(fallbackReply(userMessage)));
             }
         }).start();
@@ -418,6 +497,9 @@ public class ChatDetailActivity extends AppCompatActivity {
     private static final String SYSTEM_PROMPT =
         "你是银发守护者智能助手，专门为老年人提供健康管理、用药提醒、生活辅助等服务。" +
         "请用温暖、耐心的语气回答，使用简洁明了的语言，避免使用专业术语。\n\n" +
+        "【领域边界】你仅回答健康、用药、饮食养生、慢性病管理、身体不适、老年人生活困扰等问题。" +
+        "如果用户问与健康完全无关的问题（如编程、炒股、游戏、娱乐八卦），请温和地表示：" +
+        "\"我是您的健康守护助手，更擅长回答健康、用药、生活调理方面的问题。您可以试着问我身体哪里不舒服，或者想了解什么药品。\"\n\n" +
         "【重要】安全劝解规则：当用户提到不适合老年人的行为时，你必须温和但坚定地劝解。" +
         "以下行为必须劝阻：剧烈运动（如跑10公里、马拉松）、爬山攀岩、搬重物、长时间暴晒淋雨、熬夜过度饮酒。\n" +
         "劝解时语气要关心、温暖，不要命令或指责，用'建议您''为了您的身体''不如试试'等温和表达。\n\n" +
