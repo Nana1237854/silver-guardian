@@ -29,5 +29,5 @@
     <string name="add_medicine">添加药品提醒</string>
     <string name="upload_photo">上传照片</string>
     <string name="zhipu_api_key">PUT_ZHIPU_API_KEY_HERE</string>
-    <string name="amap_key">PUT_AMAP_KEY_HERE</string>
+    <string name="amap_key">请替换为你的高德地图API Key</string>
 </resources>
