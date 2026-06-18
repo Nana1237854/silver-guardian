@@ -12,13 +12,12 @@
         android:layout_width="48dp"
         android:layout_height="48dp">
 
-        <TextView
+        <ImageView
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="@drawable/bg_circle_gray"
-            android:gravity="center"
-            android:text="👤"
-            android:textSize="22sp" />
+            android:contentDescription="家属头像"
+            android:scaleType="centerCrop"
+            android:src="@drawable/family_companion" />
 
         <View
             android:id="@+id/family_dot"

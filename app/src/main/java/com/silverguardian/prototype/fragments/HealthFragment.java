@@ -1,19 +1,19 @@
 package com.silverguardian.prototype.fragments;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.HorizontalScrollView;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.silverguardian.prototype.utils.FontScaleHelper;
 
 import com.silverguardian.prototype.BluetoothActivity;
 import com.silverguardian.prototype.ChatDetailActivity;
@@ -29,182 +29,210 @@ import java.util.Locale;
 public class HealthFragment extends BaseFragment {
     @Nullable
     @Override
-    public View onCreateView(@NonNull android.view.LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        ScrollView scrollView = new ScrollView(requireContext());
-        scrollView.setBackgroundColor(FontScaleHelper.bgPage(requireContext()));
+    public View onCreateView(@NonNull android.view.LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        ScrollView scroll = new ScrollView(requireContext());
+        scroll.setBackgroundColor(FontScaleHelper.bgPage(requireContext()));
+        scroll.setFillViewport(true);
+        scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
         LinearLayout root = new LinearLayout(requireContext());
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(20), dp(20), dp(20), dp(110));
-        scrollView.addView(root, new ScrollView.LayoutParams(-1, -2));
+        root.setPadding(dp(18), dp(16), dp(18), dp(112));
+        scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
 
-        root.addView(topIllustration());
-        root.addView(greetingCard());
-        root.addView(healthMetric("睡眠", "5小时14分钟", "平均心率 48 bpm", "注意"));
-        root.addView(healthMetric("运动", "206 千卡", "活动时间 6 分钟", "良好"));
-        root.addView(healthMetric("心情", "良好", "今天 20:10 记录", "稳定"));
-        root.addView(healthMetric("步数", "2265 /10000 步", "今日目标完成 22%", "继续保持"));
-        root.addView(healthMetric("呼吸正念", "0 / 3 分钟", "睡前做一次轻呼吸", "待完成"));
-        root.addView(aiCard());
+        root.addView(hero());
+        root.addView(statusSummary());
+        root.addView(metricRow(R.drawable.ic_health, R.drawable.bg_icon_lilac,
+            "睡眠", "5小时14分钟", "平均心率 48 bpm", "需关注"));
+        root.addView(metricRow(R.drawable.ic_home, R.drawable.bg_icon_coral,
+            "运动", "206 千卡", "活动时间 6 分钟", "良好"));
+        root.addView(metricRow(R.drawable.ic_album, R.drawable.bg_icon_mint,
+            "心情", "良好", "今天 20:10 记录", "稳定"));
+        root.addView(metricRow(R.drawable.ic_health, R.drawable.bg_icon_mint,
+            "步数", "2265 / 10000 步", "今日目标完成 22%", "继续保持"));
+        root.addView(metricRow(R.drawable.ic_medicine, R.drawable.bg_icon_blue,
+            "呼吸正念", "0 / 3 分钟", "睡前进行一次轻呼吸", "待完成"));
+        root.addView(aiAnalysisCard());
         root.addView(actionBar());
-        return scrollView;
+        return scroll;
     }
 
-    private View topIllustration() {
+    private View hero() {
+        FrameLayout frame = new FrameLayout(requireContext());
+        frame.setBackgroundResource(R.drawable.bg_group_surface);
+        LinearLayout.LayoutParams fp = new LinearLayout.LayoutParams(-1, dp(184));
+        fp.bottomMargin = dp(14);
+        frame.setLayoutParams(fp);
+        frame.setClipToOutline(true);
+
+        ImageView image = new ImageView(requireContext());
+        image.setImageResource(R.drawable.home_companion_header);
+        image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        image.setContentDescription("颜爷爷在海边休息的健康陪伴插画");
+        frame.addView(image, new FrameLayout.LayoutParams(-1, -1));
+
+        LinearLayout info = new LinearLayout(requireContext());
+        info.setOrientation(LinearLayout.VERTICAL);
+        info.setPadding(dp(16), dp(16), 0, 0);
+        TextView date = text(new SimpleDateFormat("M月d日 EEEE", Locale.CHINESE).format(new Date()), 20, true);
+        TextView weather = text("26°C  晴", 16, false);
+        weather.setTextColor(color(R.color.text_secondary));
+        weather.setPadding(0, dp(7), 0, 0);
+        info.addView(date);
+        info.addView(weather);
+        frame.addView(info, new FrameLayout.LayoutParams(dp(210), -2, Gravity.START | Gravity.TOP));
+        return frame;
+    }
+
+    private View statusSummary() {
         LinearLayout card = card();
         card.setGravity(Gravity.CENTER);
-        card.setBackgroundResource(R.drawable.bg_card_accent);
-        TextView date = new TextView(requireContext());
-        date.setText(new SimpleDateFormat("M月d日 EEEE", Locale.CHINESE).format(new Date()) + "\n☀ 26°C 晴");
-        date.setTextSize(sp(18));
-        date.setTextColor(FontScaleHelper.textPrimary(requireContext()));
-        date.setGravity(Gravity.CENTER);
-        card.addView(date);
-        TextView mascot = new TextView(requireContext());
-        mascot.setText("●  银发守护助手正在陪伴你");
-        mascot.setTextSize(20);
-        mascot.setGravity(Gravity.CENTER);
-        mascot.setPadding(0, dp(20), 0, 0);
-        card.addView(mascot);
+        TextView intro = text("Hi 颜爷爷，今天的状态", 15, false);
+        intro.setTextColor(color(R.color.text_secondary));
+        card.addView(intro);
+        TextView status = text("状态不错", 27, true);
+        status.setTextColor(color(R.color.primary_dark));
+        status.setPadding(0, dp(4), 0, dp(2));
+        card.addView(status);
+
+        TextView detail = text("血压、心率与血氧均在正常范围", 14, false);
+        detail.setTextColor(color(R.color.text_secondary));
+        card.addView(detail);
         return card;
     }
 
-    private View greetingCard() {
-        LinearLayout card = card();
-        card.setGravity(Gravity.CENTER);
-        TextView hi = title("Hi 颜爷爷，今天的状态");
-        hi.setTextSize(16);
-        hi.setTextColor(getResources().getColor(R.color.text_secondary));
-        card.addView(hi);
-        TextView state = title("状态不错 ☺");
-        state.setTextSize(28);
-        card.addView(state);
-        return card;
-    }
-
-    private View healthMetric(String label, String value, String meta, String badge) {
+    private View metricRow(int iconRes, int iconBackground, String label,
+                           String value, String meta, String badge) {
         LinearLayout card = card();
         card.setOrientation(LinearLayout.HORIZONTAL);
         card.setGravity(Gravity.CENTER_VERTICAL);
-        TextView icon = new TextView(requireContext());
-        icon.setText("●");
-        icon.setTextSize(28);
-        icon.setTextColor(getResources().getColor(R.color.primary));
-        card.addView(icon);
+        card.setMinimumHeight(dp(92));
 
-        LinearLayout texts = new LinearLayout(requireContext());
-        texts.setOrientation(LinearLayout.VERTICAL);
-        texts.setPadding(dp(16), 0, 0, 0);
-        TextView labelView = title(label);
-        texts.addView(labelView);
-        TextView valueView = title(value);
-        valueView.setTextSize(22);
-        texts.addView(valueView);
-        texts.addView(body(meta));
-        card.addView(texts, new LinearLayout.LayoutParams(0, -2, 1));
+        ImageView icon = new ImageView(requireContext());
+        icon.setImageResource(iconRes);
+        icon.setColorFilter(color(R.color.primary));
+        icon.setBackgroundResource(iconBackground);
+        icon.setPadding(dp(13), dp(13), dp(13), dp(13));
+        icon.setContentDescription(label);
+        card.addView(icon, new LinearLayout.LayoutParams(dp(54), dp(54)));
 
-        TextView badgeView = chip(badge);
+        LinearLayout info = new LinearLayout(requireContext());
+        info.setOrientation(LinearLayout.VERTICAL);
+        info.setPadding(dp(15), 0, dp(8), 0);
+        info.addView(text(label, 16, true));
+        TextView valueView = text(value, 21, true);
+        valueView.setPadding(0, dp(2), 0, 0);
+        info.addView(valueView);
+        TextView metaView = text(meta, 13, false);
+        metaView.setTextColor(color(R.color.text_secondary));
+        metaView.setPadding(0, dp(3), 0, 0);
+        info.addView(metaView);
+        card.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
+
+        TextView badgeView = text(badge, 13, true);
+        badgeView.setTextColor("需关注".equals(badge) ? color(R.color.health_heart) : color(R.color.status_good));
+        badgeView.setBackgroundResource(R.drawable.bg_status_good);
+        badgeView.setGravity(Gravity.CENTER);
         card.addView(badgeView);
         return card;
     }
 
-    private View aiCard() {
+    private View aiAnalysisCard() {
         LinearLayout card = card();
-        card.setBackgroundResource(R.drawable.bg_card_accent);
-        card.addView(title("AI 健康分析与建议"));
-        card.addView(body("综合你的数据，为你提供专属分析与个人健康建议。"));
-        TextView button = chip("与 AI 对话，深入分析  →");
-        button.setGravity(Gravity.CENTER);
-        button.setTextColor(getResources().getColor(R.color.surface_white));
-        button.setBackgroundResource(R.drawable.bg_button_primary);
-        button.setOnClickListener(v -> startActivity(new Intent(requireContext(), ChatDetailActivity.class)));
-        card.addView(button);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setBackgroundResource(R.drawable.bg_ai_outline);
+        card.setOnClickListener(v -> startActivity(new Intent(requireContext(), ChatDetailActivity.class)));
+
+        ImageView mascot = new ImageView(requireContext());
+        mascot.setImageResource(R.drawable.ai_companion);
+        mascot.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        mascot.setContentDescription("银发守护 AI 助手");
+        card.addView(mascot, new LinearLayout.LayoutParams(dp(68), dp(68)));
+
+        LinearLayout copy = new LinearLayout(requireContext());
+        copy.setOrientation(LinearLayout.VERTICAL);
+        copy.setPadding(dp(12), 0, 0, 0);
+        TextView title = text("AI 健康分析与建议", 18, true);
+        title.setTextColor(color(R.color.primary_dark));
+        copy.addView(title);
+        TextView body = text("综合您的健康数据，获得专属改善建议", 14, false);
+        body.setTextColor(color(R.color.text_secondary));
+        body.setPadding(0, dp(4), 0, dp(8));
+        copy.addView(body);
+        TextView action = text("与 AI 对话，深入分析", 15, true);
+        action.setGravity(Gravity.CENTER);
+        action.setTextColor(color(R.color.surface_white));
+        action.setBackgroundResource(R.drawable.bg_button_primary);
+        action.setMinHeight(dp(48));
+        copy.addView(action, new LinearLayout.LayoutParams(-1, dp(48)));
+        card.addView(copy, new LinearLayout.LayoutParams(0, -2, 1));
         return card;
     }
 
     private View actionBar() {
-        HorizontalScrollView hsv = new HorizontalScrollView(requireContext());
-        hsv.setHorizontalScrollBarEnabled(false);
         LinearLayout row = new LinearLayout(requireContext());
         row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(0, dp(12), 0, 0);
+        row.setPadding(0, dp(2), 0, 0);
 
-        // 一键呼叫按钮（红色醒目）
-        TextView callBtn = chip("📞 一键呼叫");
-        callBtn.setTextColor(getResources().getColor(R.color.surface_white));
-        callBtn.setBackgroundResource(R.drawable.bg_button_sos);
-        callBtn.setOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).oneTapCall();
-            }
-        });
-        callBtn.setOnLongClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).oneTapCallLongPress();
-            }
+        TextView call = action("一键呼叫", R.drawable.ic_home, true);
+        call.setOnClickListener(v -> ((MainActivity) requireActivity()).oneTapCall());
+        call.setOnLongClickListener(v -> {
+            ((MainActivity) requireActivity()).oneTapCallLongPress();
             return true;
         });
-        row.addView(callBtn);
+        row.addView(call, weightedParams(1, 0));
 
-        TextView add = chip("添加数据");
-        LinearLayout.LayoutParams addParams = new LinearLayout.LayoutParams(-2, -2);
-        addParams.leftMargin = dp(10);
-        add.setLayoutParams(addParams);
+        TextView add = action("添加数据", R.drawable.ic_add, false);
         add.setOnClickListener(v -> {
             MockData.addHealthData("heart_rate", "69", "正常");
-            startActivity(new Intent(requireContext(), ChatDetailActivity.class).putExtra("chat_title", "健康档案新增完成"));
+            toast("健康数据已添加");
         });
-        row.addView(add);
+        row.addView(add, weightedParams(1, 8));
 
-        TextView bt = chip("蓝牙导入");
-        LinearLayout.LayoutParams btParams = new LinearLayout.LayoutParams(-2, -2);
-        btParams.leftMargin = dp(10);
-        bt.setLayoutParams(btParams);
-        bt.setOnClickListener(v -> startActivity(new Intent(requireContext(), BluetoothActivity.class)));
-        row.addView(bt);
+        TextView bluetooth = action("蓝牙导入", R.drawable.ic_upload, false);
+        bluetooth.setOnClickListener(v -> startActivity(new Intent(requireContext(), BluetoothActivity.class)));
+        row.addView(bluetooth, weightedParams(1, 8));
+        return row;
+    }
 
-        hsv.addView(row);
-        return hsv;
+    private TextView action(String label, int iconRes, boolean danger) {
+        TextView view = text(label, 14, true);
+        view.setGravity(Gravity.CENTER);
+        view.setMinHeight(dp(52));
+        view.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0);
+        view.setCompoundDrawablePadding(dp(7));
+        view.setTextColor(danger ? color(R.color.sos_red) : color(R.color.primary_dark));
+        view.setBackgroundResource(danger ? R.drawable.bg_button_sos : R.drawable.bg_chip_soft);
+        if (danger) view.setTextColor(color(R.color.surface_white));
+        return view;
+    }
+
+    private LinearLayout.LayoutParams weightedParams(int weight, int startMargin) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(52), weight);
+        params.leftMargin = dp(startMargin);
+        return params;
     }
 
     private LinearLayout card() {
         LinearLayout card = new LinearLayout(requireContext());
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(22), dp(18), dp(22), dp(18));
-        card.setBackgroundResource(R.drawable.bg_card_surface);
+        card.setPadding(dp(18), dp(16), dp(18), dp(16));
+        card.setBackgroundResource(R.drawable.bg_group_surface);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.topMargin = dp(12);
+        params.bottomMargin = dp(12);
         card.setLayoutParams(params);
         return card;
     }
 
-    private TextView title(String text) {
+    private TextView text(String value, int size, boolean bold) {
         TextView view = new TextView(requireContext());
-        view.setText(text);
-        view.setTextSize(sp(18));
-        view.setTypeface(null, android.graphics.Typeface.BOLD);
+        view.setText(value);
+        view.setTextSize(sp(size));
         view.setTextColor(FontScaleHelper.textPrimary(requireContext()));
+        if (bold) view.setTypeface(null, Typeface.BOLD);
         return view;
     }
-
-    private TextView body(String text) {
-        TextView view = new TextView(requireContext());
-        view.setText(text);
-        view.setTextSize(sp(15));
-        view.setTextColor(FontScaleHelper.textSecondary(requireContext()));
-        view.setPadding(0, dp(6), 0, dp(6));
-        return view;
-    }
-
-    private TextView chip(String text) {
-        TextView view = new TextView(requireContext());
-        view.setText(text);
-        view.setTextSize(sp(15));
-        view.setTypeface(null, android.graphics.Typeface.BOLD);
-        view.setTextColor(FontScaleHelper.textPrimary(requireContext()));
-        view.setBackgroundResource(R.drawable.bg_chip_soft);
-        view.setPadding(dp(16), dp(10), dp(16), dp(10));
-        return view;
-    }
-
 }

@@ -17,6 +17,11 @@ public class ElderlyDbHelper extends SQLiteOpenHelper {
         super(context, DB_NAME, null, DB_VERSION);
     }
 
+    /** 仅测试用：允许指定数据库名和版本，便于迁移测试 */
+    ElderlyDbHelper(Context context, String dbName, int dbVersion) {
+        super(context, dbName, null, dbVersion);
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, pin TEXT NOT NULL, avatar TEXT, age INTEGER, health_conditions TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')))");
@@ -34,17 +39,14 @@ public class ElderlyDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS medicine_library");
-        db.execSQL("DROP TABLE IF EXISTS emergency_alerts");
-        db.execSQL("DROP TABLE IF EXISTS album_photos");
-        db.execSQL("DROP TABLE IF EXISTS medicine_taken");
-        db.execSQL("DROP TABLE IF EXISTS user_medicines");
-        db.execSQL("DROP TABLE IF EXISTS family_members");
-        db.execSQL("DROP TABLE IF EXISTS reminders");
-        db.execSQL("DROP TABLE IF EXISTS memories");
-        db.execSQL("DROP TABLE IF EXISTS health_data");
-        db.execSQL("DROP TABLE IF EXISTS messages");
-        db.execSQL("DROP TABLE IF EXISTS users");
-        onCreate(db);
+        // 逐版本迁移，保留用户数据
+        // 添加新版本迁移时递增 DB_VERSION，在此追加 case
+        if (oldVersion < 2) {
+            // v1 → v2 迁移（示例，实际使用时取消注释）
+            // db.execSQL("ALTER TABLE users ADD COLUMN phone TEXT");
+        }
+        // if (oldVersion < 3) {
+        //     v2 → v3 迁移
+        // }
     }
 }

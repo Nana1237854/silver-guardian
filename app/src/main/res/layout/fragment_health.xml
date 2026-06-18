@@ -2,65 +2,79 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/bg_page">
+    android:background="@color/bg_page"
+    android:orientation="vertical">
 
-    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="16dp"
-        android:background="@color/surface_white"
-        android:elevation="1dp">
+        android:orientation="vertical"
+        android:paddingStart="18dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="10dp">
 
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="健康中心"
-            android:textSize="22sp"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="健康档案"
+                android:textColor="@color/text_primary"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_good"
+                android:text="今日状态良好"
+                android:textColor="@color/status_good"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
-        <Spinner
-            android:id="@+id/health_filter"
-            android:layout_width="180dp"
-            android:layout_height="56dp" />
-
-        <Button
-            android:id="@+id/add_health_button"
-            android:layout_width="120dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="添加"
-            android:textSize="18sp" />
-
-        <Button
-            android:id="@+id/bluetooth_button"
-            android:layout_width="120dp"
-            android:layout_height="56dp"
-            android:text="蓝牙"
-            android:textSize="18sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="✅ 今日状态：极佳"
-            android:textSize="16sp"
-            android:textColor="#16a34a"
-            android:background="#dcfce7"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp" />
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <Spinner
+                android:id="@+id/health_filter"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card_surface"
+                android:paddingStart="12dp" />
+            <Button
+                android:id="@+id/bluetooth_button"
+                android:layout_width="92dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="8dp"
+                android:text="蓝牙"
+                android:textSize="15sp" />
+            <Button
+                android:id="@+id/add_health_button"
+                android:layout_width="92dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="8dp"
+                android:text="添加"
+                android:textSize="15sp" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Health records list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/health_record_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp"
-        android:clipToPadding="false" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingStart="18dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="24dp" />
 </LinearLayout>

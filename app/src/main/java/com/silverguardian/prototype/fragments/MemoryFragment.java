@@ -42,7 +42,7 @@ public class MemoryFragment extends BaseFragment {
 
         LinearLayout root = new LinearLayout(requireContext());
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(20), dp(20), dp(20), dp(110));
+        root.setPadding(dp(18), dp(16), dp(18), dp(110));
         scroll.addView(root);
 
         // 标题栏
@@ -52,8 +52,8 @@ public class MemoryFragment extends BaseFragment {
         header.setPadding(0, 0, 0, dp(16));
 
         TextView title = new TextView(requireContext());
-        title.setText("📝 记忆与回忆");
-        title.setTextSize(24);
+        title.setText("记忆回忆");
+        title.setTextSize(26);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setTextColor(getResources().getColor(R.color.text_primary));
         header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
@@ -160,7 +160,7 @@ public class MemoryFragment extends BaseFragment {
             LinearLayout row = new LinearLayout(parent.getContext());
             row.setOrientation(LinearLayout.VERTICAL);
             row.setPadding(dp(20), dp(18), dp(20), dp(18));
-            row.setBackgroundResource(R.drawable.bg_card_surface);
+            row.setBackgroundResource(R.drawable.bg_group_surface);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
             lp.bottomMargin = dp(12);
             row.setLayoutParams(lp);
@@ -192,7 +192,7 @@ public class MemoryFragment extends BaseFragment {
 
         void bind(MemoryRecord record) {
             content.setText(record.content);
-            meta.setText("🏷 " + record.category + " · " + record.createdAt + " · 长按删除");
+            meta.setText(record.category + " · " + record.createdAt + " · 长按删除");
             itemView.setOnLongClickListener(v -> {
                 new AlertDialog.Builder(requireContext())
                     .setTitle("删除记忆")

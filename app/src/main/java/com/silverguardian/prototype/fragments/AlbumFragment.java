@@ -55,7 +55,7 @@ public class AlbumFragment extends BaseFragment {
         root = new LinearLayout(requireContext());
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(color(R.color.bg_page));
-        root.setPadding(dp(16), dp(16), dp(16), dp(110));
+        root.setPadding(dp(18), dp(14), dp(18), dp(110));
         permHelper = new GalleryPermissionHelper(this);
         buildAlbumList();
         return root;
@@ -69,9 +69,26 @@ public class AlbumFragment extends BaseFragment {
 
         // --- header ---
         LinearLayout h = hRow();
-        h.addView(txt("📸 亲情相册", 24, true), lp(0, -2, 1));
-        TextView add = chip("＋ 创建相册"); add.setOnClickListener(v -> askCreateAlbum());
+        LinearLayout heading = new LinearLayout(requireContext());
+        heading.setOrientation(LinearLayout.VERTICAL);
+        heading.addView(txt("家人相册", 26, true));
+        TextView subtitle = txt("珍藏家人分享的每一个温暖瞬间", 14, false);
+        subtitle.setTextColor(color(R.color.text_secondary));
+        subtitle.setPadding(0, dp(3), 0, 0);
+        heading.addView(subtitle);
+        h.addView(heading, lp(0, -2, 1));
+        TextView add = chip("创建相册"); add.setOnClickListener(v -> askCreateAlbum());
         h.addView(add);  root.addView(h);
+
+        ImageView banner = new ImageView(requireContext());
+        banner.setImageResource(R.drawable.family_companion);
+        banner.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        banner.setContentDescription("家人陪伴插画");
+        banner.setBackgroundResource(R.drawable.bg_group_surface);
+        LinearLayout.LayoutParams bannerParams = new LinearLayout.LayoutParams(-1, dp(132));
+        bannerParams.bottomMargin = dp(14);
+        banner.setLayoutParams(bannerParams);
+        root.addView(banner);
 
         // --- data ---
         allPhotos.clear(); allPhotos.addAll(MockData.getPhotos());
@@ -80,8 +97,10 @@ public class AlbumFragment extends BaseFragment {
         Map<String,List<AlbumPhoto>> map = new LinkedHashMap<>();
         for (AlbumPhoto p : allPhotos)
             map.computeIfAbsent(p.category != null ? p.category : "其他", k -> new ArrayList<>()).add(p);
-        for (Map.Entry<String,List<AlbumPhoto>> e : map.entrySet())
-            albumGroups.add(new AlbumGroup(e.getKey(), e.getValue()));
+        for (Map.Entry<String,List<AlbumPhoto>> e : map.entrySet()) {
+            if (!AlbumGroup.ALL_PHOTOS.equals(e.getKey()))
+                albumGroups.add(new AlbumGroup(e.getKey(), e.getValue()));
+        }
 
         RecyclerView rv = new RecyclerView(requireContext());
         rv.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
@@ -96,13 +115,15 @@ public class AlbumFragment extends BaseFragment {
         currentAlbum = album;
 
         LinearLayout h = hRow();
-        TextView back = chip("← 返回"); back.setOnClickListener(v -> buildAlbumList()); h.addView(back);
+        TextView back = chip("返回"); back.setOnClickListener(v -> buildAlbumList()); h.addView(back);
         h.addView(txt(album, 22, true), lp(0, -2, 1));
-        TextView up = chip("📷 上传照片"); up.setOnClickListener(v -> askUploadPhoto()); h.addView(up);
+        TextView up = chip("上传照片"); up.setOnClickListener(v -> askUploadPhoto()); h.addView(up);
         root.addView(h);
 
         albumPhotos.clear();
-        for (AlbumPhoto p : allPhotos) if (album.equals(p.category)) albumPhotos.add(p);
+        for (AlbumPhoto p : allPhotos) {
+            if (AlbumGroup.ALL_PHOTOS.equals(album) || album.equals(p.category)) albumPhotos.add(p);
+        }
 
         RecyclerView rv = new RecyclerView(requireContext());
         rv.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
@@ -131,10 +152,10 @@ public class AlbumFragment extends BaseFragment {
         preview.setLayoutParams(new LinearLayout.LayoutParams(dp(200), dp(200)));
         preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
         preview.setBackgroundColor(0xFFE5ECE7);
-        preview.setImageResource(android.R.drawable.ic_menu_gallery);
+        preview.setImageResource(R.drawable.ic_album);
         f.addView(preview);
 
-        TextView pick = chip("📷 从相册选择照片");
+        TextView pick = chip("从手机相册选择");
         f.addView(pick, new LinearLayout.LayoutParams(-1, -2));
         EditText titleEt = edit("照片标题");
         EditText msgEt   = edit("家属留言");
@@ -256,8 +277,8 @@ public class AlbumFragment extends BaseFragment {
     private void loadImg(ImageView iv, AlbumPhoto p) {
         if (p != null && p.url != null && !p.url.isEmpty())
             try { Glide.with(iv).load(Uri.parse(p.url)).centerCrop().into(iv); }
-            catch (Exception e) { iv.setImageResource(android.R.drawable.ic_menu_gallery); }
-        else iv.setImageResource(android.R.drawable.ic_menu_gallery);
+            catch (Exception e) { iv.setImageResource(R.drawable.family_companion); }
+        else iv.setImageResource(R.drawable.family_companion);
     }
 
     // ===== view builders =====

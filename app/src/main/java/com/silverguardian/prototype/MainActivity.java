@@ -18,6 +18,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.fragments.AlbumFragment;
 import com.silverguardian.prototype.fragments.HealthFragment;
+import com.silverguardian.prototype.health.HealthAlertService;
 import com.silverguardian.prototype.reminder.TtsHelper;
 import com.silverguardian.prototype.fragments.HomeFragment;
 import com.silverguardian.prototype.fragments.MedicineFragment;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         MockData.init(this);
         TtsHelper.init(this);  // 预初始化TTS，确保BroadcastReceiver触发时已就绪
+        HealthAlertService.initChannel(this);  // 初始化健康告警通知渠道
         int userId = getIntent().getIntExtra("user_id", 1);
         MockData.setActiveUser(userId);
         setContentView(R.layout.activity_main);
@@ -59,7 +61,14 @@ public class MainActivity extends AppCompatActivity {
             if (id == R.id.bottom_settings) { switchFragment(settingsFragment); return true; }
             return false;
         });
-        bottomNav.setSelectedItemId(R.id.bottom_home);
+        String initialTab = getIntent().getStringExtra("initial_tab");
+        if ("health".equals(initialTab)) bottomNav.setSelectedItemId(R.id.bottom_health);
+        else if ("medicine".equals(initialTab)) bottomNav.setSelectedItemId(R.id.bottom_medicine);
+        else if ("album".equals(initialTab)) bottomNav.setSelectedItemId(R.id.bottom_album);
+        else if ("settings".equals(initialTab)) bottomNav.setSelectedItemId(R.id.bottom_settings);
+        else bottomNav.setSelectedItemId(R.id.bottom_home);
+        if ("fraud".equals(initialTab)) switchFragment(new com.silverguardian.prototype.fragments.FraudFragment());
+        if ("memory".equals(initialTab)) switchFragment(new com.silverguardian.prototype.fragments.MemoryFragment());
     }
 
     private void switchFragment(Fragment fragment) {
@@ -74,6 +83,18 @@ public class MainActivity extends AppCompatActivity {
 
     public void openHealth() {
         ((BottomNavigationView) findViewById(R.id.bottom_navigation)).setSelectedItemId(R.id.bottom_health);
+    }
+
+    public void openMedicine() {
+        ((BottomNavigationView) findViewById(R.id.bottom_navigation)).setSelectedItemId(R.id.bottom_medicine);
+    }
+
+    public void openAlbum() {
+        ((BottomNavigationView) findViewById(R.id.bottom_navigation)).setSelectedItemId(R.id.bottom_album);
+    }
+
+    public void openSettings() {
+        ((BottomNavigationView) findViewById(R.id.bottom_navigation)).setSelectedItemId(R.id.bottom_settings);
     }
 
     public void switchToFraud() {

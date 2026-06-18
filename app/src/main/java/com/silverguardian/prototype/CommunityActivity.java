@@ -59,6 +59,15 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(getColor(R.color.bg_page));
+
+        TextView pageTitle = new TextView(this);
+        pageTitle.setText("便民查询");
+        pageTitle.setTextSize(26);
+        pageTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        pageTitle.setTextColor(getColor(R.color.text_primary));
+        pageTitle.setPadding(dp(18), dp(16), dp(18), dp(4));
+        root.addView(pageTitle);
 
         // 搜索按钮栏
         searchBar = new LinearLayout(this);
@@ -69,11 +78,11 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
         btnRow.setPadding(dp(16), dp(12), dp(16), dp(8));
-        btnRow.addView(searchChip("🥬 菜市场", "菜市场"));
-        btnRow.addView(searchChip("🏥 社区医院", "社区卫生服务中心"));
-        btnRow.addView(searchChip("💊 药店", "药店"));
-        btnRow.addView(searchChip("🏪 超市", "超市"));
-        btnRow.addView(searchChip("🏦 银行", "银行"));
+        btnRow.addView(searchChip("菜市场", "菜市场"));
+        btnRow.addView(searchChip("社区医院", "社区卫生服务中心"));
+        btnRow.addView(searchChip("药店", "药店"));
+        btnRow.addView(searchChip("超市", "超市"));
+        btnRow.addView(searchChip("银行", "银行"));
         hsv.addView(btnRow);
         root.addView(hsv);
 
@@ -82,7 +91,8 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
         statusText.setText("正在初始化地图...");
         statusText.setTextSize(14);
         statusText.setTextColor(getColor(R.color.text_secondary));
-        statusText.setPadding(dp(16), 0, dp(16), dp(8));
+        statusText.setBackgroundResource(R.drawable.bg_reminder_strip);
+        statusText.setPadding(dp(16), dp(10), dp(16), dp(10));
         root.addView(statusText);
 
         // 地图
@@ -91,10 +101,10 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
 
         // 返回按钮
         TextView back = new TextView(this);
-        back.setText("↩ 返回");
+        back.setText("返回设置");
         back.setTextSize(18);
         back.setGravity(Gravity.CENTER);
-        back.setTextColor(getColor(R.color.primary));
+        back.setTextColor(getColor(R.color.primary_dark));
         back.setBackgroundColor(getColor(R.color.surface_white));
         back.setPadding(0, dp(16), 0, dp(16));
         back.setOnClickListener(v -> finish());
@@ -115,7 +125,7 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
     private void initMap() {
         aMap = mapView.getMap();
         if (aMap == null) {
-            statusText.setText("⚠️ 地图初始化失败，请确认高德 API Key 已配置");
+            statusText.setText("地图初始化失败，请确认高德 API Key 已配置");
             return;
         }
 
@@ -135,7 +145,7 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
             poiSearch = new PoiSearch(this, null);
             poiSearch.setOnPoiSearchListener(this);
         } catch (Exception e) {
-            statusText.setText("⚠️ POI 搜索初始化失败: " + e.getMessage());
+            statusText.setText("POI 搜索初始化失败: " + e.getMessage());
         }
 
         // 初始化路径规划
@@ -146,7 +156,7 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
             // non-critical
         }
 
-        statusText.setText("📍 地图就绪 — 点击上方按钮搜索周边服务");
+        statusText.setText("地图已就绪，选择上方类别搜索周边服务");
 
         // 检查定位权限
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -196,12 +206,12 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
     @Override
     public void onPoiSearched(PoiResult result, int errorCode) {
         if (errorCode != 1000 || result == null || result.getPois().isEmpty()) {
-            statusText.setText("⚠️ 未找到结果（错误码 " + errorCode + "），请检查网络和高德 Key");
+            statusText.setText("未找到结果（错误码 " + errorCode + "），请检查网络和高德 Key");
             return;
         }
         currentPois = result.getPois();
         aMap.clear();
-        statusText.setText("📍 找到 " + currentPois.size() + " 个结果");
+        statusText.setText("找到 " + currentPois.size() + " 个周边结果");
 
         for (int i = 0; i < Math.min(currentPois.size(), 20); i++) {
             PoiItem poi = currentPois.get(i);
@@ -246,8 +256,8 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
                 "距离：" + (poi.getDistance() > 0 ? poi.getDistance() + "m" : "未知") + "\n" +
                 "电话：" + (poi.getTel().isEmpty() ? "暂无" : poi.getTel())
             )
-            .setPositiveButton("🧭 步行导航", (d, w) -> startWalkRoute(poi))
-            .setNeutralButton("🚗 打开高德导航", (d, w) -> openAmapNavigation(poi))
+            .setPositiveButton("步行导航", (d, w) -> startWalkRoute(poi))
+            .setNeutralButton("打开高德导航", (d, w) -> openAmapNavigation(poi))
             .setNegativeButton("关闭", null)
             .show();
     }
@@ -276,7 +286,7 @@ public class CommunityActivity extends AppCompatActivity implements PoiSearch.On
                       "预计时间：" + (path.getDuration() / 60) + "分钟\n" +
                       "步数约：" + path.getSteps().size() + "步";
         new androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("🧭 步行路线")
+            .setTitle("步行路线")
             .setMessage(info)
             .setPositiveButton("好的", null)
             .show();

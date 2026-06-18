@@ -37,7 +37,7 @@ public class PhotoDetailActivity extends AppCompatActivity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(24), dp(24), dp(24), dp(48));
+        root.setPadding(dp(18), dp(18), dp(18), dp(48));
         scroll.addView(root);
 
         // 翻页导航
@@ -64,19 +64,19 @@ public class PhotoDetailActivity extends AppCompatActivity {
 
         if (url != null && !url.isEmpty()) {
             try {
-                Glide.with(this).load(Uri.parse(url)).placeholder(android.R.drawable.ic_menu_gallery).error(android.R.drawable.ic_menu_report_image).into(imageView);
+                Glide.with(this).load(Uri.parse(url)).placeholder(R.drawable.family_companion).error(R.drawable.family_companion).into(imageView);
             } catch (Exception e) {
-                imageView.setImageResource(android.R.drawable.ic_menu_gallery);
+                imageView.setImageResource(R.drawable.family_companion);
             }
         } else {
-            imageView.setImageResource(android.R.drawable.ic_menu_gallery);
+            imageView.setImageResource(R.drawable.family_companion);
         }
         root.addView(imageView, new LinearLayout.LayoutParams(-1, dp(300)));
 
         // 标题
         TextView titleView = new TextView(this);
         titleView.setText(title);
-        titleView.setTextSize(24);
+        titleView.setTextSize(26);
         titleView.setTypeface(null, android.graphics.Typeface.BOLD);
         titleView.setTextColor(getColor(R.color.text_primary));
         titleView.setPadding(0, dp(20), 0, dp(8));
@@ -84,7 +84,7 @@ public class PhotoDetailActivity extends AppCompatActivity {
 
         if (favorite) {
             TextView favTag = new TextView(this);
-            favTag.setText("❤️ 已收藏");
+            favTag.setText("已收藏");
             favTag.setTextSize(14);
             favTag.setTextColor(getColor(R.color.favorite_pink));
             favTag.setBackgroundResource(R.drawable.bg_tag);
@@ -99,10 +99,10 @@ public class PhotoDetailActivity extends AppCompatActivity {
 
         // 返回
         TextView back = new TextView(this);
-        back.setText("↩ 返回相册");
-        back.setTextSize(18);
+        back.setText("返回相册");
+        back.setTextSize(17);
         back.setGravity(Gravity.CENTER);
-        back.setTextColor(getColor(R.color.primary));
+        back.setTextColor(getColor(R.color.primary_dark));
         back.setBackgroundResource(R.drawable.bg_chip_soft);
         back.setPadding(0, dp(14), 0, dp(14));
         back.setOnClickListener(v -> finish());
@@ -117,12 +117,12 @@ public class PhotoDetailActivity extends AppCompatActivity {
         row.setPadding(0, dp(10), 0, 0);
         TextView lv = new TextView(this);
         lv.setText(label + "：");
-        lv.setTextSize(15);
+        lv.setTextSize(14);
         lv.setTextColor(getColor(R.color.text_secondary));
         row.addView(lv);
         TextView vv = new TextView(this);
         vv.setText(value);
-        vv.setTextSize(15);
+        vv.setTextSize(14);
         vv.setTextColor(getColor(R.color.text_primary));
         vv.setPadding(dp(8), 0, 0, 0);
         row.addView(vv);

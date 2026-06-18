@@ -85,16 +85,22 @@ public class LoginActivity extends AppCompatActivity {
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(36, 12, 36, 0);
 
-        EditText nameInput = input("姓名，例如：颜爷爷");
-        EditText pin = input("4 位 PIN，例如：2468");
-        pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-        EditText ageInput = input("年龄，例如：72");
-        ageInput.setInputType(InputType.TYPE_CLASS_NUMBER);
-        EditText conditionInput = input("健康状况，例如：高血压");
-
+        form.addView(label("姓名"));
+        EditText nameInput = input("例如：颜爷爷");
         form.addView(nameInput);
+
+        form.addView(label("PIN 码"));
+        EditText pin = input("4 位数字");
+        pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         form.addView(pin);
+
+        form.addView(label("年龄"));
+        EditText ageInput = input("例如：72");
+        ageInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         form.addView(ageInput);
+
+        form.addView(label("健康状况"));
+        EditText conditionInput = input("例如：高血压");
         form.addView(conditionInput);
 
         new AlertDialog.Builder(this)
@@ -116,10 +122,19 @@ public class LoginActivity extends AppCompatActivity {
             .show();
     }
 
+    private TextView label(String text) {
+        TextView tv = new TextView(this);
+        tv.setText(text);
+        tv.setTextSize(14);
+        tv.setTextColor(getColor(R.color.text_secondary));
+        tv.setPadding(0, 12, 0, 6);
+        return tv;
+    }
+
     private EditText input(String hint) {
         EditText editText = new EditText(this);
         editText.setHint(hint);
-        editText.setTextSize(18);
+        editText.setTextSize(17);
         editText.setSingleLine(true);
         editText.setPadding(0, 10, 0, 10);
         return editText;

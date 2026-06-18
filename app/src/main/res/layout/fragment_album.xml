@@ -5,23 +5,35 @@
     android:layout_height="match_parent"
     android:background="@color/bg_page">
 
-    <!-- Photo grid -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/album_grid"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:paddingStart="18dp"
+        android:paddingTop="82dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="90dp" />
 
-    <!-- FAB: Upload photo -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="76dp"
+        android:background="@color/bg_page"
+        android:gravity="center_vertical"
+        android:paddingStart="18dp"
+        android:text="家人相册"
+        android:textColor="@color/text_primary"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/upload_photo_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:layout_gravity="bottom|end"
         android:layout_margin="24dp"
-        android:src="@drawable/ic_upload"
         android:contentDescription="@string/upload_photo"
-        app:backgroundTint="#ec4899"
+        android:src="@drawable/ic_upload"
+        app:backgroundTint="@color/primary"
         app:tint="@color/surface_white" />
 </FrameLayout>

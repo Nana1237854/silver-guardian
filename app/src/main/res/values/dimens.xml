@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Elder-friendly large sizes -->
-    <dimen name="text_title">28sp</dimen>
-    <dimen name="text_subtitle">22sp</dimen>
-    <dimen name="text_body">18sp</dimen>
+    <!-- 1.25 modular type scale, tuned for elder readability -->
+    <dimen name="text_display">32sp</dimen>
+    <dimen name="text_title">26sp</dimen>
+    <dimen name="text_subtitle">21sp</dimen>
+    <dimen name="text_body">17sp</dimen>
     <dimen name="text_small">14sp</dimen>
     <dimen name="button_height">56dp</dimen>
+    <dimen name="touch_target">48dp</dimen>
     <dimen name="icon_size_large">56dp</dimen>
-    <dimen name="icon_size_medium">32dp</dimen>
+    <dimen name="icon_size_medium">30dp</dimen>
     <dimen name="icon_size_small">24dp</dimen>
     <dimen name="sidebar_width">280dp</dimen>
-    <dimen name="card_radius">24dp</dimen>
+    <dimen name="card_radius">22dp</dimen>
     <dimen name="button_radius">28dp</dimen>
     <dimen name="avatar_size">64dp</dimen>
     <dimen name="avatar_small">48dp</dimen>
-    <dimen name="bottom_nav_height">88dp</dimen>
-    <dimen name="screen_padding">20dp</dimen>
-    <dimen name="card_radius_large">30dp</dimen>
+    <dimen name="bottom_nav_height">82dp</dimen>
+    <dimen name="screen_padding">18dp</dimen>
+    <dimen name="card_padding">18dp</dimen>
+    <dimen name="section_gap">16dp</dimen>
+    <dimen name="card_radius_large">28dp</dimen>
 </resources>

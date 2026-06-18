@@ -32,6 +32,7 @@ public class MedicineFragment extends BaseFragment {
     private MedicineAdapter adapter;
     private final List<Medicine> visible = new ArrayList<>();
     private Spinner typeFilter;
+    private TextView progressView;
 
     @Nullable
     @Override
@@ -43,6 +44,7 @@ public class MedicineFragment extends BaseFragment {
         list.setAdapter(adapter);
 
         typeFilter = view.findViewById(R.id.medicine_filter);
+        progressView = view.findViewById(R.id.medicine_progress);
         refreshFilter();
         typeFilter.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) { refresh(); }
@@ -77,6 +79,10 @@ public class MedicineFragment extends BaseFragment {
         for (Medicine medicine : MockData.getMedicines()) {
             if ("全部类型".equals(selected) || medicine.type.equals(selected)) visible.add(medicine);
         }
+        int total = MockData.getMedicines().size();
+        int taken = 0;
+        for (Medicine medicine : MockData.getMedicines()) if (medicine.takenToday) taken++;
+        if (progressView != null) progressView.setText("今日已打卡  " + taken + "/" + total);
         if (adapter != null) adapter.notifyDataSetChanged();
     }
 
@@ -179,7 +185,7 @@ public class MedicineFragment extends BaseFragment {
     }
 
     private class MedicineViewHolder extends RecyclerView.ViewHolder {
-        TextView name, time, method;
+        TextView name, time, method, type;
         CheckBox checkbox;
 
         MedicineViewHolder(View v) {
@@ -187,19 +193,22 @@ public class MedicineFragment extends BaseFragment {
             name = v.findViewById(R.id.med_name);
             time = v.findViewById(R.id.med_time);
             method = v.findViewById(R.id.med_method);
+            type = v.findViewById(R.id.med_type);
             checkbox = v.findViewById(R.id.med_check);
         }
 
         void bind(Medicine medicine) {
             name.setText(medicine.name);
-            time.setText("⏰ " + medicine.time.replace(",", " · "));
-            method.setText(medicine.type + " · " + medicine.method + " · " + medicine.description);
+            type.setText(medicine.type);
+            time.setText(medicine.time.replace(",", "  ·  "));
+            method.setText(medicine.method + " · " + medicine.description);
             checkbox.setOnCheckedChangeListener(null);
             checkbox.setChecked(medicine.takenToday);
             checkbox.setText(medicine.takenToday ? "已打卡" : "未打卡");
             checkbox.setOnCheckedChangeListener((btn, checked) -> {
                 MockData.toggleMedicineTaken(medicine, checked);
                 checkbox.setText(checked ? "已打卡" : "未打卡");
+                refresh();
                 Toast.makeText(getContext(), checked ? "已完成服药打卡" : "已取消打卡", Toast.LENGTH_SHORT).show();
             });
             itemView.setOnClickListener(v -> new AlertDialog.Builder(requireContext())

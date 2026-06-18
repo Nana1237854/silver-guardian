@@ -61,17 +61,17 @@ public class CommunityFragment extends BaseFragment {
         LinearLayout btnRow = new LinearLayout(requireContext());
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
         btnRow.setPadding(0, 0, 0, dp(16));
-        btnRow.addView(searchChip("🥬 菜市场", "菜市场"));
-        btnRow.addView(searchChip("🏥 社区医院", "社区卫生服务中心"));
-        btnRow.addView(searchChip("💊 药店", "药店"));
-        btnRow.addView(searchChip("🏪 超市", "超市"));
-        btnRow.addView(searchChip("🏦 银行", "银行"));
+        btnRow.addView(searchChip("菜市场", "菜市场"));
+        btnRow.addView(searchChip("社区医院", "社区卫生服务中心"));
+        btnRow.addView(searchChip("药店", "药店"));
+        btnRow.addView(searchChip("超市", "超市"));
+        btnRow.addView(searchChip("银行", "银行"));
         hsv.addView(btnRow);
         root.addView(hsv);
 
         // 当前位置提示
         statusText = new TextView(requireContext());
-        statusText.setText("📍 当前位置附近（模拟：广州商学院周边）");
+        statusText.setText("当前位置附近（演示：广州商学院周边）");
         statusText.setTextSize(14);
         statusText.setTextColor(getResources().getColor(R.color.text_secondary));
         statusText.setPadding(0, 0, 0, dp(16));
@@ -118,7 +118,7 @@ public class CommunityFragment extends BaseFragment {
             resultContainer.addView(poiCard(poi[0], poi[1], poi[2], poi[3]));
         }
 
-        statusText.setText("📍 找到 " + pois.size() + " 个「" + keyword + "」附近的");
+        statusText.setText("找到 " + pois.size() + " 个「" + keyword + "」附近结果");
     }
 
     private List<String[]> getMockPOIs(String keyword) {
@@ -184,7 +184,7 @@ public class CommunityFragment extends BaseFragment {
 
         // 导航按钮
         TextView navBtn = new TextView(requireContext());
-        navBtn.setText("🧭 导航");
+        navBtn.setText("导航");
         navBtn.setTextSize(14);
         navBtn.setTypeface(null, android.graphics.Typeface.BOLD);
         navBtn.setTextColor(getResources().getColor(R.color.primary));

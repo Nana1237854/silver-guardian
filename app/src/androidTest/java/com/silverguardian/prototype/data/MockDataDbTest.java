@@ -189,6 +189,12 @@ public class MockDataDbTest {
     // ========== Emergency Alerts ==========
 
     @Test
+    public void repositorySingletonIsInitialized() {
+        assertNotNull(Repository.getInstance());
+        assertEquals(Repository.getInstance().getUsers().size(), MockData.getUsers().size());
+    }
+
+    @Test
     public void addEmergencyAlert() {
         MockData.setActiveUser(1);
         int countBefore = MockData.getEmergencyAlerts().size();

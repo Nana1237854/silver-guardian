@@ -42,14 +42,14 @@ public class FraudFragment extends BaseFragment {
         LinearLayout root = new LinearLayout(requireContext());
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(getResources().getColor(R.color.bg_page));
-        root.setPadding(dp(20), dp(20), dp(20), dp(20));
+        root.setPadding(dp(18), dp(16), dp(18), dp(20));
 
         // 标题栏
         LinearLayout header = new LinearLayout(requireContext());
         header.setGravity(android.view.Gravity.CENTER_VERTICAL);
         TextView title = new TextView(requireContext());
-        title.setText("🛡️ 防诈骗知识推送");
-        title.setTextSize(24);
+        title.setText("防诈提醒");
+        title.setTextSize(26);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setTextColor(getResources().getColor(R.color.text_primary));
         header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
@@ -94,7 +94,7 @@ public class FraudFragment extends BaseFragment {
                 for (FraudApiClient.FraudItem item : items) {
                     visible.add(new FraudTip(visible.size() + 1, item.title, item.category, item.summary, item.detail + (item.measures.isEmpty() ? "" : "\n\n应对措施：" + item.measures)));
                 }
-                loadingHint.setText("✅ 已从网络获取 " + items.size() + " 条最新防诈骗知识");
+                loadingHint.setText("已从网络获取 " + items.size() + " 条最新防诈骗知识");
                 adapter.notifyDataSetChanged();
             }
 
@@ -105,7 +105,7 @@ public class FraudFragment extends BaseFragment {
                     visible.addAll(MockData.getFraudTips());
                     adapter.notifyDataSetChanged();
                 }
-                loadingHint.setText("⚠️ 网络获取失败（" + error + "），使用本地缓存数据");
+                loadingHint.setText("网络获取失败（" + error + "），正在使用本地缓存数据");
             }
         });
     }
@@ -116,7 +116,7 @@ public class FraudFragment extends BaseFragment {
             LinearLayout row = new LinearLayout(parent.getContext());
             row.setOrientation(LinearLayout.VERTICAL);
             row.setPadding(dp(22), dp(20), dp(22), dp(20));
-            row.setBackgroundResource(R.drawable.bg_card_surface);
+            row.setBackgroundResource(R.drawable.bg_group_surface);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
             lp.bottomMargin = dp(12);
             row.setLayoutParams(lp);

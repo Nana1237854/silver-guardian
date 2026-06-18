@@ -29,7 +29,7 @@ public class FraudDetailActivity extends AppCompatActivity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(24), dp(32), dp(24), dp(48));
+        root.setPadding(dp(18), dp(20), dp(18), dp(48));
         scroll.addView(root);
 
         // 分类标签
@@ -52,11 +52,12 @@ public class FraudDetailActivity extends AppCompatActivity {
 
         // 详情
         TextView detailView = new TextView(this);
-        detailView.setText("📋 案例详情\n\n" + detail);
-        detailView.setTextSize(18);
+        detailView.setText("案例详情\n\n" + detail);
+        detailView.setTextSize(17);
         detailView.setTextColor(getColor(R.color.text_primary));
         detailView.setLineSpacing(dp(4), 1f);
-        detailView.setPadding(0, 0, 0, dp(24));
+        detailView.setBackgroundResource(R.drawable.bg_group_surface);
+        detailView.setPadding(dp(18), dp(18), dp(18), dp(18));
         root.addView(detailView);
 
         // 分隔线
@@ -66,8 +67,8 @@ public class FraudDetailActivity extends AppCompatActivity {
 
         // 防范措施
         TextView measuresTitle = new TextView(this);
-        measuresTitle.setText("🛡️ 防范措施");
-        measuresTitle.setTextSize(20);
+        measuresTitle.setText("防范措施");
+        measuresTitle.setTextSize(21);
         measuresTitle.setTypeface(null, android.graphics.Typeface.BOLD);
         measuresTitle.setTextColor(getColor(R.color.text_primary));
         measuresTitle.setPadding(0, dp(24), 0, dp(12));

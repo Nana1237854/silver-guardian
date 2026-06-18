@@ -11,6 +11,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,27 +49,35 @@ public class ChildModeActivity extends AppCompatActivity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(20), dp(24), dp(20), dp(48));
+        root.setPadding(dp(18), dp(18), dp(18), dp(48));
         scroll.addView(root);
 
-        root.addView(titleView("子女监控面板", 26));
-        root.addView(body("实时查看老人的健康数据与用药情况"));
+        root.addView(titleView("子女模式", 28));
+        root.addView(body("安心查看颜爷爷的健康、用药与安全状态"));
+        ImageView familyBanner = new ImageView(this);
+        familyBanner.setImageResource(R.drawable.family_companion);
+        familyBanner.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        familyBanner.setContentDescription("家属陪伴插画");
+        LinearLayout.LayoutParams bannerParams = new LinearLayout.LayoutParams(-1, dp(150));
+        bannerParams.topMargin = dp(16);
+        bannerParams.bottomMargin = dp(18);
+        root.addView(familyBanner, bannerParams);
         root.addView(spacer(8));
-        root.addView(sectionHeader("❤️ 健康摘要"));
+        root.addView(sectionHeader("健康摘要"));
         root.addView(healthSummaryCard());
-        root.addView(sectionHeader("💊 今日服药打卡"));
+        root.addView(sectionHeader("今日服药打卡"));
         root.addView(medicineCard());
-        root.addView(sectionHeader("🚨 紧急提醒记录"));
+        root.addView(sectionHeader("紧急提醒记录"));
         root.addView(sosCard());
-        root.addView(sectionHeader("👨‍👩‍👧‍👦 家属"));
+        root.addView(sectionHeader("家属联系"));
         root.addView(familyCard());
         root.addView(spacer(12));
 
-        Button uploadBtn = btn("📷 为老人上传照片", R.drawable.bg_button_primary, getColor(R.color.surface_white));
+        Button uploadBtn = btn("为老人上传照片", R.drawable.bg_button_primary, getColor(R.color.surface_white));
         uploadBtn.setOnClickListener(v -> showUploadDialog());
         root.addView(uploadBtn);
 
-        Button backBtn = btn("↩ 返回老人端", R.drawable.bg_chip_soft, getColor(R.color.primary));
+        Button backBtn = btn("返回老人端", R.drawable.bg_chip_soft, getColor(R.color.primary_dark));
         backBtn.setOnClickListener(v -> finish());
         root.addView(backBtn);
 
@@ -82,7 +91,7 @@ public class ChildModeActivity extends AppCompatActivity {
         form.setPadding(32, 8, 32, 0);
 
         TextView pickBtn = new TextView(this);
-        pickBtn.setText("📷 从相册选择照片");
+        pickBtn.setText("从手机相册选择照片");
         pickBtn.setTextSize(18);
         pickBtn.setTextColor(getColor(R.color.primary));
         pickBtn.setGravity(Gravity.CENTER);
@@ -198,9 +207,9 @@ public class ChildModeActivity extends AppCompatActivity {
             row.setGravity(Gravity.CENTER_VERTICAL);
             row.setPadding(0, dp(6), 0, dp(6));
             TextView nv = body(m.name);
-            nv.setTextSize(15);
+            nv.setTextSize(14);
             row.addView(nv, new LinearLayout.LayoutParams(0, -2, 1));
-            row.addView(chipMini(m.takenToday ? "✅ 已打卡" : "⏳ 未打卡"));
+            row.addView(chipMini(m.takenToday ? "已打卡" : "未打卡"));
             card.addView(row);
         }
         return card;
@@ -217,7 +226,7 @@ public class ChildModeActivity extends AppCompatActivity {
             row.setOrientation(LinearLayout.VERTICAL);
             row.setPadding(0, dp(6), 0, dp(6));
             TextView tv = body(a.time);
-            tv.setTextSize(13);
+            tv.setTextSize(14);
             row.addView(tv);
             TextView mv = new TextView(this);
             mv.setText(a.message);
@@ -243,7 +252,7 @@ public class ChildModeActivity extends AppCompatActivity {
             row.addView(nv, new LinearLayout.LayoutParams(0, -2, 1));
             row.addView(chipMini(m.online ? "在线" : "离线"));
             if (m.phone != null && !m.phone.isEmpty()) {
-                TextView pv = body(" 📞 " + m.phone);
+                TextView pv = body(m.phone);
                 pv.setTextSize(14);
                 row.addView(pv);
             }

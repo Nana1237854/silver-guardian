@@ -14,8 +14,8 @@
         android:layout_height="64dp"
         android:background="@drawable/bg_circle_orange"
         android:gravity="center"
-        android:text="👤"
-        android:textSize="28sp"
+        android:text="长者"
+        android:textSize="16sp"
         android:textColor="@color/surface_white" />
 
     <TextView

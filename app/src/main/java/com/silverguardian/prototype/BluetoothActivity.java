@@ -58,11 +58,11 @@ public class BluetoothActivity extends AppCompatActivity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(20), dp(24), dp(20), dp(48));
+        root.setPadding(dp(18), dp(18), dp(18), dp(48));
         scroll.addView(root);
 
         TextView title = new TextView(this);
-        title.setText("蓝牙设备管理");
+        title.setText("蓝牙设备");
         title.setTextSize(26);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setTextColor(getColor(R.color.text_primary));
@@ -72,11 +72,12 @@ public class BluetoothActivity extends AppCompatActivity {
         statusText.setText("正在初始化蓝牙...");
         statusText.setTextSize(15);
         statusText.setTextColor(getColor(R.color.text_secondary));
-        statusText.setPadding(0, dp(8), 0, dp(16));
+        statusText.setBackgroundResource(R.drawable.bg_reminder_strip);
+        statusText.setPadding(dp(14), dp(12), dp(14), dp(12));
         root.addView(statusText);
 
         // 扫描按钮
-        Button scanBtn = btn("🔍 扫描设备", R.drawable.bg_button_primary, getColor(R.color.surface_white));
+        Button scanBtn = btn("扫描附近设备", R.drawable.bg_button_primary, getColor(R.color.surface_white));
         scanBtn.setOnClickListener(v -> startScan());
         root.addView(scanBtn);
 
@@ -86,12 +87,12 @@ public class BluetoothActivity extends AppCompatActivity {
         root.addView(deviceList);
 
         // 模拟设备（作为 fallback）
-        Button mockBtn = btn("📋 加载模拟设备", R.drawable.bg_chip_soft, getColor(R.color.primary));
+        Button mockBtn = btn("加载演示设备", R.drawable.bg_chip_soft, getColor(R.color.primary_dark));
         mockBtn.setOnClickListener(v -> loadMockDevices());
         root.addView(mockBtn);
 
         // 返回
-        Button backBtn = btn("↩ 返回", R.drawable.bg_chip_soft, getColor(R.color.primary));
+        Button backBtn = btn("返回设置", R.drawable.bg_chip_soft, getColor(R.color.primary_dark));
         backBtn.setOnClickListener(v -> finish());
         root.addView(backBtn);
 
@@ -102,38 +103,38 @@ public class BluetoothActivity extends AppCompatActivity {
 
     private void initBluetooth() {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            statusText.setText("⚠️ 此设备不支持蓝牙 BLE，使用模拟模式");
+            statusText.setText("此设备不支持蓝牙 BLE，已切换演示模式");
             loadMockDevices();
             return;
         }
 
         BluetoothManager btManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         if (btManager == null) {
-            statusText.setText("⚠️ 无法获取蓝牙服务，使用模拟模式");
+            statusText.setText("无法获取蓝牙服务，已切换演示模式");
             loadMockDevices();
             return;
         }
 
         bluetoothAdapter = btManager.getAdapter();
         if (bluetoothAdapter == null) {
-            statusText.setText("⚠️ 此设备不支持蓝牙");
+            statusText.setText("此设备不支持蓝牙");
             loadMockDevices();
             return;
         }
         if (!bluetoothAdapter.isEnabled()) {
-            statusText.setText("📱 请先开启蓝牙");
+            statusText.setText("请先开启蓝牙");
             startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1);
             return;
         }
 
         leScanner = bluetoothAdapter.getBluetoothLeScanner();
         if (leScanner == null) {
-            statusText.setText("⚠️ BLE 不可用，使用模拟模式");
+            statusText.setText("BLE 不可用，已切换演示模式");
             loadMockDevices();
             return;
         }
 
-        statusText.setText("✅ 蓝牙就绪，点击扫描设备");
+        statusText.setText("蓝牙已就绪，可以开始扫描");
     }
 
     private void startScan() {
@@ -166,7 +167,7 @@ public class BluetoothActivity extends AppCompatActivity {
         try {
             leScanner.startScan(scanCallback);
         } catch (SecurityException e) {
-            statusText.setText("⚠️ 缺少蓝牙权限，使用模拟模式");
+            statusText.setText("缺少蓝牙权限，已切换演示模式");
             loadMockDevices();
             return;
         }
@@ -193,7 +194,7 @@ public class BluetoothActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 initBluetooth();
             } else {
-                statusText.setText("⚠️ 蓝牙未开启，使用模拟模式");
+                statusText.setText("蓝牙未开启，已切换演示模式");
                 loadMockDevices();
             }
         }
@@ -235,7 +236,7 @@ public class BluetoothActivity extends AppCompatActivity {
 
         @Override
         public void onScanFailed(int errorCode) {
-            statusText.setText("⚠️ BLE 扫描失败（错误码 " + errorCode + "），使用模拟模式");
+            statusText.setText("BLE 扫描失败（错误码 " + errorCode + "），已切换演示模式");
             loadMockDevices();
         }
     };
@@ -256,7 +257,7 @@ public class BluetoothActivity extends AppCompatActivity {
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(dp(18), dp(16), dp(18), dp(16));
         row.setBackgroundColor(getColor(R.color.surface_white));
-        row.setBackgroundResource(R.drawable.bg_card_surface);
+        row.setBackgroundResource(R.drawable.bg_group_surface);
 
         LinearLayout texts = new LinearLayout(this);
         texts.setOrientation(LinearLayout.VERTICAL);
@@ -296,7 +297,7 @@ public class BluetoothActivity extends AppCompatActivity {
         MockData.addHealthData(device.type, device.value, "正常");
         device.status = "已连接";
         new AlertDialog.Builder(this)
-            .setTitle("✅ 连接成功")
+            .setTitle("连接成功")
             .setMessage(device.name + "\n已读取数据：" + device.value + "\n数据已写入健康档案。\n\n现在可以在健康探索中查看。")
             .setPositiveButton("完成", (d, w) -> {
                 // 刷新设备列表
@@ -315,7 +316,7 @@ public class BluetoothActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startScan();
             } else {
-                statusText.setText("⚠️ 蓝牙权限被拒绝，使用模拟模式");
+                statusText.setText("蓝牙权限被拒绝，已切换演示模式");
                 Toast.makeText(this, "需要蓝牙权限才能扫描设备，请在设置中授权", Toast.LENGTH_LONG).show();
                 loadMockDevices();
             }
