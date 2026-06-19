@@ -44,7 +44,8 @@ public class ReminderBroadcastReceiver extends BroadcastReceiver {
 
         nm.notify((int) System.currentTimeMillis(), builder.build());
 
-        // TTS 语音播报 — 使用预初始化的单例，避免 BroadcastReceiver 短暂生命周期导致异步回调丢失
+        // 确保 TTS 已初始化（进程可能已被系统回收，静态单例已丢失）
+        TtsHelper.init(context);
         TtsHelper.speak(message);
     }
 

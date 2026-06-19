@@ -7,7 +7,7 @@
     android:paddingStart="@dimen/screen_padding"
     android:paddingTop="@dimen/page_top_padding_compact"
     android:paddingEnd="@dimen/screen_padding"
-    android:paddingBottom="@dimen/bottom_nav_safe_space">
+    android:paddingBottom="0dp">
 
     <include
         android:id="@+id/medicine_header"
@@ -64,7 +64,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/medicine_list"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="350dp"
         android:layout_weight="1"
         android:clipToPadding="false"
         android:paddingBottom="@dimen/list_bottom_padding" />

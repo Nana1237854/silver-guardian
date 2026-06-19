@@ -14,6 +14,7 @@ public class TtsHelper {
     private static final String TAG = "TtsHelper";
     private static TextToSpeech instance;
     private static volatile boolean ready;
+    private static volatile boolean initialized;
     private static String pendingMessage;
 
     public static void init(Context context) {
@@ -21,6 +22,7 @@ public class TtsHelper {
         Context app = context.getApplicationContext();
         // 不指定引擎，使用用户在 设置→文字转语音 中选择的默认引擎
         instance = new TextToSpeech(app, status -> {
+            initialized = true;
             if (status == TextToSpeech.SUCCESS) {
                 int r = instance.setLanguage(Locale.CHINESE);
                 if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED)
@@ -46,8 +48,10 @@ public class TtsHelper {
         if (instance != null && ready) {
             instance.speak(message, TextToSpeech.QUEUE_FLUSH, null, "med");
             Log.d(TAG, "speak: " + message);
-        } else if (instance != null) {
+        } else if (instance != null && !initialized) {
             pendingMessage = message;
+        } else if (instance != null) {
+            Log.e(TAG, "TTS 不可用，消息丢弃");
         } else {
             Log.w(TAG, "TTS 未初始化");
         }
@@ -55,6 +59,6 @@ public class TtsHelper {
 
     public static void release() {
         if (instance != null) { instance.stop(); instance.shutdown(); instance = null; }
-        ready = false; pendingMessage = null;
+        ready = false; pendingMessage = null; initialized = false;
     }
 }

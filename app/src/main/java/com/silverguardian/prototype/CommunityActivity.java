@@ -1,9 +1,6 @@
 package com.silverguardian.prototype;
 
-import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,10 +8,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
+import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.MapsInitializer;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
@@ -23,30 +24,25 @@ import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
-import com.amap.api.services.core.ServiceSettings;
-import com.amap.api.services.poisearch.PoiResult;
-import com.amap.api.services.poisearch.PoiSearch;
-import com.amap.api.services.route.RouteSearch;
-import com.amap.api.services.route.WalkPath;
-import com.amap.api.services.route.WalkRouteResult;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommunityActivity extends BaseActivity implements PoiSearch.OnPoiSearchListener, RouteSearch.OnRouteSearchListener {
-
+public class CommunityActivity extends BaseActivity {
     private static final int REQUEST_LOCATION = 301;
 
-    private final LatLng centerPoint = new LatLng(23.1291, 113.2644);
     private final List<PoiItem> currentPois = new ArrayList<>();
     private final List<TextView> chips = new ArrayList<>();
+    private final LatLng defaultCenter = new LatLng(23.1291, 113.2644);
 
     private MapView mapView;
     private AMap aMap;
-    private PoiSearch poiSearch;
-    private RouteSearch routeSearch;
     private TextView statusText;
     private String selectedKeyword;
+    private AMapLocationClient locationClient;
+    private LocationSource.OnLocationChangedListener locationChangedListener;
+    private AMapLocation lastLocation;
+    private boolean locationReady;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +54,8 @@ public class CommunityActivity extends BaseActivity implements PoiSearch.OnPoiSe
 
         MapsInitializer.updatePrivacyShow(this, true, true);
         MapsInitializer.updatePrivacyAgree(this, true);
-        ServiceSettings.updatePrivacyShow(this, true, true);
-        ServiceSettings.updatePrivacyAgree(this, true);
+        AMapLocationClient.updatePrivacyShow(this, true, true);
+        AMapLocationClient.updatePrivacyAgree(this, true);
 
         mapView = findViewById(R.id.community_map);
         mapView.onCreate(savedInstanceState);
@@ -106,94 +102,122 @@ public class CommunityActivity extends BaseActivity implements PoiSearch.OnPoiSe
         }
 
         MyLocationStyle locationStyle = new MyLocationStyle();
-        locationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_SHOW);
+        locationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATE);
         locationStyle.interval(2000);
         aMap.setMyLocationStyle(locationStyle);
         aMap.getUiSettings().setMyLocationButtonEnabled(true);
+        aMap.setLocationSource(locationSource);
         aMap.setMyLocationEnabled(true);
-        aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centerPoint, 15));
-
-        try {
-            poiSearch = new PoiSearch(this, null);
-            poiSearch.setOnPoiSearchListener(this);
-        } catch (Exception e) {
-            statusText.setText(getString(R.string.community_activity_poi_init_failed, e.getMessage()));
-        }
-
-        try {
-            routeSearch = new RouteSearch(this);
-            routeSearch.setRouteSearchListener(this);
-        } catch (Exception ignored) {
-            routeSearch = null;
-        }
-
+        aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultCenter, 15));
         statusText.setText(R.string.community_activity_ready);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+        if (!communitySearch().hasLocationPermission(this)) {
+            ActivityCompat.requestPermissions(this, communitySearch().getLocationPermissions(), REQUEST_LOCATION);
+        } else {
+            startLocation();
+        }
+    }
+
+    private final LocationSource locationSource = new LocationSource() {
+        @Override
+        public void activate(OnLocationChangedListener listener) {
+            locationChangedListener = listener;
         }
 
-        searchPoi(getString(R.string.community_keyword_market));
+        @Override
+        public void deactivate() {
+            locationChangedListener = null;
+        }
+    };
+
+    private void startLocation() {
+        try {
+            locationClient = new AMapLocationClient(getApplicationContext());
+            AMapLocationClientOption option = new AMapLocationClientOption();
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+            option.setInterval(2000);
+            option.setOnceLocation(false);
+            locationClient.setLocationOption(option);
+            locationClient.setLocationListener(new AMapLocationListener() {
+                @Override
+                public void onLocationChanged(AMapLocation loc) {
+                    if (loc == null || loc.getErrorCode() != 0) return;
+
+                    lastLocation = loc;
+                    communitySearch().setSearchCenter(
+                        new LatLonPoint(loc.getLatitude(), loc.getLongitude()));
+
+                    if (locationChangedListener != null) {
+                        locationChangedListener.onLocationChanged(loc);
+                    }
+
+                    if (!locationReady) {
+                        locationReady = true;
+                        aMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(loc.getLatitude(), loc.getLongitude()), 15));
+                        searchPoi(communitySearch().defaultKeyword());
+                    }
+                }
+            });
+            locationClient.startLocation();
+        } catch (Exception e) {
+            locationClient = null;
+            searchPoi(communitySearch().defaultKeyword());
+        }
+    }
+
+    private void stopLocation() {
+        if (locationClient != null) {
+            locationClient.stopLocation();
+            locationClient.onDestroy();
+            locationClient = null;
+        }
+        locationChangedListener = null;
+        locationReady = false;
     }
 
     private void searchPoi(String keyword) {
         selectedKeyword = keyword;
         updateChipStyles();
+        communitySearch().search(keyword, new com.silverguardian.prototype.community.CommunityPoiSearchModule.SearchCallback() {
+            @Override
+            public void onLoading(String status) {
+                statusText.setText(status);
+            }
 
-        if (poiSearch == null) {
-            Toast.makeText(this, R.string.community_activity_search_unavailable, Toast.LENGTH_SHORT).show();
-            return;
-        }
+            @Override
+            public void onSuccess(String status, List<PoiItem> pois) {
+                currentPois.clear();
+                currentPois.addAll(pois);
+                statusText.setText(status);
+                renderPois();
+            }
 
-        statusText.setText(getString(R.string.community_status_prefix) + getString(R.string.community_searching_pattern, keyword));
-
-        PoiSearch.Query query = new PoiSearch.Query(keyword, "", getString(R.string.community_activity_city));
-        query.setPageSize(20);
-        query.setPageNum(0);
-        PoiSearch.SearchBound bound = new PoiSearch.SearchBound(
-            new LatLonPoint(centerPoint.latitude, centerPoint.longitude), 5000);
-        poiSearch.setQuery(query);
-        poiSearch.setBound(bound);
-        poiSearch.searchPOIAsyn();
+            @Override
+            public void onError(String status) {
+                currentPois.clear();
+                statusText.setText(status);
+                if (aMap != null) aMap.clear();
+            }
+        });
     }
 
-    private void updateChipStyles() {
-        for (TextView chip : chips) {
-            boolean selected = chip.getTag() != null && chip.getTag().equals(selectedKeyword);
-            chip.setBackgroundResource(selected ? R.drawable.bg_button_primary : R.drawable.bg_chip_soft);
-            chip.setTextColor(getColor(selected ? R.color.surface_white : R.color.primary_dark));
-        }
-    }
-
-    @Override
-    public void onPoiSearched(PoiResult result, int errorCode) {
-        if (errorCode != 1000 || result == null || result.getPois().isEmpty()) {
-            statusText.setText(getString(R.string.community_activity_search_failed, errorCode));
-            return;
-        }
-
-        currentPois.clear();
-        currentPois.addAll(result.getPois());
+    private void renderPois() {
+        if (aMap == null) return;
         aMap.clear();
-        statusText.setText(getString(R.string.community_activity_found, currentPois.size()));
-
         for (int i = 0; i < Math.min(currentPois.size(), 20); i++) {
             PoiItem poi = currentPois.get(i);
             LatLng point = new LatLng(poi.getLatLonPoint().getLatitude(), poi.getLatLonPoint().getLongitude());
-            String distance = poi.getDistance() > 0 ? poi.getDistance() + "m" : getString(R.string.community_activity_distance_unknown);
             aMap.addMarker(new MarkerOptions()
                 .position(point)
                 .title(poi.getTitle())
-                .snippet(distance)
+                .snippet(communitySearch().markerDistance(poi))
                 .icon(BitmapDescriptorFactory.defaultMarker(getMarkerColor(i))));
         }
-
-        PoiItem first = currentPois.get(0);
-        aMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-            new LatLng(first.getLatLonPoint().getLatitude(), first.getLatLonPoint().getLongitude()), 15));
-
+        PoiItem first = currentPois.isEmpty() ? null : currentPois.get(0);
+        if (first != null) {
+            aMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(first.getLatLonPoint().getLatitude(), first.getLatLonPoint().getLongitude()), 15));
+        }
         aMap.setOnMarkerClickListener(marker -> {
             for (PoiItem poi : currentPois) {
                 LatLng point = new LatLng(poi.getLatLonPoint().getLatitude(), poi.getLatLonPoint().getLongitude());
@@ -206,81 +230,37 @@ public class CommunityActivity extends BaseActivity implements PoiSearch.OnPoiSe
         });
     }
 
-    @Override
-    public void onPoiItemSearched(PoiItem poiItem, int i) {
+    private void updateChipStyles() {
+        for (TextView chip : chips) {
+            boolean selected = chip.getTag() != null && chip.getTag().equals(selectedKeyword);
+            chip.setBackgroundResource(selected ? R.drawable.bg_button_primary : R.drawable.bg_chip_soft);
+            chip.setTextColor(getColor(selected ? R.color.surface_white : R.color.primary_dark));
+        }
     }
 
     private void showPoiDetail(PoiItem poi) {
-        String address = poi.getSnippet().isEmpty()
-            ? poi.getCityName() + poi.getAdName()
-            : poi.getSnippet();
-        String distance = poi.getDistance() > 0 ? poi.getDistance() + "m" : getString(R.string.community_activity_distance_unknown);
-        String phone = poi.getTel().isEmpty() ? getString(R.string.community_activity_phone_empty) : poi.getTel();
-
         new AlertDialog.Builder(this)
             .setTitle(poi.getTitle())
-            .setMessage(getString(R.string.community_activity_poi_detail, address, distance, phone))
-            .setPositiveButton(R.string.community_activity_walk_navigation, (d, w) -> startWalkRoute(poi))
-            .setNeutralButton(R.string.community_activity_open_amap, (d, w) -> openAmapNavigation(poi))
+            .setMessage(communitySearch().buildPoiDetail(poi))
+            .setPositiveButton(R.string.community_activity_walk_navigation, (d, w) -> communitySearch().requestWalkRoute(poi, new com.silverguardian.prototype.community.CommunityPoiSearchModule.RouteCallback() {
+                @Override public void onSuccess(String routeInfo) { showRoute(routeInfo); }
+                @Override public void onError(String message) { Toast.makeText(CommunityActivity.this, message, Toast.LENGTH_SHORT).show(); }
+            }))
+            .setNeutralButton(R.string.community_activity_open_amap, (d, w) -> {
+                if (!communitySearch().openNavigation(this, poi)) {
+                    Toast.makeText(this, R.string.community_activity_nav_open_failed, Toast.LENGTH_SHORT).show();
+                }
+            })
             .setNegativeButton(R.string.common_close, null)
             .show();
     }
 
-    private void startWalkRoute(PoiItem poi) {
-        if (routeSearch == null) {
-            Toast.makeText(this, R.string.community_activity_route_unavailable, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        LatLonPoint start = new LatLonPoint(centerPoint.latitude, centerPoint.longitude);
-        RouteSearch.WalkRouteQuery query = new RouteSearch.WalkRouteQuery(
-            new RouteSearch.FromAndTo(start, poi.getLatLonPoint()));
-        routeSearch.calculateWalkRouteAsyn(query);
-    }
-
-    @Override
-    public void onWalkRouteSearched(WalkRouteResult result, int errorCode) {
-        if (errorCode != 1000 || result == null || result.getPaths().isEmpty()) {
-            Toast.makeText(this, R.string.community_activity_route_failed, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        WalkPath path = result.getPaths().get(0);
-        String info = getString(
-            R.string.community_activity_walk_route_info,
-            path.getDistance(),
-            (int) (path.getDuration() / 60),
-            path.getSteps().size()
-        );
+    private void showRoute(String routeInfo) {
         new AlertDialog.Builder(this)
             .setTitle(R.string.community_activity_walk_route_title)
-            .setMessage(info)
+            .setMessage(routeInfo)
             .setPositiveButton(R.string.common_ok, null)
             .show();
-    }
-
-    @Override public void onDriveRouteSearched(com.amap.api.services.route.DriveRouteResult driveRouteResult, int i) { }
-    @Override public void onRideRouteSearched(com.amap.api.services.route.RideRouteResult rideRouteResult, int i) { }
-    @Override public void onBusRouteSearched(com.amap.api.services.route.BusRouteResult busRouteResult, int i) { }
-
-    private void openAmapNavigation(PoiItem poi) {
-        try {
-            String uri = "androidamap://navi?sourceApplication=" + Uri.encode(getString(R.string.community_activity_source_name))
-                + "&lat=" + poi.getLatLonPoint().getLatitude()
-                + "&lon=" + poi.getLatLonPoint().getLongitude()
-                + "&poiname=" + Uri.encode(poi.getTitle())
-                + "&style=2";
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-            intent.setPackage("com.autonavi.minimap");
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
-            } else {
-                String webUrl = "https://uri.amap.com/navigation?to="
-                    + poi.getLatLonPoint().getLongitude() + "," + poi.getLatLonPoint().getLatitude()
-                    + ",0&mode=walk&coordinate=gaode";
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl)));
-            }
-        } catch (Exception e) {
-            Toast.makeText(this, R.string.community_activity_nav_open_failed, Toast.LENGTH_SHORT).show();
-        }
     }
 
     private float getMarkerColor(int index) {
@@ -299,18 +279,17 @@ public class CommunityActivity extends BaseActivity implements PoiSearch.OnPoiSe
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (aMap != null) {
-                    aMap.setMyLocationEnabled(true);
-                }
+                startLocation();
             } else {
                 Toast.makeText(this, R.string.community_activity_location_permission, Toast.LENGTH_SHORT).show();
+                searchPoi(communitySearch().defaultKeyword());
             }
         }
     }
 
     @Override protected void onResume() { super.onResume(); if (mapView != null) mapView.onResume(); }
-    @Override protected void onPause() { super.onPause(); if (mapView != null) mapView.onPause(); }
-    @Override protected void onDestroy() { super.onDestroy(); if (mapView != null) mapView.onDestroy(); }
+    @Override protected void onPause() { super.onPause(); stopLocation(); if (mapView != null) mapView.onPause(); }
+    @Override protected void onDestroy() { super.onDestroy(); stopLocation(); if (mapView != null) mapView.onDestroy(); }
     @Override protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         if (mapView != null) mapView.onSaveInstanceState(outState);
