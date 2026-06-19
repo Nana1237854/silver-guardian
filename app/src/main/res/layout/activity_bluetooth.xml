@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_page"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/screen_padding"
+    android:paddingTop="@dimen/page_top_padding_compact"
+    android:paddingEnd="@dimen/screen_padding"
+    android:paddingBottom="@dimen/page_bottom_padding_standalone">
+
+    <include
+        android:id="@+id/bluetooth_header"
+        layout="@layout/view_page_header" />
+
+    <include
+        android:id="@+id/bluetooth_status"
+        layout="@layout/view_status_strip"
+        android:layout_marginBottom="14dp" />
+
+    <include
+        android:id="@+id/bluetooth_scan_section"
+        layout="@layout/view_bluetooth_scan_section" />
+
+    <include
+        android:id="@+id/bluetooth_empty_state"
+        layout="@layout/view_empty_state" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/bluetooth_device_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/list_bottom_padding_compact" />
+</LinearLayout>

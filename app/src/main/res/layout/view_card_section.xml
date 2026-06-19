@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/section_card_title"
+        style="@style/Widget.SilverGuardian.SectionLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/section_label_spacing_top" />
+
+    <LinearLayout
+        android:id="@+id/section_card_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/section_gap"
+        android:background="@drawable/bg_card_surface"
+        android:orientation="vertical"
+        android:padding="@dimen/group_card_padding_compact" />
+</LinearLayout>

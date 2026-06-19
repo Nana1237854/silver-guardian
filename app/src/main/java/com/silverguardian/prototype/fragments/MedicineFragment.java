@@ -15,7 +15,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,7 +22,7 @@ import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.Medicine;
 import com.silverguardian.prototype.models.MedicineLibraryItem;
-import com.silverguardian.prototype.utils.FontScaleHelper;
+import com.silverguardian.prototype.utils.FormFieldFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,57 +32,100 @@ public class MedicineFragment extends BaseFragment {
     private final List<Medicine> visible = new ArrayList<>();
     private Spinner typeFilter;
     private TextView progressView;
+    private TextView emptyState;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_medicine, container, false);
-        RecyclerView list = view.findViewById(R.id.medicine_list);
-        list.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MedicineAdapter();
-        list.setAdapter(adapter);
-
-        typeFilter = view.findViewById(R.id.medicine_filter);
-        progressView = view.findViewById(R.id.medicine_progress);
+        bindHeader(view);
+        bindControls(view);
+        bindList(view);
         refreshFilter();
-        typeFilter.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) { refresh(); }
-            @Override public void onNothingSelected(android.widget.AdapterView<?> parent) {}
-        });
-
-        view.findViewById(R.id.add_medicine_fab).setOnClickListener(v -> showAddMedicineDialog());
-
-        // 验收用：长按 FAB 触发一次 TTS 语音播报测试
-        view.findViewById(R.id.add_medicine_fab).setOnLongClickListener(v -> {
-            android.content.Intent i = new android.content.Intent(requireContext(),
-                com.silverguardian.prototype.reminder.ReminderBroadcastReceiver.class);
-            i.putExtra("medicine_name", "硝苯地平缓释片");
-            i.putExtra("user_name", "颜爷爷");
-            requireContext().sendBroadcast(i);
-            Toast.makeText(requireContext(), "已发送测试用药提醒（通知+TTS语音）", Toast.LENGTH_LONG).show();
-            return true;
-        });
-
         refresh();
         return view;
     }
 
-    @Override public void onResume() {
+    @Override
+    public void onResume() {
         super.onResume();
-        if (adapter != null) refresh();
+        if (adapter != null) {
+            refresh();
+        }
+    }
+
+    private void bindHeader(View root) {
+        View header = root.findViewById(R.id.medicine_header);
+        header.findViewById(R.id.header_back).setVisibility(View.GONE);
+        ((TextView) header.findViewById(R.id.header_title)).setText(R.string.medicine_title);
+        header.findViewById(R.id.header_action).setVisibility(View.GONE);
+    }
+
+    private void bindControls(View root) {
+        TextView addButton = root.findViewById(R.id.add_medicine_button);
+        addButton.setText(R.string.medicine_add);
+        addButton.setOnClickListener(v -> showAddMedicineDialog());
+        addButton.setOnLongClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(requireContext(),
+                com.silverguardian.prototype.reminder.ReminderBroadcastReceiver.class);
+            intent.putExtra("medicine_name", getString(R.string.medicine_demo_name));
+            intent.putExtra("user_name", getString(R.string.settings_profile_name));
+            requireContext().sendBroadcast(intent);
+            Toast.makeText(requireContext(), R.string.medicine_test_broadcast, Toast.LENGTH_LONG).show();
+            return true;
+        });
+
+        progressView = root.findViewById(R.id.medicine_progress);
+        emptyState = root.findViewById(R.id.medicine_empty_state);
+        emptyState.setText(R.string.medicine_empty);
+
+        TextView reminder = root.findViewById(R.id.medicine_reminder_strip);
+        reminder.setText(R.string.medicine_reminder);
+
+        typeFilter = root.findViewById(R.id.medicine_filter);
+        typeFilter.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                refresh();
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+            }
+        });
+    }
+
+    private void bindList(View root) {
+        RecyclerView list = root.findViewById(R.id.medicine_list);
+        list.setLayoutManager(new LinearLayoutManager(getContext()));
+        adapter = new MedicineAdapter();
+        list.setAdapter(adapter);
     }
 
     private void refresh() {
         visible.clear();
-        String selected = typeFilter == null || typeFilter.getSelectedItem() == null ? "全部类型" : typeFilter.getSelectedItem().toString();
+        String selected = typeFilter == null || typeFilter.getSelectedItem() == null ? getString(R.string.medicine_all_types) : typeFilter.getSelectedItem().toString();
         for (Medicine medicine : MockData.getMedicines()) {
-            if ("全部类型".equals(selected) || medicine.type.equals(selected)) visible.add(medicine);
+            if (getString(R.string.medicine_all_types).equals(selected) || medicine.type.equals(selected)) {
+                visible.add(medicine);
+            }
         }
         int total = MockData.getMedicines().size();
         int taken = 0;
-        for (Medicine medicine : MockData.getMedicines()) if (medicine.takenToday) taken++;
-        if (progressView != null) progressView.setText("今日已打卡  " + taken + "/" + total);
-        if (adapter != null) adapter.notifyDataSetChanged();
+        for (Medicine medicine : MockData.getMedicines()) {
+            if (medicine.takenToday) {
+                taken++;
+            }
+        }
+        if (progressView != null) {
+            progressView.setText(getString(R.string.medicine_progress_prefix) + taken + "/" + total);
+        }
+        if (emptyState != null) {
+            emptyState.setVisibility(visible.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private void refreshFilter() {
@@ -91,22 +133,15 @@ public class MedicineFragment extends BaseFragment {
     }
 
     private void showAddMedicineDialog() {
-        LinearLayout form = new LinearLayout(requireContext());
-        form.setOrientation(LinearLayout.VERTICAL);
-        form.setPadding(36, 8, 36, 0);
+        LinearLayout form = (LinearLayout) LayoutInflater.from(requireContext())
+            .inflate(R.layout.view_dialog_form_container, null, false);
 
-        EditText search = input("药品库搜索：高血压 / 感冒 / 药名");
-        EditText name = input("药品名称");
-        EditText type = input("类型，例如：降压药");
-        EditText time = input("服用时间，例如：08:00,20:00");
-        EditText method = input("用法，例如：口服");
-        EditText desc = input("说明");
-        form.addView(search);
-        form.addView(name);
-        form.addView(type);
-        form.addView(time);
-        form.addView(method);
-        form.addView(desc);
+        EditText search = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_search_label), getString(R.string.medicine_search_hint), false);
+        EditText name = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_name_label), getString(R.string.medicine_name_hint), false);
+        EditText type = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_type_label), getString(R.string.medicine_type_hint), false);
+        EditText time = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_time_label), getString(R.string.medicine_time_hint), false);
+        EditText method = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_method_label), getString(R.string.medicine_method_hint), false);
+        EditText desc = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_desc_label), getString(R.string.medicine_desc_hint), true);
 
         search.setOnEditorActionListener((v, actionId, event) -> {
             List<MedicineLibraryItem> result = MockData.searchMedicineLibrary(search.getText().toString());
@@ -114,36 +149,43 @@ public class MedicineFragment extends BaseFragment {
                 MedicineLibraryItem item = result.get(0);
                 name.setText(item.name);
                 type.setText(item.type);
-                desc.setText(item.brand + " · " + item.description);
+                desc.setText(item.brand + " - " + item.description);
                 time.setText("08:00");
-                method.setText("口服");
-                Toast.makeText(getContext(), "已填入药品库首个匹配项", Toast.LENGTH_SHORT).show();
+                method.setText(R.string.medicine_oral);
+                Toast.makeText(getContext(), R.string.medicine_fill_first_match, Toast.LENGTH_SHORT).show();
             }
             return false;
         });
 
-        new AlertDialog.Builder(requireContext())
-            .setTitle("添加药品提醒")
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.medicine_add_dialog)
             .setView(form)
-            .setPositiveButton("保存", (dialog, which) -> {
+            .setPositiveButton(R.string.common_save, null)
+            .setNeutralButton(R.string.medicine_library, null)
+            .setNegativeButton(R.string.common_cancel, null)
+            .create();
+        dialog.setOnShowListener(ignored -> {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
                 String medName = name.getText().toString().trim();
                 if (medName.isEmpty()) {
-                    Toast.makeText(getContext(), "请填写药品名称", Toast.LENGTH_SHORT).show();
+                    name.setError(getString(R.string.medicine_name_error));
+                    name.requestFocus();
                     return;
                 }
                 MockData.addMedicine(
                     medName,
-                    type.getText().toString().trim().isEmpty() ? "其他" : type.getText().toString().trim(),
+                    type.getText().toString().trim().isEmpty() ? getString(R.string.medicine_other) : type.getText().toString().trim(),
                     time.getText().toString().trim().isEmpty() ? "08:00" : time.getText().toString().trim(),
-                    method.getText().toString().trim().isEmpty() ? "口服" : method.getText().toString().trim(),
+                    method.getText().toString().trim().isEmpty() ? getString(R.string.medicine_oral) : method.getText().toString().trim(),
                     desc.getText().toString().trim()
                 );
                 refreshFilter();
                 refresh();
-            })
-            .setNeutralButton("查看药品库", (dialog, which) -> showLibraryDialog(""))
-            .setNegativeButton("取消", null)
-            .show();
+                dialog.dismiss();
+            });
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> showLibraryDialog(search.getText().toString().trim()));
+        });
+        dialog.show();
     }
 
     private void showLibraryDialog(String keyword) {
@@ -151,71 +193,74 @@ public class MedicineFragment extends BaseFragment {
         String[] names = new String[items.size()];
         for (int i = 0; i < items.size(); i++) {
             MedicineLibraryItem item = items.get(i);
-            names[i] = item.disease + " → " + item.name + "（" + item.brand + "）";
+            names[i] = item.disease + " -> " + item.name + "(" + item.brand + ")";
         }
         new AlertDialog.Builder(requireContext())
-            .setTitle("药品库")
-            .setItems(names, (d, which) -> {
+            .setTitle(R.string.medicine_library_title)
+            .setItems(names, (dialog, which) -> {
                 MedicineLibraryItem item = items.get(which);
-                MockData.addMedicine(item.name, item.type, "08:00", "口服", item.brand + " · " + item.description);
+                MockData.addMedicine(item.name, item.type, "08:00", getString(R.string.medicine_oral), item.brand + " - " + item.description);
                 refreshFilter();
                 refresh();
             })
-            .setPositiveButton("关闭", null)
+            .setPositiveButton(R.string.common_close, null)
             .show();
     }
 
-    private EditText input(String hint) {
-        EditText editText = new EditText(requireContext());
-        editText.setHint(hint);
-        editText.setTextSize(sp(18));
-        editText.setSingleLine(false);
-        return editText;
-    }
-
-    // sp() inherited from BaseFragment
-
     private class MedicineAdapter extends RecyclerView.Adapter<MedicineViewHolder> {
-        @NonNull @Override public MedicineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_medicine, parent, false);
-            return new MedicineViewHolder(v);
+        @NonNull
+        @Override
+        public MedicineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_medicine, parent, false);
+            return new MedicineViewHolder(view);
         }
-        @Override public void onBindViewHolder(@NonNull MedicineViewHolder h, int pos) { h.bind(visible.get(pos)); }
-        @Override public int getItemCount() { return visible.size(); }
+
+        @Override
+        public void onBindViewHolder(@NonNull MedicineViewHolder holder, int position) {
+            holder.bind(visible.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return visible.size();
+        }
     }
 
     private class MedicineViewHolder extends RecyclerView.ViewHolder {
-        TextView name, time, method, type;
-        CheckBox checkbox;
+        private final TextView name;
+        private final TextView time;
+        private final TextView method;
+        private final TextView type;
+        private final CheckBox checkbox;
 
-        MedicineViewHolder(View v) {
-            super(v);
-            name = v.findViewById(R.id.med_name);
-            time = v.findViewById(R.id.med_time);
-            method = v.findViewById(R.id.med_method);
-            type = v.findViewById(R.id.med_type);
-            checkbox = v.findViewById(R.id.med_check);
+        MedicineViewHolder(View view) {
+            super(view);
+            name = view.findViewById(R.id.med_name);
+            time = view.findViewById(R.id.med_time);
+            method = view.findViewById(R.id.med_method);
+            type = view.findViewById(R.id.med_type);
+            checkbox = view.findViewById(R.id.med_check);
         }
 
         void bind(Medicine medicine) {
             name.setText(medicine.name);
             type.setText(medicine.type);
-            time.setText(medicine.time.replace(",", "  ·  "));
-            method.setText(medicine.method + " · " + medicine.description);
+            time.setText(medicine.time.replace(",", "  -  "));
+            method.setText(medicine.method + " - " + medicine.description);
             checkbox.setOnCheckedChangeListener(null);
             checkbox.setChecked(medicine.takenToday);
-            checkbox.setText(medicine.takenToday ? "已打卡" : "未打卡");
-            checkbox.setOnCheckedChangeListener((btn, checked) -> {
+            checkbox.setText(medicine.takenToday ? R.string.medicine_taken : R.string.medicine_untaken);
+            checkbox.setOnCheckedChangeListener((buttonView, checked) -> {
                 MockData.toggleMedicineTaken(medicine, checked);
-                checkbox.setText(checked ? "已打卡" : "未打卡");
+                checkbox.setText(checked ? R.string.medicine_taken : R.string.medicine_untaken);
                 refresh();
-                Toast.makeText(getContext(), checked ? "已完成服药打卡" : "已取消打卡", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), checked ? R.string.medicine_done_toast : R.string.medicine_undone_toast, Toast.LENGTH_SHORT).show();
             });
             itemView.setOnClickListener(v -> new AlertDialog.Builder(requireContext())
                 .setTitle(medicine.name)
-                .setMessage("类型：" + medicine.type + "\n时间：" + medicine.time + "\n用法：" + medicine.method + "\n说明：" + medicine.description)
-                .setPositiveButton("知道了", null)
-                .setNeutralButton("删除", (d, w) -> confirmDelete(medicine))
+                .setMessage(getString(R.string.medicine_detail_message, medicine.type, medicine.time, medicine.method, medicine.description))
+                .setPositiveButton(R.string.medicine_detail_ok, null)
+                .setNeutralButton(R.string.common_delete, (dialog, which) -> confirmDelete(medicine))
                 .show());
             itemView.setOnLongClickListener(v -> {
                 confirmDelete(medicine);
@@ -226,13 +271,13 @@ public class MedicineFragment extends BaseFragment {
 
     private void confirmDelete(Medicine medicine) {
         new AlertDialog.Builder(requireContext())
-            .setTitle("删除药品")
-            .setMessage("确定删除「" + medicine.name + "」吗？")
-            .setPositiveButton("删除", (d, w) -> {
+            .setTitle(R.string.medicine_delete_title)
+            .setMessage(getString(R.string.medicine_delete_confirm, medicine.name))
+            .setPositiveButton(R.string.common_delete, (dialog, which) -> {
                 MockData.deleteMedicine(medicine);
                 refresh();
             })
-            .setNegativeButton("取消", null)
+            .setNegativeButton(R.string.common_cancel, null)
             .show();
     }
 }

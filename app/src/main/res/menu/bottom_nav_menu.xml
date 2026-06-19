@@ -4,5 +4,5 @@
     <item android:id="@+id/bottom_medicine" android:icon="@drawable/ic_medicine" android:title="@string/tab_medicine" />
     <item android:id="@+id/bottom_home" android:icon="@drawable/ic_home" android:title="@string/tab_home" />
     <item android:id="@+id/bottom_album" android:icon="@drawable/ic_album" android:title="@string/tab_album" />
-    <item android:id="@+id/bottom_settings" android:icon="@drawable/ic_logout" android:title="@string/tab_settings" />
+    <item android:id="@+id/bottom_settings" android:icon="@drawable/ic_settings" android:title="@string/tab_settings" />
 </menu>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_page"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/screen_padding"
+    android:paddingTop="@dimen/page_top_padding_compact"
+    android:paddingEnd="@dimen/screen_padding"
+    android:paddingBottom="@dimen/page_bottom_padding_standalone">
+
+    <include
+        android:id="@+id/community_page_header"
+        layout="@layout/view_page_header" />
+
+    <include
+        android:id="@+id/community_search_section"
+        layout="@layout/view_community_search_section" />
+
+    <com.amap.api.maps.MapView
+        android:id="@+id/community_map"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="@dimen/section_gap" />
+
+    <TextView
+        android:id="@+id/community_back_button"
+        style="@style/Widget.SilverGuardian.SecondaryTextAction"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/touch_target"
+        android:text="@string/community_activity_back_settings" />
+</LinearLayout>

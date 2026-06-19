@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_page"
+    android:clipToPadding="false"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/screen_padding"
+        android:paddingTop="@dimen/page_top_padding_compact"
+        android:paddingEnd="@dimen/screen_padding"
+        android:paddingBottom="@dimen/page_bottom_padding_standalone">
+
+        <include
+            android:id="@+id/photo_detail_header"
+            layout="@layout/view_page_header" />
+
+        <TextView
+            android:id="@+id/photo_detail_page_counter"
+            style="@style/TextAppearance.SilverGuardian.BodyMuted"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/detail_page_counter_gap_bottom"
+            android:gravity="center"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/photo_detail_image"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/detail_media_height"
+            android:adjustViewBounds="true"
+            android:background="@color/mint_soft"
+            android:contentDescription="@string/photo_detail_image_desc"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/photo_detail_title"
+            style="@style/TextAppearance.SilverGuardian.PageTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/detail_title_gap_top"
+            android:layout_marginBottom="@dimen/detail_title_gap_bottom" />
+
+        <TextView
+            android:id="@+id/photo_detail_favorite_tag"
+            style="@style/Widget.SilverGuardian.CompactChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/photo_detail_favorited"
+            android:textColor="@color/favorite_pink"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/photo_detail_info_section"
+            layout="@layout/view_card_section" />
+
+        <TextView
+            android:id="@+id/photo_detail_back_button"
+            style="@style/Widget.SilverGuardian.SecondaryTextAction"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginTop="@dimen/section_gap"
+            android:text="@string/photo_detail_back" />
+    </LinearLayout>
+</ScrollView>

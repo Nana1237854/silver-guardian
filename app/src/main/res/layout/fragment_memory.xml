@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_page"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/screen_padding"
+    android:paddingTop="@dimen/screen_padding"
+    android:paddingEnd="@dimen/screen_padding"
+    android:paddingBottom="@dimen/bottom_nav_safe_space">
+
+    <include
+        android:id="@+id/memory_header"
+        layout="@layout/view_page_header" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/section_gap"
+        android:background="@drawable/bg_group_surface"
+        android:orientation="vertical"
+        android:padding="@dimen/card_content_padding_compact">
+
+        <TextView
+            android:id="@+id/memory_filter_title"
+            style="@style/TextAppearance.SilverGuardian.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/primary_dark"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/memory_filter_subtitle"
+            style="@style/TextAppearance.SilverGuardian.BodyMuted"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/memory_filter_subtitle_gap" />
+
+        <Spinner
+            android:id="@+id/memory_category_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/touch_target"
+            android:layout_marginTop="@dimen/memory_filter_spinner_gap"
+            android:background="@drawable/bg_chip_soft"
+            android:paddingStart="@dimen/chip_padding_horizontal"
+            android:paddingEnd="@dimen/chip_padding_horizontal" />
+    </LinearLayout>
+
+    <include
+        android:id="@+id/memory_empty_state"
+        layout="@layout/view_empty_state" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/memory_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/section_gap" />
+</LinearLayout>

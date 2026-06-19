@@ -13,16 +13,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.User;
+import com.silverguardian.prototype.utils.FormFieldFactory;
 
 import java.util.List;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity {
     private EditText pinInput;
     private Button loginButton;
     private TextView selectedUserName;
@@ -47,7 +47,9 @@ public class LoginActivity extends AppCompatActivity {
         userGrid.setAdapter(adapter);
 
         TextView addUser = findViewById(R.id.add_user_button);
-        if (addUser != null) addUser.setOnClickListener(v -> showAddUserDialog());
+        if (addUser != null) {
+            addUser.setOnClickListener(v -> showAddUserDialog());
+        }
 
         pinInput.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -58,12 +60,14 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         loginButton.setOnClickListener(v -> login());
-        if (!users.isEmpty()) selectUser(users.get(0));
+        if (!users.isEmpty()) {
+            selectUser(users.get(0));
+        }
     }
 
     private void login() {
         if (selectedUser == null) {
-            Toast.makeText(this, "请先选择老人档案", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.login_select_user_toast, Toast.LENGTH_SHORT).show();
             return;
         }
         String pin = pinInput.getText().toString().trim();
@@ -75,7 +79,7 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         } else {
-            Toast.makeText(this, "PIN 码错误，请重试", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.login_invalid_pin_toast, Toast.LENGTH_SHORT).show();
             pinInput.setText("");
         }
     }
@@ -83,61 +87,56 @@ public class LoginActivity extends AppCompatActivity {
     private void showAddUserDialog() {
         LinearLayout form = new LinearLayout(this);
         form.setOrientation(LinearLayout.VERTICAL);
-        form.setPadding(36, 12, 36, 0);
+        form.setPadding(dp(24), dp(8), dp(24), 0);
 
-        form.addView(label("姓名"));
-        EditText nameInput = input("例如：颜爷爷");
-        form.addView(nameInput);
-
-        form.addView(label("PIN 码"));
-        EditText pin = input("4 位数字");
+        EditText nameInput = FormFieldFactory.addTextField(this, form,
+            getString(R.string.login_field_name), getString(R.string.login_field_name_hint), false);
+        EditText pin = FormFieldFactory.addTextField(this, form,
+            getString(R.string.login_field_pin), getString(R.string.login_field_pin_hint), false);
         pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-        form.addView(pin);
-
-        form.addView(label("年龄"));
-        EditText ageInput = input("例如：72");
+        EditText ageInput = FormFieldFactory.addTextField(this, form,
+            getString(R.string.login_field_age), getString(R.string.login_field_age_hint), false);
         ageInput.setInputType(InputType.TYPE_CLASS_NUMBER);
-        form.addView(ageInput);
+        EditText conditionInput = FormFieldFactory.addTextField(this, form,
+            getString(R.string.login_field_condition), getString(R.string.login_field_condition_hint), false);
 
-        form.addView(label("健康状况"));
-        EditText conditionInput = input("例如：高血压");
-        form.addView(conditionInput);
-
-        new AlertDialog.Builder(this)
-            .setTitle("添加老人档案")
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle(R.string.login_add_user_title)
             .setView(form)
-            .setPositiveButton("保存", (dialog, which) -> {
-                String name = nameInput.getText().toString().trim();
-                String pinText = pin.getText().toString().trim();
-                if (name.isEmpty() || pinText.length() != 4) {
-                    Toast.makeText(this, "请填写姓名和 4 位 PIN", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                int age = ageInput.getText().toString().trim().isEmpty() ? 60 : Integer.parseInt(ageInput.getText().toString().trim());
-                User user = MockData.addUser(name, pinText, age, conditionInput.getText().toString().trim());
-                selectUser(user);
-                adapter.notifyDataSetChanged();
-            })
-            .setNegativeButton("取消", null)
-            .show();
+            .setPositiveButton(R.string.common_save, null)
+            .setNegativeButton(R.string.common_cancel, null)
+            .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String name = nameInput.getText().toString().trim();
+            String pinText = pin.getText().toString().trim();
+            if (name.isEmpty()) {
+                nameInput.setError(getString(R.string.login_name_required));
+                nameInput.requestFocus();
+                return;
+            }
+            if (!pinText.matches("\\d{4}")) {
+                pin.setError(getString(R.string.login_pin_required));
+                pin.requestFocus();
+                return;
+            }
+            int age = ageInput.getText().toString().trim().isEmpty()
+                ? 60
+                : Integer.parseInt(ageInput.getText().toString().trim());
+            if (age < 1 || age > 150) {
+                ageInput.setError(getString(R.string.login_age_invalid));
+                ageInput.requestFocus();
+                return;
+            }
+            User user = MockData.addUser(name, pinText, age, conditionInput.getText().toString().trim());
+            selectUser(user);
+            adapter.notifyDataSetChanged();
+            dialog.dismiss();
+        }));
+        dialog.show();
     }
 
-    private TextView label(String text) {
-        TextView tv = new TextView(this);
-        tv.setText(text);
-        tv.setTextSize(14);
-        tv.setTextColor(getColor(R.color.text_secondary));
-        tv.setPadding(0, 12, 0, 6);
-        return tv;
-    }
-
-    private EditText input(String hint) {
-        EditText editText = new EditText(this);
-        editText.setHint(hint);
-        editText.setTextSize(17);
-        editText.setSingleLine(true);
-        editText.setPadding(0, 10, 0, 10);
-        return editText;
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private void selectUser(User user) {
@@ -163,19 +162,19 @@ public class LoginActivity extends AppCompatActivity {
             });
             holder.itemView.setOnLongClickListener(v -> {
                 if (users.size() <= 1) {
-                    Toast.makeText(LoginActivity.this, "至少保留一个老人档案", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, R.string.login_keep_one_user, Toast.LENGTH_SHORT).show();
                     return true;
                 }
                 new AlertDialog.Builder(LoginActivity.this)
-                    .setTitle("删除老人档案")
-                    .setMessage("确定删除「" + user.name + "」吗？相关本地数据也会删除。")
-                    .setPositiveButton("删除", (d, w) -> {
+                    .setTitle(R.string.login_delete_user_title)
+                    .setMessage(getString(R.string.login_delete_user_message, user.name))
+                    .setPositiveButton(R.string.common_delete, (d, w) -> {
                         MockData.deleteUser(user);
                         selectedUser = users.isEmpty() ? null : users.get(0);
                         selectedUserName.setText(selectedUser == null ? "" : selectedUser.name);
                         notifyDataSetChanged();
                     })
-                    .setNegativeButton("取消", null)
+                    .setNegativeButton(R.string.common_cancel, null)
                     .show();
                 return true;
             });

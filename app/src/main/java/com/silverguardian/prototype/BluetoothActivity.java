@@ -13,19 +13,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.BluetoothDeviceMock;
@@ -33,18 +32,20 @@ import com.silverguardian.prototype.models.BluetoothDeviceMock;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 蓝牙设备集成 — BLE 扫描 + 连接 + 读取健康数据。
- * 课程创新点：覆盖蓝牙 BLE + 运行时权限。
- * 真机使用 BluetoothLeScanner，模拟器降级为模拟设备。
- */
-public class BluetoothActivity extends AppCompatActivity {
+public class BluetoothActivity extends BaseActivity {
     private static final int REQUEST_BT_PERMISSIONS = 301;
+    private static final int REQUEST_ENABLE_BLUETOOTH = 1;
+
+    private static final String TYPE_BLOOD_PRESSURE = "blood_pressure";
+    private static final String TYPE_BLOOD_OXYGEN = "blood_oxygen";
+    private static final String TYPE_HEART_RATE = "heart_rate";
 
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner leScanner;
-    private LinearLayout deviceList;
+    private RecyclerView deviceList;
     private TextView statusText;
+    private TextView emptyState;
+    private DeviceAdapter adapter;
     private boolean isScanning = false;
     private final List<BluetoothDeviceMock> foundDevices = new ArrayList<>();
 
@@ -52,93 +53,95 @@ public class BluetoothActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MockData.init(this);
-
-        ScrollView scroll = new ScrollView(this);
-        scroll.setBackgroundColor(getColor(R.color.bg_page));
-
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(18), dp(18), dp(18), dp(48));
-        scroll.addView(root);
-
-        TextView title = new TextView(this);
-        title.setText("蓝牙设备");
-        title.setTextSize(26);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setTextColor(getColor(R.color.text_primary));
-        root.addView(title);
-
-        statusText = new TextView(this);
-        statusText.setText("正在初始化蓝牙...");
-        statusText.setTextSize(15);
-        statusText.setTextColor(getColor(R.color.text_secondary));
-        statusText.setBackgroundResource(R.drawable.bg_reminder_strip);
-        statusText.setPadding(dp(14), dp(12), dp(14), dp(12));
-        root.addView(statusText);
-
-        // 扫描按钮
-        Button scanBtn = btn("扫描附近设备", R.drawable.bg_button_primary, getColor(R.color.surface_white));
-        scanBtn.setOnClickListener(v -> startScan());
-        root.addView(scanBtn);
-
-        // 设备列表
-        deviceList = new LinearLayout(this);
-        deviceList.setOrientation(LinearLayout.VERTICAL);
-        root.addView(deviceList);
-
-        // 模拟设备（作为 fallback）
-        Button mockBtn = btn("加载演示设备", R.drawable.bg_chip_soft, getColor(R.color.primary_dark));
-        mockBtn.setOnClickListener(v -> loadMockDevices());
-        root.addView(mockBtn);
-
-        // 返回
-        Button backBtn = btn("返回设置", R.drawable.bg_chip_soft, getColor(R.color.primary_dark));
-        backBtn.setOnClickListener(v -> finish());
-        root.addView(backBtn);
-
-        setContentView(scroll);
-
+        setContentView(R.layout.activity_bluetooth);
+        bindHeader();
+        bindControls();
+        bindList();
+        statusText.setText(R.string.bluetooth_initializing);
+        refreshDevices();
         initBluetooth();
+    }
+
+    private void bindHeader() {
+        View header = findViewById(R.id.bluetooth_header);
+        TextView back = header.findViewById(R.id.header_back);
+        back.setVisibility(View.VISIBLE);
+        back.setText(R.string.common_back);
+        back.setOnClickListener(v -> finish());
+        ((TextView) header.findViewById(R.id.header_title)).setText(R.string.tab_bluetooth);
+        header.findViewById(R.id.header_action).setVisibility(View.GONE);
+    }
+
+    private void bindControls() {
+        statusText = findViewById(R.id.bluetooth_status);
+        emptyState = findViewById(R.id.bluetooth_empty_state);
+        emptyState.setText(R.string.bluetooth_empty_state);
+
+        TextView intro = findViewById(R.id.bluetooth_intro);
+        intro.setText(R.string.bluetooth_intro);
+
+        TextView scanButton = findViewById(R.id.bluetooth_scan_button);
+        scanButton.setText(R.string.bluetooth_scan_button);
+        scanButton.setOnClickListener(v -> startScan());
+
+        TextView mockButton = findViewById(R.id.bluetooth_mock_button);
+        mockButton.setText(R.string.bluetooth_mock_button);
+        mockButton.setOnClickListener(v -> loadMockDevices());
+    }
+
+    private void bindList() {
+        deviceList = findViewById(R.id.bluetooth_device_list);
+        deviceList.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new DeviceAdapter();
+        deviceList.setAdapter(adapter);
+    }
+
+    private void refreshDevices() {
+        if (emptyState != null) {
+            emptyState.setVisibility(foundDevices.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private void initBluetooth() {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            statusText.setText("此设备不支持蓝牙 BLE，已切换演示模式");
+            statusText.setText(R.string.bluetooth_not_supported_ble);
             loadMockDevices();
             return;
         }
 
         BluetoothManager btManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         if (btManager == null) {
-            statusText.setText("无法获取蓝牙服务，已切换演示模式");
+            statusText.setText(R.string.bluetooth_service_fail);
             loadMockDevices();
             return;
         }
 
         bluetoothAdapter = btManager.getAdapter();
         if (bluetoothAdapter == null) {
-            statusText.setText("此设备不支持蓝牙");
+            statusText.setText(R.string.bluetooth_unsupported);
             loadMockDevices();
             return;
         }
         if (!bluetoothAdapter.isEnabled()) {
-            statusText.setText("请先开启蓝牙");
-            startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1);
+            statusText.setText(R.string.bluetooth_enable_first);
+            startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BLUETOOTH);
             return;
         }
 
         leScanner = bluetoothAdapter.getBluetoothLeScanner();
         if (leScanner == null) {
-            statusText.setText("BLE 不可用，已切换演示模式");
+            statusText.setText(R.string.bluetooth_scanner_fail);
             loadMockDevices();
             return;
         }
 
-        statusText.setText("蓝牙已就绪，可以开始扫描");
+        statusText.setText(R.string.bluetooth_ready);
     }
 
     private void startScan() {
-        // Android 12+ 需要 BLUETOOTH_SCAN 权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT}, REQUEST_BT_PERMISSIONS);
@@ -152,37 +155,43 @@ public class BluetoothActivity extends AppCompatActivity {
         }
 
         if (leScanner == null) {
-            Toast.makeText(this, "BLE 扫描器不可用，请使用模拟设备", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.bluetooth_scanner_unavailable, Toast.LENGTH_SHORT).show();
             loadMockDevices();
             return;
         }
 
-        foundDevices.clear();
-        deviceList.removeAllViews();
-        statusText.setText("正在扫描 BLE 设备...");
+        if (isScanning) {
+            return;
+        }
 
-        if (isScanning) return;
+        foundDevices.clear();
+        refreshDevices();
+        statusText.setText(R.string.bluetooth_scanning);
         isScanning = true;
 
         try {
             leScanner.startScan(scanCallback);
         } catch (SecurityException e) {
-            statusText.setText("缺少蓝牙权限，已切换演示模式");
+            statusText.setText(R.string.bluetooth_permission_fallback);
+            isScanning = false;
             loadMockDevices();
             return;
         }
 
-        // 5 秒后停止扫描
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             if (isScanning) {
-                try { leScanner.stopScan(scanCallback); } catch (SecurityException ignored) {}
+                try {
+                    leScanner.stopScan(scanCallback);
+                } catch (SecurityException ignored) {
+                }
                 isScanning = false;
             }
             if (foundDevices.isEmpty()) {
-                statusText.setText("未发现 BLE 设备，自动加载模拟设备");
+                statusText.setText(R.string.bluetooth_scan_empty);
                 loadMockDevices();
             } else {
-                statusText.setText("扫描完成，发现 " + foundDevices.size() + " 个设备");
+                statusText.setText(getString(R.string.bluetooth_scan_done, foundDevices.size()));
+                refreshDevices();
             }
         }, 5000);
     }
@@ -190,11 +199,11 @@ public class BluetoothActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
+        if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
             if (resultCode == RESULT_OK) {
                 initBluetooth();
             } else {
-                statusText.setText("蓝牙未开启，已切换演示模式");
+                statusText.setText(R.string.bluetooth_disabled);
                 loadMockDevices();
             }
         }
@@ -206,106 +215,93 @@ public class BluetoothActivity extends AppCompatActivity {
             super.onScanResult(callbackType, result);
             BluetoothDevice device = result.getDevice();
             String name = device.getName();
-            if (name == null) return;
-
-            // 过滤健康相关设备
-            boolean isHealthDevice = name.contains("BP") || name.contains("OX") || name.contains("HR")
-                || name.contains("血压") || name.contains("血氧") || name.contains("心率")
-                || name.contains("Band") || name.contains("Watch");
-
-            if (!isHealthDevice) return;
+            if (name == null || name.trim().isEmpty()) {
+                return;
+            }
+            if (!isHealthDevice(name)) {
+                return;
+            }
 
             BluetoothDeviceMock mock = new BluetoothDeviceMock(
-                foundDevices.size() + 1, name,
-                name.contains("BP") || name.contains("血压") ? "blood_pressure" :
-                    name.contains("OX") || name.contains("血氧") ? "blood_oxygen" : "heart_rate",
-                name.contains("BP") ? "128/82" : name.contains("OX") ? "97" : "72",
-                "已发现"
+                foundDevices.size() + 1,
+                name,
+                detectType(name),
+                detectValue(name),
+                getString(R.string.bluetooth_status_found)
             );
 
-            // 去重
-            boolean duplicate = false;
-            for (BluetoothDeviceMock existing : foundDevices) {
-                if (existing.name.equals(mock.name)) { duplicate = true; break; }
+            if (isDuplicate(mock)) {
+                return;
             }
-            if (!duplicate) {
-                foundDevices.add(mock);
-                addDeviceRow(mock);
-            }
+            foundDevices.add(mock);
+            refreshDevices();
         }
 
         @Override
         public void onScanFailed(int errorCode) {
-            statusText.setText("BLE 扫描失败（错误码 " + errorCode + "），已切换演示模式");
+            isScanning = false;
+            statusText.setText(getString(R.string.bluetooth_scan_failed, errorCode));
             loadMockDevices();
         }
     };
 
-    private void loadMockDevices() {
-        foundDevices.clear();
-        deviceList.removeAllViews();
-        foundDevices.addAll(MockData.getBluetoothDevices());
-        for (BluetoothDeviceMock device : foundDevices) {
-            addDeviceRow(device);
-        }
-        statusText.setText("已加载 " + foundDevices.size() + " 个模拟设备");
+    private boolean isHealthDevice(String name) {
+        String bloodPressure = getString(R.string.bluetooth_type_blood_pressure);
+        String bloodOxygen = getString(R.string.bluetooth_type_blood_oxygen);
+        String heartRate = getString(R.string.bluetooth_type_heart_rate);
+        return name.contains("BP")
+            || name.contains("OX")
+            || name.contains("HR")
+            || name.contains(bloodPressure)
+            || name.contains(bloodOxygen)
+            || name.contains(heartRate)
+            || name.contains("Band")
+            || name.contains("Watch");
     }
 
-    private void addDeviceRow(BluetoothDeviceMock device) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(18), dp(16), dp(18), dp(16));
-        row.setBackgroundColor(getColor(R.color.surface_white));
-        row.setBackgroundResource(R.drawable.bg_group_surface);
+    private String detectType(String name) {
+        if (name.contains("BP") || name.contains(getString(R.string.bluetooth_type_blood_pressure))) {
+            return TYPE_BLOOD_PRESSURE;
+        }
+        if (name.contains("OX") || name.contains(getString(R.string.bluetooth_type_blood_oxygen))) {
+            return TYPE_BLOOD_OXYGEN;
+        }
+        return TYPE_HEART_RATE;
+    }
 
-        LinearLayout texts = new LinearLayout(this);
-        texts.setOrientation(LinearLayout.VERTICAL);
+    private String detectValue(String name) {
+        if (name.contains("BP") || name.contains(getString(R.string.bluetooth_type_blood_pressure))) {
+            return "128/82";
+        }
+        if (name.contains("OX") || name.contains(getString(R.string.bluetooth_type_blood_oxygen))) {
+            return "97";
+        }
+        return "72";
+    }
 
-        TextView nameView = new TextView(this);
-        nameView.setText(device.name);
-        nameView.setTextSize(18);
-        nameView.setTypeface(null, android.graphics.Typeface.BOLD);
-        nameView.setTextColor(getColor(R.color.text_primary));
-        texts.addView(nameView);
+    private boolean isDuplicate(BluetoothDeviceMock mock) {
+        for (BluetoothDeviceMock existing : foundDevices) {
+            if (existing.name.equals(mock.name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-        TextView metaView = new TextView(this);
-        metaView.setText("类型：" + getTypeLabel(device.type) + " · 读数：" + device.value + " · " + device.status);
-        metaView.setTextSize(14);
-        metaView.setTextColor(getColor(R.color.text_secondary));
-        metaView.setPadding(0, dp(4), 0, 0);
-        texts.addView(metaView);
-
-        row.addView(texts, new LinearLayout.LayoutParams(0, -2, 1));
-
-        Button connectBtn = new Button(this);
-        connectBtn.setText("连接");
-        connectBtn.setTextSize(14);
-        connectBtn.setAllCaps(false);
-        connectBtn.setBackgroundResource(R.drawable.bg_chip_soft);
-        connectBtn.setTextColor(getColor(R.color.primary));
-        connectBtn.setOnClickListener(v -> connectDevice(device));
-        row.addView(connectBtn);
-
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.bottomMargin = dp(10);
-        row.setLayoutParams(params);
-        deviceList.addView(row);
+    private void loadMockDevices() {
+        foundDevices.clear();
+        foundDevices.addAll(MockData.getBluetoothDevices());
+        statusText.setText(getString(R.string.bluetooth_mock_loaded, foundDevices.size()));
+        refreshDevices();
     }
 
     private void connectDevice(BluetoothDeviceMock device) {
-        MockData.addHealthData(device.type, device.value, "正常");
-        device.status = "已连接";
+        MockData.addHealthData(device.type, device.value, getString(R.string.bluetooth_health_status_normal));
+        device.status = getString(R.string.common_connected);
         new AlertDialog.Builder(this)
-            .setTitle("连接成功")
-            .setMessage(device.name + "\n已读取数据：" + device.value + "\n数据已写入健康档案。\n\n现在可以在健康探索中查看。")
-            .setPositiveButton("完成", (d, w) -> {
-                // 刷新设备列表
-                deviceList.removeAllViews();
-                for (BluetoothDeviceMock dev : foundDevices) {
-                    addDeviceRow(dev);
-                }
-            })
+            .setTitle(R.string.bluetooth_connect_success_title)
+            .setMessage(getString(R.string.bluetooth_connect_success_message, device.name, device.value))
+            .setPositiveButton(R.string.common_save, (dialog, which) -> refreshDevices())
             .show();
     }
 
@@ -316,8 +312,8 @@ public class BluetoothActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startScan();
             } else {
-                statusText.setText("蓝牙权限被拒绝，已切换演示模式");
-                Toast.makeText(this, "需要蓝牙权限才能扫描设备，请在设置中授权", Toast.LENGTH_LONG).show();
+                statusText.setText(R.string.bluetooth_permission_denied);
+                Toast.makeText(this, R.string.bluetooth_permission_toast, Toast.LENGTH_LONG).show();
                 loadMockDevices();
             }
         }
@@ -325,27 +321,71 @@ public class BluetoothActivity extends AppCompatActivity {
 
     private String getTypeLabel(String type) {
         switch (type) {
-            case "blood_pressure": return "血压";
-            case "blood_oxygen": return "血氧";
-            case "heart_rate": return "心率";
-            default: return type;
+            case TYPE_BLOOD_PRESSURE:
+                return getString(R.string.bluetooth_type_blood_pressure);
+            case TYPE_BLOOD_OXYGEN:
+                return getString(R.string.bluetooth_type_blood_oxygen);
+            case TYPE_HEART_RATE:
+                return getString(R.string.bluetooth_type_heart_rate);
+            default:
+                return type;
         }
     }
 
-    private Button btn(String text, int bgRes, int textColor) {
-        Button button = new Button(this);
-        button.setText(text);
-        button.setTextSize(18);
-        button.setAllCaps(false);
-        button.setBackgroundResource(bgRes);
-        button.setTextColor(textColor);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(56));
-        params.bottomMargin = dp(10);
-        button.setLayoutParams(params);
-        return button;
+    private class DeviceAdapter extends RecyclerView.Adapter<DeviceHolder> {
+        @NonNull
+        @Override
+        public DeviceHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_bluetooth_device, parent, false);
+            return new DeviceHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull DeviceHolder holder, int position) {
+            holder.bind(foundDevices.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return foundDevices.size();
+        }
     }
 
-    private int dp(int value) {
-        return Math.round(getResources().getDisplayMetrics().density * value);
+    private class DeviceHolder extends RecyclerView.ViewHolder {
+        private final TextView name;
+        private final TextView type;
+        private final TextView meta;
+        private final TextView connect;
+
+        DeviceHolder(@NonNull View itemView) {
+            super(itemView);
+            name = itemView.findViewById(R.id.bluetooth_device_name);
+            type = itemView.findViewById(R.id.bluetooth_device_type);
+            meta = itemView.findViewById(R.id.bluetooth_device_meta);
+            connect = itemView.findViewById(R.id.bluetooth_device_connect);
+        }
+
+        void bind(BluetoothDeviceMock device) {
+            String typeLabel = getTypeLabel(device.type);
+            String typeText = getString(R.string.bluetooth_type_label, typeLabel);
+            String valueText = getString(R.string.bluetooth_value_label, device.value);
+            String statusText = getString(R.string.bluetooth_status_label, device.status);
+            name.setText(device.name);
+            type.setText(typeLabel);
+            meta.setText(getString(R.string.bluetooth_device_meta, typeText, valueText, statusText));
+            boolean connected = getString(R.string.common_connected).equals(device.status);
+            connect.setText(connected ? R.string.common_connected : R.string.common_connect);
+            connect.setAlpha(connected ? 0.65f : 1f);
+            connect.setOnClickListener(v -> {
+                if (!connected) {
+                    connectDevice(device);
+                }
+            });
+            itemView.setOnClickListener(v -> {
+                if (!connected) {
+                    connectDevice(device);
+                }
+            });
+        }
     }
 }

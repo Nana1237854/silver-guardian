@@ -2,7 +2,6 @@ package com.silverguardian.prototype;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -10,7 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatDetailActivity extends AppCompatActivity {
+public class ChatDetailActivity extends BaseActivity {
 
     private final List<ChatMessage> messages = new ArrayList<>();
     private ChatAdapter adapter;
@@ -56,10 +55,10 @@ public class ChatDetailActivity extends AppCompatActivity {
         systemPrompt = loadSystemPrompt();
 
         String title = getIntent().getStringExtra("chat_title");
-        if (title != null) {
-            TextView titleView = findViewById(R.id.chat_title);
-            titleView.setText("●  " + title);
-        }
+        TextView titleView = findViewById(R.id.chat_title);
+        titleView.setText(title == null
+            ? getString(R.string.chat_default_title)
+            : getString(R.string.chat_title_with_prefix, title));
 
         drawerLayout = findViewById(R.id.drawer_layout);
         setupToolbar();
@@ -72,61 +71,52 @@ public class ChatDetailActivity extends AppCompatActivity {
         loadWelcomeMessages();
     }
 
-    // ========== System Prompt ==========
-
     private String loadSystemPrompt() {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(
                 getResources().openRawResource(R.raw.system_prompt), StandardCharsets.UTF_8))) {
             StringBuilder sb = new StringBuilder();
             String line;
-            while ((line = br.readLine()) != null) sb.append(line).append('\n');
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
             return sb.toString();
         } catch (Exception e) {
-            return "你是银发守护者智能助手，专门为老年人提供健康管理、用药提醒、生活辅助等服务。";
+            return getString(R.string.chat_system_prompt_fallback);
         }
     }
 
-    // ========== Toolbar ==========
-
     private void setupToolbar() {
-        findViewById(R.id.btn_menu).setOnClickListener(v -> drawerLayout.openDrawer(Gravity.START));
+        findViewById(R.id.btn_menu).setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
         findViewById(R.id.btn_close).setOnClickListener(v -> finish());
 
         voiceToggleBtn = findViewById(R.id.btn_voice_toggle);
+        updateVoiceToggleState();
         voiceToggleBtn.setOnClickListener(v -> {
             voiceEnabled = !voiceEnabled;
-            voiceToggleBtn.setImageResource(voiceEnabled
-                ? android.R.drawable.ic_lock_silent_mode_off
-                : android.R.drawable.ic_lock_silent_mode);
-            voiceToggleBtn.setContentDescription(voiceEnabled ? "语音播报已开启" : "语音播报已关闭");
+            updateVoiceToggleState();
         });
     }
 
-    // ========== Suggestions ==========
+    private void updateVoiceToggleState() {
+        voiceToggleBtn.setImageResource(voiceEnabled ? R.drawable.ic_volume_on : R.drawable.ic_volume_off);
+        voiceToggleBtn.setContentDescription(getString(voiceEnabled ? R.string.chat_voice_on : R.string.chat_voice_off));
+    }
 
     private void setupSuggestions() {
         LinearLayout row = findViewById(R.id.suggestions_row);
-        String[] suggestions = {
-            "我今天血压有点高，怎么办？",
-            "适合长辈的简单运动有哪些？",
-            "晚上睡不好，如何改善？"
+        int[] suggestionIds = {
+            R.string.chat_suggestion_1,
+            R.string.chat_suggestion_2,
+            R.string.chat_suggestion_3
         };
-        for (String text : suggestions) {
-            TextView chip = new TextView(this);
+        for (int suggestionId : suggestionIds) {
+            String text = getString(suggestionId);
+            TextView chip = (TextView) getLayoutInflater().inflate(R.layout.item_chat_suggestion, row, false);
             chip.setText(text);
-            chip.setTextSize(14);
-            chip.setTextColor(getColor(R.color.text_primary));
-            chip.setBackgroundResource(R.drawable.bg_chip_soft);
-            chip.setPadding(dp(18), dp(12), dp(18), dp(12));
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, dp(48));
-            params.rightMargin = dp(8);
-            chip.setLayoutParams(params);
             chip.setOnClickListener(v -> input.setText(text));
             row.addView(chip);
         }
     }
-
-    // ========== Message List ==========
 
     private void setupMessageList() {
         messageList = findViewById(R.id.message_list);
@@ -138,17 +128,15 @@ public class ChatDetailActivity extends AppCompatActivity {
     private void loadWelcomeMessages() {
         messages.addAll(MockData.getWelcomeMessages());
         adapter.notifyDataSetChanged();
-        if (!messages.isEmpty()) messageList.scrollToPosition(messages.size() - 1);
+        if (!messages.isEmpty()) {
+            messageList.scrollToPosition(messages.size() - 1);
+        }
     }
-
-    // ========== Input ==========
 
     private void setupInput() {
         input = findViewById(R.id.chat_input);
         findViewById(R.id.btn_send).setOnClickListener(v -> send());
     }
-
-    // ========== Voice ==========
 
     private void setupVoice() {
         ImageButton voiceButton = findViewById(R.id.btn_voice);
@@ -162,10 +150,10 @@ public class ChatDetailActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (speechManager != null) speechManager.onPermissionResult(requestCode, grantResults);
+        if (speechManager != null) {
+            speechManager.onPermissionResult(requestCode, grantResults);
+        }
     }
-
-    // ========== Drawer ==========
 
     private void setupDrawer() {
         TextView newChat = findViewById(R.id.drawer_new_chat);
@@ -173,32 +161,35 @@ public class ChatDetailActivity extends AppCompatActivity {
             messages.clear();
             messages.addAll(MockData.getWelcomeMessages());
             adapter.notifyDataSetChanged();
-            drawerLayout.closeDrawer(Gravity.START);
+            drawerLayout.closeDrawer(GravityCompat.START);
         });
 
         LinearLayout recentList = findViewById(R.id.drawer_recent_list);
-        String[] items = {"血压偏高怎么办？", "推荐适合的早餐", "用药时间提醒设定", "改善睡眠的方法", "适合我的运动建议"};
-        for (String item : items) {
-            TextView row = new TextView(this);
+        int[] itemIds = {
+            R.string.chat_recent_1,
+            R.string.chat_recent_2,
+            R.string.chat_recent_3,
+            R.string.chat_recent_4,
+            R.string.chat_recent_5
+        };
+        for (int itemId : itemIds) {
+            String item = getString(itemId);
+            TextView row = (TextView) getLayoutInflater().inflate(R.layout.item_chat_recent, recentList, false);
             row.setText(item);
-            row.setTextSize(17);
-            row.setTextColor(getColor(R.color.text_primary));
-            row.setPadding(0, dp(18), 0, dp(18));
-            row.setBackgroundResource(android.R.drawable.list_selector_background);
             row.setOnClickListener(v -> {
                 input.setText(item);
                 input.setSelection(input.length());
-                drawerLayout.closeDrawer(Gravity.START);
+                drawerLayout.closeDrawer(GravityCompat.START);
             });
             recentList.addView(row);
         }
     }
 
-    // ========== Send ==========
-
     private void send() {
         String text = input.getText().toString().trim();
-        if (TextUtils.isEmpty(text)) return;
+        if (TextUtils.isEmpty(text)) {
+            return;
+        }
 
         ChatMessage userMessage = new ChatMessage(text, ChatMessage.TYPE_USER, MockData.now());
         messages.add(userMessage);
@@ -207,15 +198,13 @@ public class ChatDetailActivity extends AppCompatActivity {
         adapter.notifyItemInserted(messages.size() - 1);
         messageList.scrollToPosition(messages.size() - 1);
 
-        // 前置过滤
         String blocked = contentFilter.check(text);
         if (blocked != null) {
             appendAiReply(blocked);
             return;
         }
 
-        // 智谱 API 调用
-        String apiKey = getString(R.string.zhipu_api_key);
+        String apiKey = BuildConfig.ZHIPU_API_KEY;
         if (apiKey.startsWith("PUT_") || apiKey.length() < 10) {
             appendAiReply(replyProvider.fallback(text));
             return;
@@ -238,12 +227,12 @@ public class ChatDetailActivity extends AppCompatActivity {
         }
     }
 
-    // ========== Lifecycle ==========
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (speechManager != null) speechManager.destroy();
+        if (speechManager != null) {
+            speechManager.destroy();
+        }
     }
 
     private int dp(int value) {

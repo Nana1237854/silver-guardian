@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- High-contrast light palette. The app intentionally maps its accessibility
+         preference to the night resource qualifier so every XML and Java lookup
+         switches atomically without maintaining parallel view code. -->
+    <color name="primary_dark">#003D2A</color>
+    <color name="primary">#005C3F</color>
+    <color name="primary_light">#CDE8DB</color>
+    <color name="sidebar_bg">#FFFFFF</color>
+    <color name="sidebar_text">#222222</color>
+    <color name="sidebar_active">#CDE8DB</color>
+    <color name="accent_orange">#A74629</color>
+    <color name="accent_orange_dark">#7E2F1B</color>
+    <color name="accent_orange_soft">#FFF0E9</color>
+    <color name="bg_page">#FFFFFF</color>
+    <color name="surface_white">#FFFFFF</color>
+    <color name="surface_mint">#F1F7F4</color>
+    <color name="text_primary">#000000</color>
+    <color name="text_secondary">#303A35</color>
+    <color name="text_tertiary">#46514B</color>
+    <color name="status_good">#0C5A3E</color>
+    <color name="status_good_bg">#D8F1E4</color>
+    <color name="sos_red">#8F120B</color>
+    <color name="sos_red_bg">#FBD9D6</color>
+    <color name="health_heart">#4C3AA3</color>
+    <color name="health_steps">#005C3F</color>
+    <color name="health_blood_pressure">#135E8A</color>
+    <color name="health_blood_sugar">#005C3F</color>
+    <color name="chat_ai_bg">#ECF5F0</color>
+    <color name="chat_user_bg">#FFFFFF</color>
+    <color name="divider">#68756E</color>
+    <color name="favorite_pink">#9D3155</color>
+    <color name="info">#135E8A</color>
+    <color name="info_soft">#DDEEF7</color>
+    <color name="memory">#4C3AA3</color>
+    <color name="memory_soft">#E7E2F7</color>
+    <color name="neutral_soft">#F4F6F5</color>
+    <color name="icon_monochrome">#FF000000</color>
+    <color name="mint_soft">#CDE8DB</color>
+    <color name="mint_pill">#B9DEC9</color>
+    <color name="blush_soft">#F6DFE3</color>
+    <color name="shadow_soft">#28000000</color>
+    <color name="bottom_nav_bg">#FFFFFF</color>
+    <color name="bottom_nav_active">#CDE8DB</color>
+    <color name="nav_item_active">#003D2A</color>
+    <color name="nav_item_inactive">#1F2823</color>
+</resources>

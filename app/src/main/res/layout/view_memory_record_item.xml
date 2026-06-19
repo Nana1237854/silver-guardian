@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/memory_card_spacing_bottom"
+    android:background="@drawable/bg_group_surface"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/memory_card_padding_horizontal"
+    android:paddingTop="@dimen/memory_card_padding_vertical"
+    android:paddingEnd="@dimen/memory_card_padding_horizontal"
+    android:paddingBottom="@dimen/memory_card_padding_vertical">
+
+    <TextView
+        android:id="@+id/memory_item_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:lineSpacingExtra="@dimen/status_strip_line_spacing"
+        android:textColor="@color/text_primary"
+        android:textSize="@dimen/memory_card_title_text" />
+
+    <TextView
+        android:id="@+id/memory_item_meta"
+        style="@style/TextAppearance.SilverGuardian.BodyMuted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/memory_card_meta_gap" />
+</LinearLayout>

@@ -3,6 +3,7 @@ package com.silverguardian.prototype.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.data.dao.*;
 import com.silverguardian.prototype.health.HealthAlertService;
 import com.silverguardian.prototype.models.*;
@@ -180,7 +181,7 @@ public class Repository {
     // ========== Health CRUD ==========
 
     public HealthData addHealthData(String type, String value, String status) {
-        HealthData data = new HealthData(type, value, status, android.R.drawable.ic_menu_info_details);
+        HealthData data = new HealthData(type, value, status, R.drawable.ic_info);
         healthData.add(0, data);
         healthDao.add(activeUserId, type, value, status);
         HealthAlertService.checkAndAlert(appContext, data);

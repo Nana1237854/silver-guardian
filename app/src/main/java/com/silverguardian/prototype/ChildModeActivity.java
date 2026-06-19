@@ -7,19 +7,16 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -28,101 +25,243 @@ import com.silverguardian.prototype.models.EmergencyAlert;
 import com.silverguardian.prototype.models.FamilyMember;
 import com.silverguardian.prototype.models.HealthData;
 import com.silverguardian.prototype.models.Medicine;
+import com.silverguardian.prototype.utils.FormFieldFactory;
 
 import java.util.List;
 
-public class ChildModeActivity extends AppCompatActivity {
+public class ChildModeActivity extends BaseActivity {
     private static final int PICK_IMAGE = 601;
     private static final int REQUEST_READ_IMAGES = 602;
+
     private Uri pendingImageUri;
-    private String pendingTitle = "家人问候";
-    private String pendingCategory = "家庭";
-    private String pendingMessage = "今天也要开心呀";
+    private String pendingTitle;
+    private String pendingCategory;
+    private String pendingMessage;
+
+    private LinearLayout healthSection;
+    private LinearLayout medicineSection;
+    private LinearLayout alertSection;
+    private LinearLayout familySection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MockData.init(this);
+        setContentView(R.layout.activity_child_mode);
+        initDraftValues();
+        bindHeader();
+        bindSections();
+        bindActions();
+        refreshContent();
+    }
 
-        ScrollView scroll = new ScrollView(this);
-        scroll.setBackgroundColor(getColor(R.color.bg_page));
+    private void initDraftValues() {
+        pendingTitle = getString(R.string.child_mode_default_title);
+        pendingCategory = getString(R.string.child_mode_default_category);
+        pendingMessage = getString(R.string.child_mode_default_message);
+    }
 
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(18), dp(18), dp(18), dp(48));
-        scroll.addView(root);
+    private void bindHeader() {
+        View header = findViewById(R.id.child_mode_header);
+        TextView back = header.findViewById(R.id.header_back);
+        back.setVisibility(View.VISIBLE);
+        back.setText(R.string.common_back);
+        back.setOnClickListener(v -> finish());
+        ((TextView) header.findViewById(R.id.header_title)).setText(R.string.tab_child);
+        header.findViewById(R.id.header_action).setVisibility(View.GONE);
+    }
 
-        root.addView(titleView("子女模式", 28));
-        root.addView(body("安心查看颜爷爷的健康、用药与安全状态"));
-        ImageView familyBanner = new ImageView(this);
-        familyBanner.setImageResource(R.drawable.family_companion);
-        familyBanner.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        familyBanner.setContentDescription("家属陪伴插画");
-        LinearLayout.LayoutParams bannerParams = new LinearLayout.LayoutParams(-1, dp(150));
-        bannerParams.topMargin = dp(16);
-        bannerParams.bottomMargin = dp(18);
-        root.addView(familyBanner, bannerParams);
-        root.addView(spacer(8));
-        root.addView(sectionHeader("健康摘要"));
-        root.addView(healthSummaryCard());
-        root.addView(sectionHeader("今日服药打卡"));
-        root.addView(medicineCard());
-        root.addView(sectionHeader("紧急提醒记录"));
-        root.addView(sosCard());
-        root.addView(sectionHeader("家属联系"));
-        root.addView(familyCard());
-        root.addView(spacer(12));
+    private void bindSections() {
+        healthSection = bindCardSection(R.id.child_mode_health_block, R.string.child_mode_section_health);
+        medicineSection = bindCardSection(R.id.child_mode_medicine_block, R.string.child_mode_section_medicine);
+        alertSection = bindCardSection(R.id.child_mode_alert_block, R.string.child_mode_section_alert);
+        familySection = bindCardSection(R.id.child_mode_family_block, R.string.child_mode_section_family);
+    }
 
-        Button uploadBtn = btn("为老人上传照片", R.drawable.bg_button_primary, getColor(R.color.surface_white));
-        uploadBtn.setOnClickListener(v -> showUploadDialog());
-        root.addView(uploadBtn);
+    private LinearLayout bindCardSection(int blockId, int titleRes) {
+        View block = findViewById(blockId);
+        ((TextView) block.findViewById(R.id.section_card_title)).setText(titleRes);
+        return block.findViewById(R.id.section_card_content);
+    }
 
-        Button backBtn = btn("返回老人端", R.drawable.bg_chip_soft, getColor(R.color.primary_dark));
-        backBtn.setOnClickListener(v -> finish());
-        root.addView(backBtn);
+    private void bindActions() {
+        ((TextView) findViewById(R.id.child_mode_upload_button)).setText(R.string.child_mode_upload_for_elder);
+        ((TextView) findViewById(R.id.child_mode_back_button)).setText(R.string.child_mode_back_to_elder);
+        findViewById(R.id.child_mode_upload_button).setOnClickListener(v -> showUploadDialog());
+        findViewById(R.id.child_mode_back_button).setOnClickListener(v -> finish());
+    }
 
-        setContentView(scroll);
+    private void refreshContent() {
+        bindHealthSummary();
+        bindMedicineSummary();
+        bindAlerts();
+        bindFamily();
+    }
+
+    private void bindHealthSummary() {
+        healthSection.removeAllViews();
+        List<HealthData> data = MockData.getHealthData();
+        String[][] keys = {
+            {"heart_rate", getString(R.string.health_metric_heart_rate)},
+            {"steps", getString(R.string.health_metric_steps)},
+            {"blood_pressure", getString(R.string.health_metric_blood_pressure)},
+            {"blood_sugar", getString(R.string.health_metric_blood_sugar)},
+            {"sleep", getString(R.string.health_metric_sleep)},
+            {"mood", getString(R.string.health_metric_mood)}
+        };
+        int count = 0;
+        for (String[] key : keys) {
+            for (HealthData h : data) {
+                if (h.type.equals(key[0])) {
+                    addDetailRow(healthSection, key[1], h.value + " " + h.getUnit(), h.status, true);
+                    count++;
+                    break;
+                }
+            }
+        }
+        if (count == 0) {
+            addEmptyState(healthSection, R.string.child_mode_empty_health);
+        }
+    }
+
+    private void bindMedicineSummary() {
+        medicineSection.removeAllViews();
+        List<Medicine> meds = MockData.getMedicines();
+        if (meds.isEmpty()) {
+            addEmptyState(medicineSection, R.string.child_mode_empty_medicine);
+            return;
+        }
+        int taken = 0;
+        for (Medicine medicine : meds) {
+            if (medicine.takenToday) {
+                taken++;
+            }
+        }
+
+        TextView summary = (TextView) LayoutInflater.from(this).inflate(R.layout.view_status_strip, medicineSection, false);
+        summary.setText(getString(R.string.child_mode_medicine_progress, taken, meds.size()));
+        summary.setTextColor(getColor(taken == meds.size() ? R.color.primary_dark : R.color.accent_orange_dark));
+        LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(-1, -2);
+        summaryParams.bottomMargin = dimen(R.dimen.child_intro_gap_top);
+        medicineSection.addView(summary, summaryParams);
+
+        for (Medicine medicine : meds) {
+            addDetailRow(
+                medicineSection,
+                medicine.name,
+                medicine.time.replace(",", "  -  ") + "  |  " + medicine.method,
+                medicine.takenToday ? getString(R.string.child_mode_medicine_done) : getString(R.string.child_mode_medicine_undone),
+                false
+            );
+        }
+    }
+
+    private void bindAlerts() {
+        alertSection.removeAllViews();
+        List<EmergencyAlert> alerts = MockData.getEmergencyAlerts();
+        if (alerts.isEmpty()) {
+            addEmptyState(alertSection, R.string.child_mode_empty_alert);
+            return;
+        }
+        int show = Math.min(alerts.size(), 3);
+        for (int i = 0; i < show; i++) {
+            EmergencyAlert alert = alerts.get(i);
+            View row = LayoutInflater.from(this).inflate(R.layout.item_child_mode_alert_row, alertSection, false);
+            ((TextView) row.findViewById(R.id.child_alert_time)).setText(alert.time);
+            ((TextView) row.findViewById(R.id.child_alert_message)).setText(alert.message);
+            ((TextView) row.findViewById(R.id.child_alert_status)).setText(alert.status);
+            alertSection.addView(row);
+        }
+    }
+
+    private void bindFamily() {
+        familySection.removeAllViews();
+        List<FamilyMember> members = MockData.getFamilyMembers();
+        if (members.isEmpty()) {
+            addEmptyState(familySection, R.string.child_mode_empty_family);
+            return;
+        }
+        for (FamilyMember member : members) {
+            String title = getString(R.string.child_mode_family_title, member.name, member.relationship);
+            String subtitle = member.phone == null ? "" : member.phone;
+            addDetailRow(familySection, title, subtitle, member.online ? getString(R.string.family_online) : getString(R.string.family_offline), true);
+        }
+    }
+
+    private void addDetailRow(LinearLayout parent, String title, String subtitle, String chip, boolean subduedChip) {
+        View row = LayoutInflater.from(this).inflate(R.layout.item_child_mode_detail_row, parent, false);
+        ((TextView) row.findViewById(R.id.child_detail_title)).setText(title);
+        TextView subtitleView = row.findViewById(R.id.child_detail_subtitle);
+        if (subtitle == null || subtitle.trim().isEmpty()) {
+            subtitleView.setVisibility(View.GONE);
+        } else {
+            subtitleView.setVisibility(View.VISIBLE);
+            subtitleView.setText(subtitle);
+        }
+        TextView chipView = row.findViewById(R.id.child_detail_chip);
+        chipView.setText(chip);
+        chipView.setTextColor(getColor(subduedChip ? R.color.primary_dark : R.color.accent_orange_dark));
+        parent.addView(row);
+    }
+
+    private void addEmptyState(LinearLayout parent, int textRes) {
+        TextView empty = (TextView) LayoutInflater.from(this).inflate(R.layout.view_empty_state, parent, false);
+        empty.setText(textRes);
+        parent.addView(empty);
     }
 
     private void showUploadDialog() {
         pendingImageUri = null;
-        LinearLayout form = new LinearLayout(this);
-        form.setOrientation(LinearLayout.VERTICAL);
-        form.setPadding(32, 8, 32, 0);
+        View form = LayoutInflater.from(this).inflate(R.layout.view_child_mode_upload_form, null, false);
+        TextView pickButton = form.findViewById(R.id.child_mode_pick_button);
+        TextView selectedState = form.findViewById(R.id.child_mode_selected_state);
+        LinearLayout fieldsContainer = form.findViewById(R.id.child_mode_upload_fields_container);
 
-        TextView pickBtn = new TextView(this);
-        pickBtn.setText("从手机相册选择照片");
-        pickBtn.setTextSize(18);
-        pickBtn.setTextColor(getColor(R.color.primary));
-        pickBtn.setGravity(Gravity.CENTER);
-        pickBtn.setBackgroundResource(R.drawable.bg_chip_soft);
-        pickBtn.setPadding(dp(14), dp(12), dp(14), dp(12));
-        form.addView(pickBtn);
+        EditText titleInput = FormFieldFactory.addTextField(this, fieldsContainer,
+            getString(R.string.child_mode_photo_title_label), getString(R.string.child_mode_photo_title_hint), false);
+        EditText categoryInput = FormFieldFactory.addTextField(this, fieldsContainer,
+            getString(R.string.child_mode_category_label), getString(R.string.child_mode_category_hint), false);
+        EditText messageInput = FormFieldFactory.addTextField(this, fieldsContainer,
+            getString(R.string.child_mode_message_label), getString(R.string.child_mode_message_hint), true);
+        titleInput.setText(pendingTitle);
+        categoryInput.setText(pendingCategory);
+        messageInput.setText(pendingMessage);
 
-        pickBtn.setOnClickListener(v -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, REQUEST_READ_IMAGES);
-                    return;
-                }
-            } else {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_READ_IMAGES);
-                    return;
-                }
-            }
-            openGallery();
+        pickButton.setOnClickListener(v -> {
+            pendingTitle = titleInput.getText().toString().trim().isEmpty() ? pendingTitle : titleInput.getText().toString().trim();
+            pendingCategory = categoryInput.getText().toString().trim().isEmpty() ? pendingCategory : categoryInput.getText().toString().trim();
+            pendingMessage = messageInput.getText().toString().trim().isEmpty() ? pendingMessage : messageInput.getText().toString().trim();
+            requestGalleryPermissionAndOpen();
+            selectedState.setText(pendingImageUri == null ? getString(R.string.child_mode_photo_pending) : getString(R.string.child_mode_photo_selected));
         });
 
         new AlertDialog.Builder(this)
-            .setTitle("上传照片")
+            .setTitle(R.string.upload_photo)
             .setView(form)
-            .setPositiveButton("保存", (d, w) -> {
+            .setPositiveButton(R.string.common_save, (dialog, which) -> {
+                pendingTitle = titleInput.getText().toString().trim().isEmpty() ? pendingTitle : titleInput.getText().toString().trim();
+                pendingCategory = categoryInput.getText().toString().trim().isEmpty() ? pendingCategory : categoryInput.getText().toString().trim();
+                pendingMessage = messageInput.getText().toString().trim().isEmpty() ? pendingMessage : messageInput.getText().toString().trim();
                 MockData.addPhoto(pendingTitle, pendingCategory, pendingMessage);
-                Toast.makeText(this, "已上传照片到亲情相册，老人端可立即查看", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.child_mode_upload_success, Toast.LENGTH_SHORT).show();
             })
-            .setNegativeButton("取消", null)
+            .setNegativeButton(R.string.common_cancel, null)
             .show();
+    }
+
+    private void requestGalleryPermissionAndOpen() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, REQUEST_READ_IMAGES);
+                return;
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_READ_IMAGES);
+                return;
+            }
+        }
+        openGallery();
     }
 
     private void openGallery() {
@@ -134,7 +273,7 @@ public class ChildModeActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null) {
             pendingImageUri = data.getData();
-            Toast.makeText(this, "已选择照片", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.child_mode_photo_selected, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -145,192 +284,12 @@ public class ChildModeActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openGallery();
             } else {
-                Toast.makeText(this, "需要相册权限才能选择照片，请在系统设置中授权", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.child_mode_album_permission_toast, Toast.LENGTH_LONG).show();
             }
         }
     }
 
-    // ========== 原有卡片方法 ==========
-
-    private View healthSummaryCard() {
-        LinearLayout card = card();
-        List<HealthData> data = MockData.getHealthData();
-        String[][] keys = {{"heart_rate", "心率"}, {"steps", "步数"}, {"blood_pressure", "血压"}, {"blood_sugar", "血糖"}, {"sleep", "睡眠"}, {"mood", "心情"}};
-        int count = 0;
-        for (String[] key : keys) {
-            for (HealthData h : data) {
-                if (h.type.equals(key[0])) {
-                    card.addView(metricRow(key[1], h.value + " " + h.getUnit(), h.status));
-                    count++;
-                    break;
-                }
-            }
-            if (count >= 6) break;
-        }
-        if (count == 0) card.addView(body("暂无健康数据"));
-        return card;
+    private int dimen(int resId) {
+        return getResources().getDimensionPixelSize(resId);
     }
-
-    private View metricRow(String label, String value, String status) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(0, dp(8), 0, dp(8));
-        TextView lv = body(label);
-        lv.setTextSize(16);
-        row.addView(lv, new LinearLayout.LayoutParams(dp(80), -2));
-        TextView vv = new TextView(this);
-        vv.setText(value);
-        vv.setTextSize(16);
-        vv.setTypeface(null, android.graphics.Typeface.BOLD);
-        vv.setTextColor(getColor(R.color.text_primary));
-        row.addView(vv, new LinearLayout.LayoutParams(0, -2, 1));
-        row.addView(chipMini(status));
-        return row;
-    }
-
-    private View medicineCard() {
-        LinearLayout card = card();
-        List<Medicine> meds = MockData.getMedicines();
-        if (meds.isEmpty()) { card.addView(body("暂无药品提醒")); return card; }
-        int taken = 0;
-        for (Medicine m : meds) if (m.takenToday) taken++;
-        TextView s = new TextView(this);
-        s.setText("今日完成：" + taken + " / " + meds.size());
-        s.setTextSize(18);
-        s.setTypeface(null, android.graphics.Typeface.BOLD);
-        s.setTextColor(taken == meds.size() ? getColor(R.color.primary) : getColor(R.color.accent_orange));
-        card.addView(s);
-        for (Medicine m : meds) {
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setGravity(Gravity.CENTER_VERTICAL);
-            row.setPadding(0, dp(6), 0, dp(6));
-            TextView nv = body(m.name);
-            nv.setTextSize(14);
-            row.addView(nv, new LinearLayout.LayoutParams(0, -2, 1));
-            row.addView(chipMini(m.takenToday ? "已打卡" : "未打卡"));
-            card.addView(row);
-        }
-        return card;
-    }
-
-    private View sosCard() {
-        LinearLayout card = card();
-        List<EmergencyAlert> alerts = MockData.getEmergencyAlerts();
-        if (alerts.isEmpty()) { card.addView(body("暂无 SOS 紧急提醒记录")); return card; }
-        int show = Math.min(alerts.size(), 3);
-        for (int i = 0; i < show; i++) {
-            EmergencyAlert a = alerts.get(i);
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.VERTICAL);
-            row.setPadding(0, dp(6), 0, dp(6));
-            TextView tv = body(a.time);
-            tv.setTextSize(14);
-            row.addView(tv);
-            TextView mv = new TextView(this);
-            mv.setText(a.message);
-            mv.setTextSize(15);
-            mv.setTextColor(getColor(R.color.text_primary));
-            row.addView(mv);
-            card.addView(row);
-        }
-        return card;
-    }
-
-    private View familyCard() {
-        LinearLayout card = card();
-        List<FamilyMember> members = MockData.getFamilyMembers();
-        if (members.isEmpty()) { card.addView(body("暂无家属信息")); return card; }
-        for (FamilyMember m : members) {
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setGravity(Gravity.CENTER_VERTICAL);
-            row.setPadding(0, dp(6), 0, dp(6));
-            TextView nv = body(m.name + "（" + m.relationship + "）");
-            nv.setTextSize(16);
-            row.addView(nv, new LinearLayout.LayoutParams(0, -2, 1));
-            row.addView(chipMini(m.online ? "在线" : "离线"));
-            if (m.phone != null && !m.phone.isEmpty()) {
-                TextView pv = body(m.phone);
-                pv.setTextSize(14);
-                row.addView(pv);
-            }
-            card.addView(row);
-        }
-        return card;
-    }
-
-    // ========== Utils ==========
-
-    private LinearLayout card() {
-        LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(20), dp(16), dp(20), dp(16));
-        card.setBackgroundColor(getColor(R.color.surface_white));
-        card.setBackgroundResource(R.drawable.bg_card_surface);
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, -2);
-        p.bottomMargin = dp(16);
-        card.setLayoutParams(p);
-        return card;
-    }
-
-    private TextView sectionHeader(String text) {
-        TextView v = new TextView(this);
-        v.setText(text);
-        v.setTextSize(20);
-        v.setTypeface(null, android.graphics.Typeface.BOLD);
-        v.setTextColor(getColor(R.color.text_primary));
-        v.setPadding(0, 0, 0, dp(8));
-        return v;
-    }
-
-    private TextView titleView(String text, int size) {
-        TextView v = new TextView(this);
-        v.setText(text);
-        v.setTextSize(size);
-        v.setTypeface(null, android.graphics.Typeface.BOLD);
-        v.setTextColor(getColor(R.color.text_primary));
-        return v;
-    }
-
-    private TextView body(String text) {
-        TextView v = new TextView(this);
-        v.setText(text);
-        v.setTextSize(15);
-        v.setTextColor(getColor(R.color.text_secondary));
-        return v;
-    }
-
-    private TextView chipMini(String text) {
-        TextView v = new TextView(this);
-        v.setText(text);
-        v.setTextSize(12);
-        v.setTypeface(null, android.graphics.Typeface.BOLD);
-        v.setTextColor(getColor(R.color.primary));
-        v.setBackgroundResource(R.drawable.bg_chip_soft);
-        v.setPadding(dp(10), dp(4), dp(10), dp(4));
-        return v;
-    }
-
-    private Button btn(String text, int bgRes, int textColor) {
-        Button b = new Button(this);
-        b.setText(text);
-        b.setTextSize(18);
-        b.setAllCaps(false);
-        b.setBackgroundResource(bgRes);
-        b.setTextColor(textColor);
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, dp(56));
-        p.bottomMargin = dp(10);
-        b.setLayoutParams(p);
-        return b;
-    }
-
-    private View spacer(int dp) {
-        View v = new View(this);
-        v.setLayoutParams(new LinearLayout.LayoutParams(0, dp(dp)));
-        return v;
-    }
-
-    private int dp(int value) { return Math.round(getResources().getDisplayMetrics().density * value); }
 }

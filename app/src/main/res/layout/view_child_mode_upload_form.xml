@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/dialog_form_padding_horizontal"
+    android:paddingTop="@dimen/dialog_form_padding_top"
+    android:paddingEnd="@dimen/dialog_form_padding_horizontal"
+    android:paddingBottom="0dp">
+
+    <TextView
+        android:id="@+id/child_mode_pick_button"
+        style="@style/Widget.SilverGuardian.SecondaryTextAction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/child_mode_pick_gallery" />
+
+    <TextView
+        android:id="@+id/child_mode_selected_state"
+        style="@style/TextAppearance.SilverGuardian.BodyMuted"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/action_row_padding_top"
+        android:text="@string/child_mode_photo_pending" />
+
+    <LinearLayout
+        android:id="@+id/child_mode_upload_fields_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+</LinearLayout>

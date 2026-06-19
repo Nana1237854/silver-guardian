@@ -2,9 +2,21 @@ plugins {
     id "com.android.application"
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
 android {
     namespace "com.silverguardian.prototype"
     compileSdk 34
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId "com.silverguardian.prototype"
@@ -12,6 +24,11 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0-prototype"
+
+        buildConfigField "String", "ZHIPU_API_KEY", "\"${localProperties.getProperty('zhipu.api.key', 'YOUR_ZHIPU_API_KEY')}\""
+        buildConfigField "String", "AMAP_API_KEY", "\"${localProperties.getProperty('amap.api.key', 'YOUR_AMAP_KEY')}\""
+
+        manifestPlaceholders = [AMAP_KEY: localProperties.getProperty('amap.api.key', 'YOUR_AMAP_KEY')]
     }
 
     signingConfigs {
@@ -25,7 +42,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             signingConfig signingConfigs.release
         }

@@ -1,13 +1,17 @@
 package com.silverguardian.prototype.fragments;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -16,7 +20,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
@@ -26,209 +29,460 @@ import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.AlbumGroup;
 import com.silverguardian.prototype.models.AlbumPhoto;
+import com.silverguardian.prototype.utils.FormFieldFactory;
 import com.silverguardian.prototype.utils.GalleryPermissionHelper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 亲情相册  —  GalleryPermissionHelper 处理权限, AlbumGroup 管理分组。
- * 交互: 相册列表 ⇄ 照片网格, 长按删除相册, 创建后直接进入。
- */
 public class AlbumFragment extends BaseFragment {
 
     private GalleryPermissionHelper permHelper;
     private LinearLayout root;
     private Uri pendingImageUri;
+    private ImageView pendingPreview;
+    private TextView pendingPickChip;
     private String currentAlbum;
+    private String photoQuery = "";
+    private boolean newestFirst = true;
 
-    private final List<AlbumPhoto> allPhotos   = new ArrayList<>();
-    private final List<AlbumGroup>  albumGroups = new ArrayList<>();
-    private final List<AlbumPhoto>  albumPhotos = new ArrayList<>();
+    private final List<AlbumPhoto> allPhotos = new ArrayList<>();
+    private final List<AlbumGroup> albumGroups = new ArrayList<>();
+    private final List<AlbumPhoto> albumPhotos = new ArrayList<>();
 
-    // ===== lifecycle =====
-
-    @Nullable @Override
-    public View onCreateView(@NonNull LayoutInflater i, @Nullable ViewGroup c, @Nullable Bundle s) {
-        root = new LinearLayout(requireContext());
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(color(R.color.bg_page));
-        root.setPadding(dp(18), dp(14), dp(18), dp(110));
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        root = (LinearLayout) inflater.inflate(R.layout.fragment_album, container, false);
         permHelper = new GalleryPermissionHelper(this);
-        buildAlbumList();
+
+        String initialAlbum = getArguments() == null ? null : getArguments().getString("album_name");
+        if (initialAlbum == null || initialAlbum.trim().isEmpty()) {
+            buildAlbumList();
+        } else {
+            allPhotos.clear();
+            allPhotos.addAll(MockData.getPhotos());
+            buildPhotoGrid(initialAlbum);
+        }
         return root;
     }
 
-    // ===== album list screen =====
+    private void transitionTo(Runnable buildScreen) {
+        AlphaAnimation fadeOut = new AlphaAnimation(1.0f, 0.3f);
+        fadeOut.setDuration(120);
+        fadeOut.setAnimationListener(new Animation.AnimationListener() {
+            @Override public void onAnimationStart(Animation animation) { }
+            @Override public void onAnimationRepeat(Animation animation) { }
+            @Override public void onAnimationEnd(Animation animation) {
+                root.removeAllViews();
+                buildScreen.run();
+                AlphaAnimation fadeIn = new AlphaAnimation(0.3f, 1.0f);
+                fadeIn.setDuration(150);
+                root.startAnimation(fadeIn);
+            }
+        });
+        root.startAnimation(fadeOut);
+    }
 
     private void buildAlbumList() {
         root.removeAllViews();
         currentAlbum = null;
+        photoQuery = "";
 
-        // --- header ---
-        LinearLayout h = hRow();
-        LinearLayout heading = new LinearLayout(requireContext());
-        heading.setOrientation(LinearLayout.VERTICAL);
-        heading.addView(txt("家人相册", 26, true));
-        TextView subtitle = txt("珍藏家人分享的每一个温暖瞬间", 14, false);
-        subtitle.setTextColor(color(R.color.text_secondary));
-        subtitle.setPadding(0, dp(3), 0, 0);
-        heading.addView(subtitle);
-        h.addView(heading, lp(0, -2, 1));
-        TextView add = chip("创建相册"); add.setOnClickListener(v -> askCreateAlbum());
-        h.addView(add);  root.addView(h);
+        root.addView(createProfileHeader(
+            getString(R.string.album_title),
+            getString(R.string.album_subtitle),
+            R.drawable.elder_profile,
+            getString(R.string.album_profile_desc)
+        ));
+        root.addView(familyBanner());
 
-        ImageView banner = new ImageView(requireContext());
-        banner.setImageResource(R.drawable.family_companion);
-        banner.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        banner.setContentDescription("家人陪伴插画");
-        banner.setBackgroundResource(R.drawable.bg_group_surface);
-        LinearLayout.LayoutParams bannerParams = new LinearLayout.LayoutParams(-1, dp(132));
-        bannerParams.bottomMargin = dp(14);
-        banner.setLayoutParams(bannerParams);
-        root.addView(banner);
-
-        // --- data ---
-        allPhotos.clear(); allPhotos.addAll(MockData.getPhotos());
+        allPhotos.clear();
+        allPhotos.addAll(MockData.getPhotos());
         albumGroups.clear();
-        albumGroups.add(new AlbumGroup(AlbumGroup.ALL_PHOTOS, allPhotos));
-        Map<String,List<AlbumPhoto>> map = new LinkedHashMap<>();
-        for (AlbumPhoto p : allPhotos)
-            map.computeIfAbsent(p.category != null ? p.category : "其他", k -> new ArrayList<>()).add(p);
-        for (Map.Entry<String,List<AlbumPhoto>> e : map.entrySet()) {
-            if (!AlbumGroup.ALL_PHOTOS.equals(e.getKey()))
-                albumGroups.add(new AlbumGroup(e.getKey(), e.getValue()));
+        Map<String, List<AlbumPhoto>> grouped = new LinkedHashMap<>();
+        for (AlbumPhoto photo : allPhotos) {
+            grouped.computeIfAbsent(photo.category != null ? photo.category : getString(R.string.album_other), key -> new ArrayList<>()).add(photo);
+        }
+        for (Map.Entry<String, List<AlbumPhoto>> entry : grouped.entrySet()) {
+            if (!AlbumGroup.ALL_PHOTOS.equals(entry.getKey())) {
+                albumGroups.add(new AlbumGroup(entry.getKey(), entry.getValue()));
+            }
         }
 
-        RecyclerView rv = new RecyclerView(requireContext());
-        rv.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-        rv.setAdapter(new AlbumListAdapter());
-        root.addView(rv, lp(-1, 0, 1));
-    }
+        root.addView(allPhotosEntry());
 
-    // ===== photo grid screen =====
+        View sectionHeader = inflateShared(R.layout.view_album_section_header);
+        ((TextView) sectionHeader.findViewById(R.id.album_section_title)).setText(R.string.album_my_albums);
+        ((TextView) sectionHeader.findViewById(R.id.album_section_count)).setText(getString(R.string.album_unit_count, albumGroups.size()));
+        root.addView(sectionHeader);
+
+        RecyclerView list = new RecyclerView(requireContext());
+        list.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        list.setAdapter(new AlbumListAdapter());
+        root.addView(list, lp(-1, 0, 1));
+
+        TextView create = primaryButton(getString(R.string.album_create_new), R.drawable.ic_add);
+        create.setOnClickListener(v -> askCreateAlbum());
+        LinearLayout.LayoutParams createParams = new LinearLayout.LayoutParams(-1, getResources().getDimensionPixelSize(R.dimen.button_height));
+        createParams.topMargin = getResources().getDimensionPixelSize(R.dimen.section_gap);
+        root.addView(create, createParams);
+    }
 
     private void buildPhotoGrid(String album) {
         root.removeAllViews();
         currentAlbum = album;
 
-        LinearLayout h = hRow();
-        TextView back = chip("返回"); back.setOnClickListener(v -> buildAlbumList()); h.addView(back);
-        h.addView(txt(album, 22, true), lp(0, -2, 1));
-        TextView up = chip("上传照片"); up.setOnClickListener(v -> askUploadPhoto()); h.addView(up);
-        root.addView(h);
+        root.addView(createPageHeader(
+            getString(R.string.common_back),
+            album,
+            getString(R.string.common_more),
+            v -> transitionTo(this::buildAlbumList),
+            v -> toast(getString(R.string.album_manage_hint))
+        ));
 
         albumPhotos.clear();
-        for (AlbumPhoto p : allPhotos) {
-            if (AlbumGroup.ALL_PHOTOS.equals(album) || album.equals(p.category)) albumPhotos.add(p);
+        for (AlbumPhoto photo : allPhotos) {
+            boolean inAlbum = AlbumGroup.ALL_PHOTOS.equals(album) || album.equals(photo.category);
+            boolean matches = photoQuery.isEmpty()
+                || (photo.title != null && photo.title.contains(photoQuery))
+                || (photo.familyMessage != null && photo.familyMessage.contains(photoQuery));
+            if (inAlbum && matches) {
+                albumPhotos.add(photo);
+            }
+        }
+        if (!newestFirst) {
+            Collections.reverse(albumPhotos);
         }
 
-        RecyclerView rv = new RecyclerView(requireContext());
-        rv.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-        rv.setAdapter(new PhotoGridAdapter());
-        root.addView(rv, lp(-1, 0, 1));
+        if (albumPhotos.isEmpty()) {
+            root.addView(emptyAlbumState(), lp(-1, 0, 1));
+            return;
+        }
+
+        root.addView(albumHero());
+        root.addView(memoryNote());
+
+        View photoHeader = inflateShared(R.layout.view_album_section_header);
+        ((TextView) photoHeader.findViewById(R.id.album_section_title)).setText(R.string.album_all_photos);
+        ((TextView) photoHeader.findViewById(R.id.album_section_count)).setText(getString(R.string.album_photo_count_summary, albumPhotos.size()));
+        root.addView(photoHeader);
+
+        RecyclerView grid = new RecyclerView(requireContext());
+        grid.setLayoutManager(new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL));
+        grid.setAdapter(new PhotoGridAdapter());
+        root.addView(grid, lp(-1, 0, 1));
+
+        root.addView(photoToolbar());
     }
 
-    // ===== dialogs =====
+    private View emptyAlbumState() {
+        View empty = inflateShared(R.layout.view_album_empty_state);
+        ((TextView) empty.findViewById(R.id.album_empty_title)).setText(R.string.album_empty_title);
+        ((TextView) empty.findViewById(R.id.album_empty_subtitle)).setText(R.string.album_empty_subtitle);
+        TextView upload = empty.findViewById(R.id.album_empty_action);
+        upload.setText(R.string.album_upload_first);
+        upload.setOnClickListener(v -> askUploadPhoto());
+        return empty;
+    }
+
+    private View familyBanner() {
+        View hero = createHeroBanner(
+            getString(R.string.album_family_always),
+            getString(R.string.album_updated_today),
+            getString(R.string.album_family_banner_desc),
+            null,
+            R.drawable.family_companion,
+            R.dimen.hero_banner_height_small
+        );
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, getResources().getDimensionPixelSize(R.dimen.hero_banner_height_small));
+        params.bottomMargin = getResources().getDimensionPixelSize(R.dimen.album_banner_spacing_bottom);
+        hero.setLayoutParams(params);
+        return hero;
+    }
+
+    private View allPhotosEntry() {
+        View card = inflateShared(R.layout.view_album_all_photos_entry);
+        card.setContentDescription(getString(R.string.album_all_photos_content_desc, allPhotos.size()));
+        card.setOnClickListener(v -> transitionTo(() -> buildPhotoGrid(AlbumGroup.ALL_PHOTOS)));
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, getResources().getDimensionPixelSize(R.dimen.album_all_photos_entry_height));
+        params.bottomMargin = getResources().getDimensionPixelSize(R.dimen.section_gap);
+        card.setLayoutParams(params);
+
+        ((TextView) card.findViewById(R.id.all_photos_title)).setText(R.string.album_all_photos);
+        ((TextView) card.findViewById(R.id.all_photos_count)).setText(getString(R.string.album_photo_count_summary, allPhotos.size()));
+        ImageView cover = card.findViewById(R.id.all_photos_cover);
+        AlbumPhoto first = allPhotos.isEmpty() ? null : allPhotos.get(0);
+        loadImg(cover, first);
+        return card;
+    }
+
+    private View albumHero() {
+        View hero = createHeroBanner(
+            currentAlbum,
+            getString(R.string.album_hero_subtitle, albumPhotos.size()),
+            getString(R.string.album_hero_desc, currentAlbum),
+            albumPhotos.isEmpty() ? null : albumPhotos.get(0),
+            R.drawable.family_companion,
+            R.dimen.hero_banner_height_large
+        );
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, getResources().getDimensionPixelSize(R.dimen.hero_banner_height_large));
+        params.bottomMargin = getResources().getDimensionPixelSize(R.dimen.hero_banner_spacing_bottom);
+        hero.setLayoutParams(params);
+        return hero;
+    }
+
+    private View memoryNote() {
+        LinearLayout card = (LinearLayout) inflateShared(R.layout.view_section_card);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.bottomMargin = getResources().getDimensionPixelSize(R.dimen.album_memory_card_spacing_bottom);
+        card.setLayoutParams(params);
+
+        ((TextView) card.findViewById(R.id.card_title)).setText(R.string.album_memory_note);
+        ((TextView) card.findViewById(R.id.card_body)).setText(R.string.album_memory_body);
+
+        LinearLayout actions = card.findViewById(R.id.card_actions);
+        int actionHeight = getResources().getDimensionPixelSize(R.dimen.touch_target);
+        actions.addView(memoryAction(getString(R.string.album_favorite), v -> toggleFirstFavorite()), lp(0, actionHeight, 1));
+        actions.addView(memoryAction(getString(R.string.album_share), v -> toast(getString(R.string.album_share_opened))), lp(0, actionHeight, 1));
+        actions.addView(memoryAction(getString(R.string.album_voice_memory), v -> toast(getString(R.string.album_voice_hint))), lp(0, actionHeight, 1));
+        return card;
+    }
+
+    private TextView memoryAction(String label, View.OnClickListener listener) {
+        TextView action = txt(label, R.dimen.text_small, true);
+        action.setGravity(Gravity.CENTER);
+        action.setTextColor(color(R.color.primary_dark));
+        action.setBackgroundResource(R.drawable.bg_health_row_selector);
+        action.setClickable(true);
+        action.setFocusable(true);
+        action.setContentDescription(label);
+        action.setOnClickListener(listener);
+        return action;
+    }
+
+    private void toggleFirstFavorite() {
+        if (albumPhotos.isEmpty()) {
+            return;
+        }
+        MockData.toggleFavorite(albumPhotos.get(0));
+        toast(getString(albumPhotos.get(0).favorite ? R.string.album_memory_favorited : R.string.album_memory_unfavorited));
+        buildPhotoGrid(currentAlbum);
+    }
+
+    private View photoToolbar() {
+        LinearLayout toolbar = (LinearLayout) inflateShared(R.layout.view_action_row);
+
+        TextView sort = toolbar.findViewById(R.id.action_left);
+        sort.setText(R.string.album_sort);
+        sort.setOnClickListener(v -> {
+            newestFirst = !newestFirst;
+            toast(getString(newestFirst ? R.string.album_sort_newest : R.string.album_sort_oldest));
+            buildPhotoGrid(currentAlbum);
+        });
+
+        TextView search = toolbar.findViewById(R.id.action_center);
+        search.setText(photoQuery.isEmpty() ? R.string.album_search : R.string.album_clear_search);
+        search.setOnClickListener(v -> {
+            if (photoQuery.isEmpty()) {
+                showPhotoSearch();
+            } else {
+                photoQuery = "";
+                buildPhotoGrid(currentAlbum);
+            }
+        });
+
+        TextView upload = toolbar.findViewById(R.id.action_right);
+        upload.setText(R.string.album_upload);
+        upload.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_upload, 0, 0, 0);
+        upload.setCompoundDrawableTintList(ColorStateList.valueOf(color(R.color.surface_white)));
+        upload.setCompoundDrawablePadding(getResources().getDimensionPixelSize(R.dimen.action_row_gap));
+        upload.setOnClickListener(v -> askUploadPhoto());
+
+        return toolbar;
+    }
+
+    private void showPhotoSearch() {
+        LinearLayout form = new LinearLayout(requireContext());
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dimen(R.dimen.dialog_form_padding_horizontal), dimen(R.dimen.dialog_form_padding_top), dimen(R.dimen.dialog_form_padding_horizontal), 0);
+        EditText input = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.album_search_title), getString(R.string.album_search_hint), false);
+        new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.album_search_title)
+            .setView(form)
+            .setPositiveButton(R.string.album_search, (dialog, which) -> {
+                photoQuery = input.getText().toString().trim();
+                buildPhotoGrid(currentAlbum);
+            })
+            .setNegativeButton(R.string.common_cancel, null)
+            .show();
+    }
 
     private void askCreateAlbum() {
-        EditText et = edit("相册名称，例如：公园散步");
-        new AlertDialog.Builder(requireContext())
-            .setTitle("创建相册").setView(et)
-            .setPositiveButton("创建", (d,w) -> {
-                String n = et.getText().toString().trim();
-                if (!n.isEmpty()) buildPhotoGrid(n);
-            }).setNegativeButton("取消", null).show();
+        LinearLayout form = new LinearLayout(requireContext());
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dimen(R.dimen.dialog_form_padding_horizontal), dimen(R.dimen.dialog_form_padding_top), dimen(R.dimen.dialog_form_padding_horizontal), 0);
+        EditText input = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.album_name), getString(R.string.album_name_hint), false);
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.album_create_new)
+            .setView(form)
+            .setPositiveButton(R.string.album_create, null)
+            .setNegativeButton(R.string.common_cancel, null)
+            .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String name = input.getText().toString().trim();
+            if (name.isEmpty()) {
+                input.setError(getString(R.string.album_name_error));
+                input.requestFocus();
+                return;
+            }
+            buildPhotoGrid(name);
+            dialog.dismiss();
+        }));
+        dialog.show();
     }
 
     private void askUploadPhoto() {
         pendingImageUri = null;
-        LinearLayout f = new LinearLayout(requireContext());
-        f.setOrientation(LinearLayout.VERTICAL); f.setPadding(dp(36), dp(8), dp(36), 0);
+        pendingPreview = null;
+        pendingPickChip = null;
 
-        ImageView preview = new ImageView(requireContext());
-        preview.setLayoutParams(new LinearLayout.LayoutParams(dp(200), dp(200)));
-        preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        preview.setBackgroundColor(0xFFE5ECE7);
-        preview.setImageResource(R.drawable.ic_album);
-        f.addView(preview);
+        LinearLayout form = new LinearLayout(requireContext());
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dimen(R.dimen.dialog_form_padding_horizontal_wide), dimen(R.dimen.dialog_form_padding_top), dimen(R.dimen.dialog_form_padding_horizontal_wide), 0);
 
-        TextView pick = chip("从手机相册选择");
-        f.addView(pick, new LinearLayout.LayoutParams(-1, -2));
-        EditText titleEt = edit("照片标题");
-        EditText msgEt   = edit("家属留言");
-        f.addView(titleEt); f.addView(msgEt);
+        pendingPreview = new ImageView(requireContext());
+        pendingPreview.setLayoutParams(new LinearLayout.LayoutParams(dimen(R.dimen.album_upload_preview_size), dimen(R.dimen.album_upload_preview_size)));
+        pendingPreview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        pendingPreview.setBackgroundColor(color(R.color.surface_mint));
+        pendingPreview.setImageResource(R.drawable.ic_album);
+        form.addView(pendingPreview);
 
-        pick.setOnClickListener(v -> permHelper.requestPermissionThen(permHelper::openGallery));
+        pendingPickChip = chip(getString(R.string.album_pick_from_gallery));
+        form.addView(pendingPickChip, new LinearLayout.LayoutParams(-1, -2));
 
-        new AlertDialog.Builder(requireContext())
-            .setTitle("上传照片到「" + currentAlbum + "」").setView(f)
-            .setPositiveButton("保存", (d,w) -> {
-                String t = titleEt.getText().toString().trim();
-                if (t.isEmpty()) t = "新照片";
-                String u = pendingImageUri != null ? pendingImageUri.toString() : "";
-                MockData.addPhoto(t, currentAlbum, msgEt.getText().toString().trim());
-                if (!u.isEmpty()) {
-                    AlbumPhoto added = MockData.getPhotos().isEmpty() ? null : MockData.getPhotos().get(0);
-                    if (added != null) added.url = u;
-                }
-                buildPhotoGrid(currentAlbum);
-                Toast.makeText(requireContext(), "照片已上传", Toast.LENGTH_SHORT).show();
-            }).setNegativeButton("取消", null).show();
+        EditText titleInput = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.album_photo_title), getString(R.string.album_name_hint), false);
+        EditText messageInput = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.album_message_label), getString(R.string.album_message_hint), true);
+        pendingPickChip.setOnClickListener(v -> permHelper.requestPermissionThen(permHelper::openGallery));
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.album_upload_to, currentAlbum))
+            .setView(form)
+            .setPositiveButton(R.string.common_save, null)
+            .setNegativeButton(R.string.common_cancel, null)
+            .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            if (pendingImageUri == null) {
+                pendingPickChip.setError(getString(R.string.album_pick_error));
+                return;
+            }
+            String title = titleInput.getText().toString().trim();
+            if (title.isEmpty()) {
+                title = getString(R.string.album_new_photo);
+            }
+            MockData.addPhoto(title, currentAlbum, messageInput.getText().toString().trim());
+            AlbumPhoto added = MockData.getPhotos().isEmpty() ? null : MockData.getPhotos().get(0);
+            if (added != null) {
+                added.url = pendingImageUri.toString();
+            }
+            buildPhotoGrid(currentAlbum);
+            Toast.makeText(requireContext(), R.string.album_upload_success, Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        }));
+        dialog.show();
     }
-
-    // ===== activity callbacks → delegate to GalleryPermissionHelper =====
 
     @Override
-    public void onActivityResult(int rc, int result, @Nullable Intent data) {
-        super.onActivityResult(rc, result, data);
-        Uri u = GalleryPermissionHelper.handleActivityResult(rc, result, data);
-        if (u != null) { pendingImageUri = u; toast("已选择照片"); }
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Uri image = GalleryPermissionHelper.handleActivityResult(requestCode, resultCode, data);
+        if (image == null) {
+            return;
+        }
+        pendingImageUri = image;
+        if (pendingPreview != null) {
+            pendingPreview.setImageURI(image);
+            pendingPreview.setBackgroundColor(0x00000000);
+        }
+        if (pendingPickChip != null) {
+            pendingPickChip.setText(R.string.album_picked);
+            pendingPickChip.setTextColor(color(R.color.primary));
+        }
     }
 
     @Override
-    public void onRequestPermissionsResult(int rc, @NonNull String[] p, @NonNull int[] gr) {
-        if (!permHelper.onRequestPermissionsResult(rc, gr))
-            super.onRequestPermissionsResult(rc, p, gr);
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (!permHelper.onRequestPermissionsResult(requestCode, grantResults)) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
-
-    // ===== adapters =====
 
     private class AlbumListAdapter extends RecyclerView.Adapter<AlbumHolder> {
-        @NonNull @Override public AlbumHolder onCreateViewHolder(@NonNull ViewGroup p, int t) {
-            return new AlbumHolder(LayoutInflater.from(p.getContext()).inflate(R.layout.item_photo, p, false));
+        @NonNull
+        @Override
+        public AlbumHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new AlbumHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_album, parent, false));
         }
-        @Override public void onBindViewHolder(@NonNull AlbumHolder h, int pos) { h.bind(albumGroups.get(pos)); }
-        @Override public int getItemCount() { return albumGroups.size(); }
+
+        @Override
+        public void onBindViewHolder(@NonNull AlbumHolder holder, int position) {
+            holder.bind(albumGroups.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return albumGroups.size();
+        }
     }
 
     private class AlbumHolder extends RecyclerView.ViewHolder {
-        TextView title, count; ImageView img;
-        AlbumHolder(View v) {
-            super(v);
-            title = v.findViewById(R.id.photo_title);
-            count = v.findViewById(R.id.photo_category);
-            v.findViewById(R.id.photo_message).setVisibility(View.GONE);
-            v.findViewById(R.id.photo_favorite).setVisibility(View.GONE);
-            img = v.findViewById(R.id.photo_image);
+        private final TextView title;
+        private final TextView count;
+        private final ImageView image;
+
+        AlbumHolder(@NonNull View itemView) {
+            super(itemView);
+            title = itemView.findViewById(R.id.photo_title);
+            count = itemView.findViewById(R.id.photo_category);
+            itemView.findViewById(R.id.photo_message).setVisibility(View.GONE);
+            itemView.findViewById(R.id.photo_favorite).setVisibility(View.GONE);
+            image = itemView.findViewById(R.id.photo_image);
         }
-        void bind(AlbumGroup g) {
-            title.setText(g.name);
-            count.setText(g.count + " 张照片");
-            loadImg(img, g.cover);
-            itemView.setOnClickListener(v -> buildPhotoGrid(g.name));
-            if (!AlbumGroup.ALL_PHOTOS.equals(g.name)) {
+
+        void bind(AlbumGroup group) {
+            boolean isAllPhotos = AlbumGroup.ALL_PHOTOS.equals(group.name);
+            title.setText(isAllPhotos ? getString(R.string.album_all_photos) : group.name);
+            count.setText(isAllPhotos ? getString(R.string.album_all_photo_count_summary, group.count) : getString(R.string.album_photo_count_summary, group.count));
+            title.setTypeface(null, isAllPhotos ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+            if (isAllPhotos) {
+                title.setTextColor(color(R.color.primary_dark));
+                count.setTextColor(color(R.color.primary));
+            } else {
+                title.setTextColor(color(R.color.text_primary));
+                count.setTextColor(color(R.color.text_secondary));
+            }
+            loadImg(image, group.cover);
+            itemView.setContentDescription(getString(R.string.album_group_content_desc, group.name, group.count));
+            itemView.setOnClickListener(v -> transitionTo(() -> buildPhotoGrid(group.name)));
+            if (!AlbumGroup.ALL_PHOTOS.equals(group.name)) {
                 itemView.setOnLongClickListener(v -> {
                     new AlertDialog.Builder(requireContext())
-                        .setTitle("删除相册「" + g.name + "」")
-                        .setMessage("将删除所有照片，确定吗？")
-                        .setPositiveButton("删除", (d,w) -> {
-                            for (AlbumPhoto p : new ArrayList<>(allPhotos))
-                                if (g.name.equals(p.category)) MockData.deletePhoto(p);
+                        .setTitle(getString(R.string.album_delete_title, group.name))
+                        .setMessage(R.string.album_delete_confirm)
+                        .setPositiveButton(R.string.common_delete, (dialog, which) -> {
+                            for (AlbumPhoto photo : new ArrayList<>(allPhotos)) {
+                                if (group.name.equals(photo.category)) {
+                                    MockData.deletePhoto(photo);
+                                }
+                            }
                             buildAlbumList();
-                        }).setNegativeButton("取消", null).show();
+                        })
+                        .setNegativeButton(R.string.common_cancel, null)
+                        .show();
                     return true;
                 });
             }
@@ -236,85 +490,167 @@ public class AlbumFragment extends BaseFragment {
     }
 
     private class PhotoGridAdapter extends RecyclerView.Adapter<PhotoHolder> {
-        @NonNull @Override public PhotoHolder onCreateViewHolder(@NonNull ViewGroup p, int t) {
-            return new PhotoHolder(LayoutInflater.from(p.getContext()).inflate(R.layout.item_photo, p, false));
+        @NonNull
+        @Override
+        public PhotoHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new PhotoHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_photo_grid, parent, false));
         }
-        @Override public void onBindViewHolder(@NonNull PhotoHolder h, int pos) { h.bind(albumPhotos.get(pos)); }
-        @Override public int getItemCount() { return albumPhotos.size(); }
+
+        @Override
+        public void onBindViewHolder(@NonNull PhotoHolder holder, int position) {
+            holder.bind(albumPhotos.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return albumPhotos.size();
+        }
     }
 
     private class PhotoHolder extends RecyclerView.ViewHolder {
-        TextView title, msg, fav; ImageView img;
-        PhotoHolder(View v) {
-            super(v);
-            title = v.findViewById(R.id.photo_title);
-            v.findViewById(R.id.photo_category).setVisibility(View.GONE);
-            msg = v.findViewById(R.id.photo_message);
-            fav = v.findViewById(R.id.photo_favorite);
-            img = v.findViewById(R.id.photo_image);
+        private final TextView title;
+        private final TextView favorite;
+        private final ImageView image;
+
+        PhotoHolder(@NonNull View itemView) {
+            super(itemView);
+            title = itemView.findViewById(R.id.photo_title);
+            itemView.findViewById(R.id.photo_category).setVisibility(View.GONE);
+            favorite = itemView.findViewById(R.id.photo_favorite);
+            image = itemView.findViewById(R.id.photo_image);
         }
-        void bind(AlbumPhoto p) {
-            title.setText(p.title); msg.setText(p.familyMessage);
-            fav.setVisibility(p.favorite ? View.VISIBLE : View.GONE);
-            loadImg(img, p);
+
+        void bind(AlbumPhoto photo) {
+            title.setText(photo.title);
+            favorite.setVisibility(photo.favorite ? View.VISIBLE : View.GONE);
+            loadImg(image, photo);
+            itemView.setContentDescription(photo.title + (photo.favorite ? getString(R.string.album_favorited_suffix) : ""));
             itemView.setOnClickListener(v -> {
-                Intent i = new Intent(requireContext(), PhotoDetailActivity.class);
-                i.putExtra("photo_title", p.title);   i.putExtra("photo_url", p.url);
-                i.putExtra("photo_category", p.category); i.putExtra("photo_message", p.familyMessage);
-                i.putExtra("photo_scene_tag", p.sceneTag); i.putExtra("photo_description", p.description);
-                i.putExtra("photo_favorite", p.favorite);
-                i.putExtra("photo_position", getAdapterPosition());
-                i.putExtra("photo_total", albumPhotos.size());
-                startActivity(i);
+                Intent intent = new Intent(requireContext(), PhotoDetailActivity.class);
+                intent.putExtra("photo_title", photo.title);
+                intent.putExtra("photo_url", photo.url);
+                intent.putExtra("photo_category", photo.category);
+                intent.putExtra("photo_message", photo.familyMessage);
+                intent.putExtra("photo_scene_tag", photo.sceneTag);
+                intent.putExtra("photo_description", photo.description);
+                intent.putExtra("photo_favorite", photo.favorite);
+                intent.putExtra("photo_position", getAdapterPosition());
+                intent.putExtra("photo_total", albumPhotos.size());
+                startActivity(intent);
             });
             itemView.setOnLongClickListener(v -> {
-                MockData.toggleFavorite(p); buildPhotoGrid(currentAlbum); return true;
+                MockData.toggleFavorite(photo);
+                buildPhotoGrid(currentAlbum);
+                return true;
             });
         }
     }
 
-    // shared Glide loader (eliminates duplication between AlbumHolder & PhotoHolder)
-    private void loadImg(ImageView iv, AlbumPhoto p) {
-        if (p != null && p.url != null && !p.url.isEmpty())
-            try { Glide.with(iv).load(Uri.parse(p.url)).centerCrop().into(iv); }
-            catch (Exception e) { iv.setImageResource(R.drawable.family_companion); }
-        else iv.setImageResource(R.drawable.family_companion);
+    private void loadImg(ImageView imageView, @Nullable AlbumPhoto photo) {
+        if (photo != null && photo.url != null && !photo.url.isEmpty()) {
+            try {
+                Glide.with(imageView).load(Uri.parse(photo.url)).centerCrop().into(imageView);
+                return;
+            } catch (Exception ignored) {
+                // Fall through to the local placeholder below.
+            }
+        }
+        imageView.setImageResource(R.drawable.family_companion);
     }
 
-    // ===== view builders =====
-
-    private LinearLayout hRow() {
-        LinearLayout h = new LinearLayout(requireContext());
-        h.setOrientation(LinearLayout.HORIZONTAL);
-        h.setGravity(Gravity.CENTER_VERTICAL);
-        h.setPadding(0, 0, 0, dp(16));
-        return h;
+    private TextView txt(String text, int textSizeRes, boolean bold) {
+        TextView view = new TextView(requireContext());
+        view.setText(text);
+        view.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(textSizeRes));
+        if (bold) {
+            view.setTypeface(null, android.graphics.Typeface.BOLD);
+        }
+        view.setTextColor(color(R.color.text_primary));
+        return view;
     }
 
-    private TextView txt(String s, int sz, boolean b) {
-        TextView v = new TextView(requireContext());
-        v.setText(s); v.setTextSize(sz);
-        if (b) v.setTypeface(null, android.graphics.Typeface.BOLD);
-        v.setTextColor(color(R.color.text_primary));
-        return v;
+    private TextView chip(String text) {
+        TextView view = txt(text, R.dimen.text_small, true);
+        view.setTextColor(color(R.color.primary_dark));
+        view.setBackgroundResource(R.drawable.bg_chip_soft);
+        view.setPadding(dimen(R.dimen.chip_padding_horizontal), dimen(R.dimen.chip_padding_vertical), dimen(R.dimen.chip_padding_horizontal), dimen(R.dimen.chip_padding_vertical));
+        view.setMinWidth(getResources().getDimensionPixelSize(R.dimen.touch_target));
+        view.setMinHeight(getResources().getDimensionPixelSize(R.dimen.touch_target));
+        return view;
     }
 
-    private TextView chip(String s) {
-        TextView v = txt(s, 15, true);
-        v.setTextColor(color(R.color.primary));
-        v.setBackgroundResource(R.drawable.bg_chip_soft);
-        v.setPadding(dp(14), dp(9), dp(14), dp(9));
-        return v;
+    private TextView primaryButton(String label, int iconRes) {
+        TextView button = txt(label, R.dimen.text_body, true);
+        button.setTextColor(color(R.color.surface_white));
+        button.setGravity(Gravity.CENTER);
+        button.setBackgroundResource(R.drawable.bg_button_primary);
+        button.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0);
+        button.setCompoundDrawableTintList(ColorStateList.valueOf(color(R.color.surface_white)));
+        button.setCompoundDrawablePadding(getResources().getDimensionPixelSize(R.dimen.action_row_gap));
+        button.setClickable(true);
+        button.setFocusable(true);
+        button.setContentDescription(label);
+        return button;
     }
 
-    private EditText edit(String hint) {
-        EditText e = new EditText(requireContext());
-        e.setHint(hint); e.setTextSize(18);
-        return e;
+    private int dimen(int resId) {
+        return getResources().getDimensionPixelSize(resId);
     }
 
-    private LinearLayout.LayoutParams lp(int w, int h, float wt) {
-        return new LinearLayout.LayoutParams(w, h, wt);
+    private LinearLayout.LayoutParams lp(int width, int height, float weight) {
+        return new LinearLayout.LayoutParams(width, height, weight);
     }
 
+    private View inflateShared(int layoutRes) {
+        return LayoutInflater.from(requireContext()).inflate(layoutRes, root, false);
+    }
+
+    private View createPageHeader(String backLabel, String title, String actionLabel,
+                                  View.OnClickListener backClick, View.OnClickListener actionClick) {
+        View header = inflateShared(R.layout.view_page_header);
+        TextView back = header.findViewById(R.id.header_back);
+        TextView pageTitle = header.findViewById(R.id.header_title);
+        TextView action = header.findViewById(R.id.header_action);
+
+        back.setVisibility(View.VISIBLE);
+        back.setText(backLabel);
+        back.setOnClickListener(backClick);
+
+        pageTitle.setText(title);
+
+        action.setVisibility(View.VISIBLE);
+        action.setText(actionLabel);
+        action.setOnClickListener(actionClick);
+        return header;
+    }
+
+    private View createProfileHeader(String title, String subtitle, int avatarRes, String avatarDescription) {
+        View header = inflateShared(R.layout.view_profile_header);
+        ((TextView) header.findViewById(R.id.header_title)).setText(title);
+        ((TextView) header.findViewById(R.id.header_subtitle)).setText(subtitle);
+
+        ImageView avatar = header.findViewById(R.id.header_avatar);
+        avatar.setImageResource(avatarRes);
+        avatar.setClipToOutline(true);
+        avatar.setContentDescription(avatarDescription);
+        return header;
+    }
+
+    private View createHeroBanner(String title, String subtitle, String description,
+                                  @Nullable AlbumPhoto photo, int fallbackRes, int heightRes) {
+        FrameLayout hero = (FrameLayout) inflateShared(R.layout.view_hero_banner);
+        hero.setLayoutParams(new LinearLayout.LayoutParams(-1, getResources().getDimensionPixelSize(heightRes)));
+
+        ImageView image = hero.findViewById(R.id.hero_image);
+        if (photo != null) {
+            loadImg(image, photo);
+        } else {
+            image.setImageResource(fallbackRes);
+        }
+        image.setContentDescription(description);
+
+        ((TextView) hero.findViewById(R.id.hero_title)).setText(title);
+        ((TextView) hero.findViewById(R.id.hero_subtitle)).setText(subtitle);
+        return hero;
+    }
 }

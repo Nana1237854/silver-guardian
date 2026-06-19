@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/community_poi_spacing_bottom"
+    android:background="@drawable/bg_card_surface"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/community_poi_min_height"
+    android:orientation="horizontal"
+    android:padding="@dimen/group_card_padding_compact">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/community_poi_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/community_poi_name_text"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/community_poi_type"
+            style="@style/Widget.SilverGuardian.CompactChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/community_poi_type_gap" />
+
+        <TextView
+            android:id="@+id/community_poi_distance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/community_poi_distance_gap"
+            android:lineSpacingExtra="@dimen/community_poi_distance_line_spacing"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/community_poi_meta_text" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/community_poi_nav"
+        style="@style/Widget.SilverGuardian.SecondaryTextAction"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginStart="@dimen/chip_gap_horizontal"
+        android:gravity="center"
+        android:minWidth="@dimen/community_nav_min_width"
+        android:text="@string/community_nav" />
+</LinearLayout>

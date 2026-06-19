@@ -14,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.silverguardian.prototype.R;
+
 import java.util.ArrayList;
 
 /**
@@ -52,13 +54,13 @@ public class SpeechManager {
             @Override
             public void onEndOfSpeech() {
                 isListening = false;
-                voiceButton.setImageResource(android.R.drawable.ic_btn_speak_now);
+                voiceButton.setImageResource(R.drawable.ic_mic);
             }
 
             @Override
             public void onError(int error) {
                 isListening = false;
-                voiceButton.setImageResource(android.R.drawable.ic_btn_speak_now);
+                voiceButton.setImageResource(R.drawable.ic_mic);
                 String msg;
                 switch (error) {
                     case SpeechRecognizer.ERROR_AUDIO: msg = "录音错误"; break;
@@ -78,7 +80,7 @@ public class SpeechManager {
             @Override
             public void onResults(Bundle results) {
                 isListening = false;
-                voiceButton.setImageResource(android.R.drawable.ic_btn_speak_now);
+                voiceButton.setImageResource(R.drawable.ic_mic);
                 ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if (matches != null && !matches.isEmpty()) callback.onResult(matches.get(0));
             }
@@ -97,7 +99,7 @@ public class SpeechManager {
         if (isListening) {
             speechRecognizer.stopListening();
             isListening = false;
-            voiceButton.setImageResource(android.R.drawable.ic_btn_speak_now);
+            voiceButton.setImageResource(R.drawable.ic_mic);
             return;
         }
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
@@ -105,7 +107,7 @@ public class SpeechManager {
             return;
         }
         isListening = true;
-        voiceButton.setImageResource(android.R.drawable.ic_media_pause);
+        voiceButton.setImageResource(R.drawable.ic_pause);
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-CN");

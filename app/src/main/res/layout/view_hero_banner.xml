@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/hero_banner_height_large"
+    android:background="@drawable/bg_group_surface"
+    android:clipToOutline="true">
+
+    <ImageView
+        android:id="@+id/hero_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:id="@+id/hero_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_photo_scrim"
+        android:gravity="bottom"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/card_padding"
+        android:paddingTop="@dimen/card_padding"
+        android:paddingEnd="@dimen/card_padding"
+        android:paddingBottom="@dimen/card_padding">
+
+        <TextView
+            android:id="@+id/hero_title"
+            style="@style/TextAppearance.SilverGuardian.PageTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/surface_white" />
+
+        <TextView
+            android:id="@+id/hero_subtitle"
+            style="@style/TextAppearance.SilverGuardian.BodyMuted"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:textColor="@color/surface_white" />
+    </LinearLayout>
+</FrameLayout>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_avatar_user_desc">颜爷爷</string>
+    <string name="chat_avatar_ai_desc">银发守护 AI 助手</string>
+
+    <string name="home_greeting_title">早上好，颜爷爷</string>
+    <string name="home_greeting_subtitle">今天也稳稳照顾自己</string>
+    <string name="home_greeting_status">状态平稳</string>
+    <string name="home_summary_title_refined">今日健康概览</string>
+    <string name="home_summary_time_refined">数据更新 07:20</string>
+    <string name="home_ai_title_refined">AI 健康分析与建议</string>
+    <string name="home_ai_subtitle_refined">结合近期指标、睡眠和用药节奏，给出更安心的建议。</string>
+    <string name="home_ai_cta_refined">进入 AI 对话</string>
+    <string name="home_metric_pressure_label">血压稳定</string>
+    <string name="home_metric_heart_label">心率平稳</string>
+    <string name="home_metric_oxygen_label">血氧正常</string>
+    <string name="home_metric_sleep_label">睡眠良好</string>
+    <string name="home_shortcut_health_title">健康档案</string>
+    <string name="home_shortcut_health_subtitle">查看指标、报告和每日状态</string>
+    <string name="home_shortcut_medicine_title">用药提醒</string>
+    <string name="home_shortcut_medicine_subtitle">按时服药，安心完成打卡</string>
+    <string name="home_shortcut_album_title">家人相册</string>
+    <string name="home_shortcut_album_subtitle">看看家人近况，留住想念</string>
+    <string name="home_shortcut_settings_title">设置</string>
+    <string name="home_shortcut_settings_subtitle">调整显示、通知和家属协助</string>
+
+    <string name="health_title_refined">健康档案</string>
+    <string name="health_banner_desc_refined">两位长辈在社区花园散步</string>
+    <string name="health_greeting_refined">您好，颜爷爷</string>
+    <string name="health_status_refined">今天状态平稳</string>
+    <string name="health_detail_refined">关键指标表现稳定，可以继续保持现在的作息。</string>
+    <string name="health_reminder_refined">记得分次喝水，午后活动前先热身</string>
+    <string name="health_metrics_title_refined">关键健康指标</string>
+    <string name="health_analysis_title_refined">AI 健康分析</string>
+    <string name="health_analysis_body_refined">近期数据没有明显波动，适合继续保持规律休息、轻度步行和稳定用药。</string>
+    <string name="health_analysis_action_refined">查看建议</string>
+    <string name="health_analysis_desc_refined">查看 AI 给出的健康分析建议</string>
+    <string name="health_record_title_refined">记录新的健康数据</string>
+    <string name="health_bluetooth_action_refined">连接蓝牙设备</string>
+    <string name="health_manual_action_refined">手动记录</string>
+    <string name="health_manual_success_refined">已记录心率 69 次/分</string>
+    <string name="health_metric_status_normal">正常</string>
+    <string name="health_metric_status_good_sleep">良好</string>
+    <string name="health_metric_view_record">查看%1$s记录</string>
+</resources>

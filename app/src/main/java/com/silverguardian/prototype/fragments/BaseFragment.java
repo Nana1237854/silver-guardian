@@ -17,7 +17,8 @@ public abstract class BaseFragment extends Fragment {
     }
 
     protected int sp(int base) {
-        return FontScaleHelper.sp(requireContext(), base);
+        // Activity configuration already scales every sp value globally.
+        return base;
     }
 
     protected int color(int resId) {

@@ -2,6 +2,11 @@ package com.silverguardian.prototype.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+
+import androidx.core.content.ContextCompat;
+
+import com.silverguardian.prototype.R;
 
 public class FontScaleHelper {
     private static final String PREFS = "elder_settings";
@@ -39,20 +44,26 @@ public class FontScaleHelper {
         return Math.round(baseSp * getTextScale(context));
     }
 
+    public static Context withAppFontScale(Context context) {
+        Configuration configuration = new Configuration(context.getResources().getConfiguration());
+        configuration.fontScale = configuration.fontScale * getTextScale(context);
+        return context.createConfigurationContext(configuration);
+    }
+
     public static int dp(Context context, int baseDp) {
         return Math.round(baseDp * context.getResources().getDisplayMetrics().density);
     }
 
     // 高对比度颜色切换
     public static int textPrimary(Context context) {
-        return isHighContrast(context) ? android.graphics.Color.BLACK : 0xFF202420;
+        return ContextCompat.getColor(context, R.color.text_primary);
     }
 
     public static int textSecondary(Context context) {
-        return isHighContrast(context) ? android.graphics.Color.DKGRAY : 0xFF8C978F;
+        return ContextCompat.getColor(context, R.color.text_secondary);
     }
 
     public static int bgPage(Context context) {
-        return isHighContrast(context) ? android.graphics.Color.WHITE : 0xFFEEF7F1;
+        return ContextCompat.getColor(context, R.color.bg_page);
     }
 }

@@ -134,7 +134,7 @@ public class HealthAlertService {
             intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_health)
+            .setSmallIcon(R.drawable.ic_notification_health)
             .setContentTitle("健康异常告警")
             .setContentText(message)
             .setStyle(new NotificationCompat.BigTextStyle().bigText(message))

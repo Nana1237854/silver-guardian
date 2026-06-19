@@ -34,7 +34,7 @@ public class ReminderBroadcastReceiver extends BroadcastReceiver {
         PendingIntent pending = PendingIntent.getActivity(context, (int) System.currentTimeMillis(), tapIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_medicine)
+            .setSmallIcon(R.drawable.ic_notification_medicine)
             .setContentTitle("用药提醒")
             .setContentText(message)
             .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
