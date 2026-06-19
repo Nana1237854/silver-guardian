@@ -5,8 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
- * SQLiteOpenHelper — 11 张表，数据库名 elderly_guardian.db。
- * 从 MockData 内部类提取为独立文件，可独立测试和复用。
+ * SQLiteOpenHelper for the elderly_guardian.db schema.
+ * Extracted into a standalone file so database setup can be tested and reused independently.
  */
 public class ElderlyDbHelper extends SQLiteOpenHelper {
 
@@ -17,7 +17,7 @@ public class ElderlyDbHelper extends SQLiteOpenHelper {
         super(context, DB_NAME, null, DB_VERSION);
     }
 
-    /** 仅测试用：允许指定数据库名和版本，便于迁移测试 */
+    /** Test-only constructor that allows overriding database name and version. */
     ElderlyDbHelper(Context context, String dbName, int dbVersion) {
         super(context, dbName, null, dbVersion);
     }
@@ -32,21 +32,17 @@ public class ElderlyDbHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE family_members (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, name TEXT NOT NULL, relationship TEXT NOT NULL, phone TEXT, avatar TEXT, status TEXT DEFAULT 'offline', created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
         db.execSQL("CREATE TABLE user_medicines (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, name TEXT NOT NULL, type TEXT, time TEXT, method TEXT, description TEXT, image TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
         db.execSQL("CREATE TABLE medicine_taken (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, medicine_id INTEGER NOT NULL, taken_date TEXT NOT NULL, taken_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), UNIQUE(user_id, medicine_id, taken_date), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(medicine_id) REFERENCES user_medicines(id) ON DELETE CASCADE)");
-        db.execSQL("CREATE TABLE album_photos (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, url TEXT NOT NULL, title TEXT NOT NULL, description TEXT, category TEXT DEFAULT 'family', uploaded_by TEXT DEFAULT '家属', favorite INTEGER DEFAULT 0, scene_tag TEXT, family_message TEXT, uploaded_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
+        db.execSQL("CREATE TABLE album_photos (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, url TEXT NOT NULL, title TEXT NOT NULL, description TEXT, category TEXT DEFAULT 'family', uploaded_by TEXT DEFAULT 'Family', favorite INTEGER DEFAULT 0, scene_tag TEXT, family_message TEXT, uploaded_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
         db.execSQL("CREATE TABLE emergency_alerts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, keyword TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
         db.execSQL("CREATE TABLE medicine_library (id INTEGER PRIMARY KEY AUTOINCREMENT, disease TEXT NOT NULL, medicine_name TEXT NOT NULL, brand TEXT, description TEXT, image TEXT)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // 逐版本迁移，保留用户数据
-        // 添加新版本迁移时递增 DB_VERSION，在此追加 case
+        // Add future migration steps here while preserving user data.
         if (oldVersion < 2) {
-            // v1 → v2 迁移（示例，实际使用时取消注释）
+            // Example migration slot for a future DB version.
             // db.execSQL("ALTER TABLE users ADD COLUMN phone TEXT");
         }
-        // if (oldVersion < 3) {
-        //     v2 → v3 迁移
-        // }
     }
 }

@@ -17,7 +17,7 @@
 
 "银发守护者"是一款面向老年人群体的智慧生活助手 Android 应用。针对老年群体数字使用门槛高、健康管理不便、易受电信诈骗等问题，系统提供大字体/高对比度界面、AI 智能健康对话、定时用药管理与语音播报提醒、一键紧急呼叫亲友、社区便民地图查询、防诈骗知识每日推送等功能，助力老年人安全、便捷地融入智能生活。
 
-系统采用 Android 原生开发技术栈：XML 布局 + Activity/Fragment 导航架构 + SQLite 本地数据存储 + SharedPreferences 用户偏好管理。同时集成了高德地图 SDK（社区便民查询）、OkHttp 第三方网络库（防诈骗内容拉取）、系统 TTS 语音引擎（用药语音播报 + AI 回复朗读）、SpeechRecognizer（AI 对话语音输入）、BluetoothLeScanner（健康设备蓝牙连接）等扩展能力。代码架构经过多轮重构：提取 BaseFragment 基类消除重复、ElderlyDbHelper 独立 DB 层 + DAO/Repository 数据层分离、ChatAdapter 独立适配器复用、GalleryPermissionHelper 统一权限管理、ChatDetailActivity 拆分为 ZhipuApiClient/SpeechManager/ContentFilter/ReplyProvider 四个独立组件。新增 HealthAlertService 健康异常自动告警模块，API Key 通过 local.properties 注入实现安全生产。启用 ProGuard/R8 代码混淆优化 APK 体积。
+系统采用 Android 原生开发技术栈：XML 布局 + Activity/Fragment 导航架构 + SQLite 本地数据存储 + SharedPreferences 用户偏好管理。同时集成了高德地图 SDK（社区便民查询）、OkHttp 第三方网络库（防诈骗内容拉取）、系统 TTS 语音引擎（用药语音播报）、SpeechRecognizer（AI 对话语音输入）、BluetoothLeScanner（健康设备蓝牙连接）等扩展能力。代码架构经过多轮重构，提取了 BaseFragment 基类消除重复、ElderlyDbHelper 独立 DB 层可测试、ChatAdapter 独立适配器复用、GalleryPermissionHelper 统一权限管理等。
 
 系统面向两类用户：（1）老人——主要使用者，通过 PIN 码登录后进行健康管理、用药打卡、AI 智能对话等操作；（2）家属——通过子女监控面板查看老人健康数据、服药状态，并为老人上传照片到亲情相册。
 
@@ -140,20 +140,16 @@
 
 ### 2.5 AI 智能对话
 
-AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱动。经过架构重构，将原 562 行的单一 Activity 拆分为 5 个独立组件：ZhipuApiClient（API 通信）、SpeechManager（语音识别）、ContentFilter（话题过滤）、ReplyProvider（离线回复）、ChatDetailActivity（UI 协调）。同时新增 AI 回复语音播报功能（系统 TTS 朗读回复内容，支持一键开关）。
-
-**架构特点**：ChatDetailActivity 从 562 行缩减至 236 行，UI 采用 XML 布局（`activity_chat_detail.xml`）替代原全代码构建方式；API 调用独立为可测试的 ZhipuApiClient；话题过滤规则和 SYSTEM_PROMPT 外置到 `res/raw/system_prompt.txt` 和 ContentFilter 类，支持配置更新。
+AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱动。
 
 业务流程如下：
 1. 用户从首页中枢或健康探索页点击进入全屏 AI 对话界面；
-2. 用户可通过键盘输入文字或点击麦克风按钮使用语音输入提问（SpeechManager 管理 SpeechRecognizer，8 种错误中文友好提示）；
-3. 系统通过 ZhipuApiClient（HttpURLConnection）向智谱 API 发送 POST 请求（携带 System Prompt：包含 17 种常见疾病对应 80+ 种药品的映射表 + 老年人安全劝解规则）；
-4. ContentFilter 前置过滤非健康相关提问，减少无效 API 调用；
-5. AI 根据用户问题返回回复，如涉及疾病则自动推荐 2-3 种对应药品；
-6. 当用户提出不适合老年人的行为时，AI 温和劝解并建议安全替代方案；
-7. AI 回复文本通过 TtsHelper.speak() 自动语音播报（工具栏有声音开关按钮，默认开启）；
-8. API 不可用或话题被拦截时，ReplyProvider 提供本地离线回复兜底；
-9. 对话历史存储于 SQLite `messages` 表，切换用户时数据隔离。
+2. 用户可通过键盘输入文字或点击麦克风按钮使用语音输入提问；
+3. 系统通过 HttpURLConnection 向智谱 API 发送 POST 请求（携带 System Prompt：包含 17 种常见疾病对应 80+ 种药品的映射表 + 老年人安全劝解规则）；
+4. AI 根据用户问题返回回复，如涉及疾病则自动推荐 2-3 种对应药品（含药品图片和说明）；
+5. 当用户提出不适合老年人的行为（如"跑 10 公里""爬山""搬重物"），AI 会温和地劝解并建议安全替代方案；
+6. 对话历史存储于 SQLite `messages` 表，切换用户时数据隔离；
+7. 语音输入使用系统 SpeechRecognizer，支持中文识别，需 RECORD_AUDIO 权限。
 
 ### 2.6 定时用药提醒
 
@@ -182,19 +178,18 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 
 ### 2.8 亲情相册
 
-家属为老人上传照片，老人浏览回忆。经过 UI/UX 优化，增加了跨屏淡入过渡动画、空状态引导设计、上传实时预览反馈等交互增强。
-
-**交互特点**：相册列表与照片网格之间使用 120ms 淡出 + 150ms 淡入过渡动画；"全部照片"入口使用 Primary Dark 色粗体标题与绿色计数区分视觉权重；新建空相册显示插画 + "这个相册还是空的"引导文案 + 上传按钮；上传照片选择后预览区实时更新图片，按钮变"已选择照片 ✓"绿色确认。
+家属为老人上传照片，老人浏览回忆。
 
 业务流程如下：
-1. 进入"亲情相册"Tab，显示相册列表（按分类分组），首个为"全部照片"（绿色粗体视觉区分）；
-2. 每张相册卡片（22dp 圆角 CardView）显示封面、相册名称、照片数量；
-3. 点击"创建相册"输入相册名称，创建后自动进入新相册（显示空状态引导）；
-4. 点击相册卡片以淡入过渡进入照片网格视图（StaggeredGridLayoutManager 2 列瀑布流）；
-5. 点击"上传照片"弹出表单，实时预览选图，填写标题和留言后保存；
-6. 选图前通过 GalleryPermissionHelper 检查权限：Android 13+ 需 `READ_MEDIA_IMAGES`；
-7. 点击照片进入详情页（`PhotoDetailActivity`），显示大图/标题/分类/场景标签/家属留言/收藏；
-8. 长按照片切换收藏状态，长按相册卡片可删除整个相册（含确认弹窗）；
+1. 进入"亲情相册"Tab，显示相册列表（按分类分组），首个为"全部照片"；
+2. 每张相册卡片显示封面图片、相册名称、照片数量；
+3. 点击"创建相册"输入相册名称，创建后自动进入新相册；
+4. 点击相册卡片进入照片网格视图，显示该相册内所有照片的缩略图（Glide 加载）；
+5. 点击"上传照片"弹出表单，先通过 `Intent.ACTION_PICK` 打开系统相册选图，填写标题和留言后保存；
+6. 选图前检查权限：Android 13+ 需 `READ_MEDIA_IMAGES`，旧版需 `READ_EXTERNAL_STORAGE`；
+7. 点击照片进入详情页（`PhotoDetailActivity`），显示大图、标题、分类、场景标签、家属留言、收藏状态及当前/总数位置指示器；
+8. 长按照片切换收藏状态，长按相册卡片可删除整个相册；
+9. 照片 `url` 字段存储 Content URI 供 Glide 加载。
 
 ### 2.9 子女监控面板
 
@@ -250,7 +245,7 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 
 ### 3.1 页面介绍
 
-本系统包含 **8 个 Activity** 和 **9 个 Fragment**，外加 **5 个独立组件**（ai/ 包、data/dao/ 包、health/ 包），共计 37 个 Java 源文件。
+本系统包含 **8 个 Activity** 和 **9 个 Fragment**，共计 17 个页面。
 
 | 序号 | 页面名称 | 说明 |
 |------|---------|------|
@@ -332,14 +327,14 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 #### （6）AlbumFragment 亲情相册
 
 **使用的控件和布局**：
-- 两套视图状态：相册列表 / 照片网格，通过 `transitionTo()` 方法实现 120ms 淡出→150ms 淡入过渡动画
-- 相册列表使用 RecyclerView + StaggeredGridLayoutManager(2列)，"全部照片"入口绿色粗体视觉区分
-- 照片网格同样使用瀑布流布局，空状态显示插画 + 引导文案 + 上传按钮
-- 卡片使用 CardView（22dp 圆角）+ ImageView（Glide centerCrop）+ 文字区域（16dp 内边距）
-- 上传弹窗使用 AlertDialog + 自定义 LinearLayout 表单（实时预览 + 选择状态 + 标题 + 留言）
-- GalleryPermissionHelper 统一处理权限逻辑，实时更新预览图片和选择确认状态
+- 两套视图状态：相册列表 / 照片网格
+- 相册列表使用 RecyclerView + StaggeredGridLayoutManager(2列)
+- 照片网格同样使用瀑布流布局
+- ImageView + Glide 加载图片
+- 上传弹窗使用 AlertDialog + 自定义 LinearLayout 表单（预览 + 选图按钮 + 标题 + 留言）
+- GalleryPermissionHelper 统一处理权限逻辑
 
-**主要解决的问题**：相册→照片两层结构清晰，瀑布流布局美观，空状态引导降低认知负荷，过渡动画提升交互流畅度，权限处理独立封装避免代码重复。
+**主要解决的问题**：相册→照片两层结构清晰，瀑布流布局美观，权限处理独立封装避免代码重复。
 
 #### （7）SettingsFragment 设置页面
 
@@ -354,17 +349,14 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 
 #### （8）ChatDetailActivity AI 对话页面
 
-**架构重构**：原 562 行 God Activity 拆分为 5 个独立组件——ZhipuApiClient（API 调用）、SpeechManager（语音识别生命周期）、ContentFilter（话题过滤）、ReplyProvider（离线回复）、ChatDetailActivity（236 行 UI 协调器）。UI 改用 XML 布局（`activity_chat_detail.xml`）替代全代码构建，SYSTEM_PROMPT 外置到 `res/raw/system_prompt.txt`。
-
 **使用的控件和布局**：
-- DrawerLayout 作为根布局（主内容 + 侧边栏最近对话）
-- RecyclerView 展示对话列表（AI 左气泡 mint 背景、用户右气泡白色背景）
-- EditText 输入框 + ImageButton 语音按钮 + ImageButton 发送按钮
-- ImageButton 声音开关按钮（默认开启，点击切换 TTS AI 回复朗读）
-- HorizontalScrollView 快捷提问标签（3 个常见问题）
-- SpeechRecognizer 系统语音识别（由 SpeechManager 管理，8 种错误中文提示）
+- DrawerLayout 作为根布局（主内容 + 侧边栏）
+- RecyclerView 展示对话列表（用户消息右对齐、AI 消息左对齐）
+- EditText 输入框 + Button 发送按钮 + Button 语音按钮
+- HorizontalScrollView 快捷提问标签
+- SpeechRecognizer 系统语音识别
 
-**主要解决的问题**：全屏对话体验，左右气泡区分用户/AI 消息；ContentFilter 前置过滤非健康话题减少 API 浪费；TTS 朗读 AI 回复降低阅读负担，适合视力不佳的老人；组件化架构使每个单元可独立测试。
+**主要解决的问题**：全屏对话体验，左右气泡区分用户/AI 消息。语音输入降低老年人文字输入门槛。
 
 #### （9）CommunityActivity 社区便民查询页面
 
@@ -398,15 +390,15 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 - 高对比度通过 `FontScaleHelper.textPrimary()`、`FontScaleHelper.bgPage()` 等方法返回黑色/白色；
 - SettingsFragment 中切换设置后调用 `requireActivity().recreate()` 全局重建 UI。
 
-### 4.2 数据持久化（SQLite + DAO/Repository 模式）
+### 4.2 数据持久化（SQLite + ElderlyDbHelper）
 
-**使用的技术**：`SQLiteOpenHelper` 标准封装，手写 SQL，`ContentValues` 插入，`Cursor` 查询。采用 DAO/Repository 分层架构。
+**使用的技术**：`SQLiteOpenHelper` 标准封装，手写 SQL，`ContentValues` 插入，`Cursor` 查询。
 
 **实现方式**：
-- `ElderlyDbHelper` 独立管理数据库创建和版本升级，`onCreate()` 中执行 11 张表的建表语句。`onUpgrade()` 采用逐版本 ALTER TABLE 迁移模式（非 DROP ALL），确保用户数据在版本升级时不丢失；
-- 数据层采用 **DAO/Repository 模式**：8 个 DAO 类（UserDao、HealthDao、MedicineDao、AlbumDao、ChatDao、FamilyDao、MemoryDao、EmergencyDao）各管理一张表，`Repository` 单例统一协调所有 DAO 并管理内存缓存和活跃用户上下文；
-- 旧 `MockData` 类保留为向后兼容的静态 API 委托层（397 行→95 行），所有 Fragment/Activity 无需修改即可运行；
-- 核心规则：所有数据表包含 `user_id` 外键，多用户数据严格隔离；药品打卡表设置 `UNIQUE(user_id, medicine_id, taken_date)` 约束防止重复打卡。
+- `ElderlyDbHelper` 独立管理数据库创建和版本升级，`onCreate()` 中执行 11 张表的建表语句；
+- 所有数据的 CRUD 操作通过 `MockData` 对外暴露静态方法（`addPhoto`、`toggleMedicineTaken` 等）；
+- 核心规则：所有数据表包含 `user_id` 外键，多用户数据严格隔离；
+- 药品打卡表设置 `UNIQUE(user_id, medicine_id, taken_date)` 约束防止重复打卡。
 
 ### 4.3 RecyclerView 与列表展示
 
@@ -488,19 +480,7 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 - BluetoothLeScanner 不可用时自动降级为 3 个模拟设备（血压计、血氧仪、智能手环）；
 - 连接设备后通过 `MockData.addHealthData()` 写入 SQLite。
 
-### 4.10 健康异常自动告警（HealthAlertService）
-
-**使用的技术**：Android NotificationManager + TTS 语音播报 + 阈值判断算法。
-
-**实现方式**：
-- `HealthAlertService.initChannel()` 在 MainActivity 启动时注册 Android 8+ 通知渠道（IMPORTANCE_HIGH）；
-- `HealthAlertService.checkAndAlert()` 在每次健康数据写入（`Repository.addHealthData()`）时自动触发；
-- `evaluate()` 方法对 6 种关键指标（心率、血压、血氧、体温、血糖、呼吸率）进行阈值判断，返回 NORMAL/WARNING/CRITICAL 三级；
-- CRITICAL 级：心率 <45 或 >130 bpm、收缩压 >180 mmHg、血氧 <90%、体温 >39°C、血糖 >16 或 <3 mmol/L；
-- 告警触发后执行三重通知：通知栏推送（NotificationManagerCompat）、TTS 语音播报、记录到家属可见的紧急提醒列表；
-- 数据入口覆盖手动录入（HealthFragment）和蓝牙设备同步（BluetoothActivity）两条路径。
-
-### 4.11 图片加载（Glide）
+### 4.10 图片加载（Glide）
 
 **使用的技术**：Glide 4.16.0。
 
@@ -561,20 +541,7 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 | T41 | 新增记忆 | 点新增→输入内容+选分类→保存 | 新记忆出现在列表 | ✅ |
 | T42 | 删除记忆 | 长按记忆→确认 | 记忆消失 | ✅ |
 | T43 | 数据持久化 | 添加数据→退出重登→再次进入 | 数据仍在，不丢失 | ✅ |
-| T44 | 单元测试 | 命令行执行 `./gradlew test` | BUILD SUCCESSFUL，27个用例通过 | ✅ |
-| T45 | AI语音播报开关 | AI对话→点击声音按钮→发送消息 | 语音关闭时仅显示回复；语音开启时朗读回复 | ✅ |
-| T46 | AI语音播报朗读 | 声音开启→发送"血压高怎么办" | 系统TTS朗读AI回复内容 | ✅ |
-| T47 | 相册空状态 | 创建新相册（无照片） | 显示插画+"这个相册还是空的"+上传按钮 | ✅ |
-| T48 | 相册过渡动画 | 点击相册卡片 | 列表淡出→网格淡入（120ms+150ms） | ✅ |
-| T49 | 全部照片视觉区分 | 进入亲情相册Tab | "全部照片"绿色粗体+绿色计数，分类相册黑色普通 | ✅ |
-| T50 | 上传实时预览 | 上传照片→从相册选图 | 预览区显示选中图片，按钮变"已选择照片 ✓" | ✅ |
-| T51 | 健康异常告警-临界 | 手动录入心率40bpm（低于45） | 通知栏推送+TTS语音播报+家属记录 | ✅ |
-| T52 | 健康异常告警-正常 | 手动录入心率72bpm | 无告警触发 | ✅ |
-| T53 | DB迁移安全 | ElderlyDbHelperMigrationTest | v1→v2升级后用户/健康/用药数据完整保留 | ✅ |
-| T54 | UI自动化-登录 | CoreFlowUITest - loginScreen | PIN输入状态、正确/错误登录、MainActivity跳转 | ✅ |
-| T55 | UI自动化-导航 | CoreFlowUITest - navigation | 5个Tab切换、AI对话跳转、消息发送 | ✅ |
-| T56 | API Key安全 | 构建APK→检查 BuildConfig | 密钥从local.properties注入，strings.xml仅占位符 | ✅ |
-| T57 | R8混淆 | `assembleRelease` | APK体积缩小3-5MB，ProGuard规则保护关键类 | ✅ |
+| T44 | 单元测试 | 命令行执行 `./gradlew test` | BUILD SUCCESSFUL，24个用例通过 | ✅ |
 
 ---
 
@@ -586,45 +553,31 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 
 使用 Claude Code 的 `/grill-with-docs` 功能，将课程文档《广州商学院课程考查内容及评分标准》中的 5 项功能要求和 6 项技术考察点输入 AI。AI 通过逐轮盘问的方式，帮助确定了所有技术选型决策：高德地图 SDK（vs 百度）、OkHttp（vs Retrofit）、系统 TTS（vs 第三方语音库）、ACTION_CALL + 运行时权限方案等。生成的 CONTEXT.md 领域术语表和 ADR 架构决策记录直接用于后续开发指导。
 
-### 6.2 全景战略审查阶段
-
-使用 `/plan-ceo-review`（CEO 战略审查）、`/plan-eng-review`（工程架构审查）、`/autoplan`（全自动审查管线）三大技能对项目进行系统化质量评估。CEO 审查确认了 9 个扩展提案，接受了 AI 语音播报、UI 自动化测试、健康异常告警 3 项新功能；Eng 审查完成了 4 个维度的深度分析（架构/代码质量/测试/性能），识别出 3 个 CRITICAL 问题（DB onUpgrade 数据丢失、MockData God Object、ChatDetailActivity 职责过载）并全部给出具体修复方案。
-
-### 6.3 安全审计阶段
-
-使用 `/cso`（Chief Security Officer）安全审计，发现 5 个安全问题：智谱 + 高德 API Key 在公开 GitHub 仓库中暴露（CRITICAL）、build.gradle 签名密码硬编码（HIGH）、APK 未混淆 minifyEnabled false（HIGH）、PIN 码明文存储（MEDIUM）、LoginActivity 导出（LOW）。通过 `git filter-repo` 重写全部 42 个历史提交清除密钥，并将 API Key 迁移至 local.properties + BuildConfig 注入的安全方案。使用 `/benchmark` 进行 APK 体积分析，发现高德 3D SDK 占 20MB（50%），通过启用 R8 混淆节省 3-5MB。
-
-### 6.4 原型快速搭建阶段
+### 6.2 原型快速搭建阶段
 
 使用 `/prototype` 功能，基于原有 Vue Web 版本的项目代码（`D:\智能\智能`），AI 分析了 5221 行的 App.vue 组件并自动生成了完整的 Android 项目骨架（25 个 Java 类、14 个 XML 布局、32 个图形资源），在数十分钟内完成了一个包含登录、导航、4 个 Tab 页面、模拟数据的可运行原型。
 
-### 6.5 测试驱动开发阶段
+### 6.3 测试驱动开发阶段
 
-使用 `/tdd` 功能，AI 为 4 个核心模块编写了原始 24 个单元测试。后续使用 Eng 审查和架构重构产出，新增了 ElderlyDbHelperMigrationTest（DB 迁移测试）和 CoreFlowUITest（11 个 Espresso UI 自动化测试，覆盖登录、导航、AI 对话等核心流程），测试总数从 24 提升至 44 个。
+使用 `/tdd` 功能，AI 为 4 个核心模块编写了 24 个单元测试（FontScaleHelper 9 个、FraudApiClient 6 个、ReminderBroadcastReceiver 7 个、MockDataDb 13 个），覆盖 Robolectric、JUnit、Instrumentation 三种测试框架。同时 AI 将 `FraudApiClient.parseFraudResponse()` 和 `ReminderBroadcastReceiver.buildReminderMessage()` 提取为可测试的静态方法。
 
-### 6.6 Bug 诊断与修复阶段
+### 6.4 Bug 诊断与修复阶段
 
-使用 `/investigate`、`/diagnose` 功能，AI 系统化排查了 6 个运行期崩溃和逻辑缺陷，以及 1 个构建配置问题（AGP 8.x BuildConfig 默认禁用导致编译失败）。
+使用 `/diagnose` 功能，AI 系统化排查了 6 个运行期崩溃和逻辑缺陷：
+1. BottomNavigationView 超过 5 个 item 导致 InflateException → 缩减至 5 个
+2. 高德 SDK 隐私合规校验失败（555570）→ 添加 `MapsInitializer.updatePrivacyShow/Agree`
+3. SimpleDateFormat 非法字符 'C' 崩溃 → 提取温度字符串
+4. 亲情相册上传照片不调系统相册 → 添加 `Intent.ACTION_PICK` + 权限管理
+5. 亲情相册无法查看图片 → `item_photo.xml` 添加 ImageView + Glide 加载
+6. 大字体/高对比度未生效 → 反馈环路：SharedPreferences 写入→recreate→BaseFragment.sp() 读取
 
-### 6.7 代码架构深度重构阶段
+### 6.5 代码架构重构阶段
 
-使用 `/plan-eng-review` 审查产出和手动实现的 T1-T5 任务链，完成 5 项重大重构：
-1. **T1 DB 迁移安全修复**：ElderlyDbHelper.onUpgrade() 从 DROP ALL 11 张表改为逐版本 ALTER TABLE 迁移模式
-2. **T2 数据层分离**：MockData（397 行 God Object）拆分为 8 个 DAO + Repository 单例，MockData 变为向后兼容委托层（95 行）
-3. **T3 对话架构重构**：ChatDetailActivity（562 行 7 种职责）拆分为 ZhipuApiClient/SpeechManager/ContentFilter/ReplyProvider + XML 布局，缩减至 236 行
-4. **T4 设计系统审计**：使用 `/design-review` 源码级审查，发现并修复 13 处字号偏离、多处非标准间距、PIN 输入标签缺失
-5. **T5 家人相册 UI/UX 优化**：使用 `/frontend-design` + `/design-consultation`，添加跨屏淡入过渡动画、空状态引导设计、全部照片视觉区分、上传实时预览反馈
+使用 `/improve-codebase-architecture` 功能，AI 审计了 4842 行代码，识别出 5 个架构问题，并按优先级执行了 3 项重构：提取 BaseFragment 消除 9 个 Fragment 中的重复方法、将 ElderlyDbHelper 从 MockData 内部类提取为独立文件、将 ChatAdapter 从 ChatDetailActivity 内部类提取为独立文件。
 
-### 6.8 新功能实现阶段
+### 6.6 项目说明书撰写
 
-使用 Claude Code 实现了 3 项扩展功能：
-1. **E1 AI 回复语音播报**：在工具栏添加声音开关，AI 回复通过 TtsHelper.speak() 自动朗读，降低阅读负担
-2. **E3 健康异常自动告警**：创建 HealthAlertService，对 6 种指标（心率/血压/血氧/体温/血糖/呼吸率）进行 NORMAL/WARNING/CRITICAL 三级阈值判断，异常时同时触发通知推送 + TTS 语音 + 家属记录
-3. **API Key 安全生产化**：密钥移入 local.properties（gitignored），通过 build.gradle 的 buildConfigField + manifestPlaceholders 注入，strings.xml 仅保留占位符
-
-### 6.9 项目说明书撰写
-
-本文档由 AI 根据课程模板格式自动生成并持续更新，组织了 7 个章节、57 条测试用例、12 个功能模块的详细技术说明，人工补充团队成员信息和收获体会后即可提交。
+本文档由 AI 根据课程模板格式自动生成，组织了 7 个章节、44 条测试用例、12 个功能模块的技术说明，人工补充团队成员信息和收获体会后即可提交。
 
 ---
 
@@ -634,22 +587,22 @@ AI 智能对话是系统的核心功能，基于智谱 GLM-4 大语言模型驱�
 
 | 成员 | 学号 | 负责模块 | 占比 |
 |------|------|---------|------|
-| （填写） | （填写） | 核心架构、AI对话、登录导航、架构重构、安全方案、语音播报 | 40% |
-| （填写） | （填写） | 健康档案、用药提醒、一键呼叫、子女面板、数据层、TTS、健康告警 | 30% |
-| （填写） | （填写） | 亲情相册、社区地图、防诈骗、适老化界面、测试、文档 | 30% |
+| （填写） | （填写） | （填写） | xx% |
+| （填写） | （填写） | （填写） | xx% |
+| （填写） | （填写） | （填写） | xx% |
 
 ### 7.2 收获与体会
 
-（由每位小组成员分别填写）
+（由每位小组成员分别填写，以下是参考模板）
 
 **成员一（XXX）：**
 
-做完这个课程设计之后，我对 Android 开发有了系统性的认识。从最初的需求分析到最终的项目交付，完整经历了移动应用开发的全流程。作为负责核心架构的成员，我最大的收获来自代码架构的多轮深度重构——将 ChatDetailActivity 从 562 行的 God Class 拆分为 ZhipuApiClient、SpeechManager、ContentFilter、ReplyProvider 四个独立组件，将 MockData 从 397 行拆分为 8 个 DAO 加 Repository 模式。这些重构让我深刻理解了单一职责原则和依赖倒置在实际项目中的价值。在集成智谱 GLM-4 API 的过程中，我学习了 HttpURLConnection 的网络请求、Handler 线程通信、JSONObject 数据解析等课程核心知识点。AI 对话的话题过滤机制和 System Prompt 调优让我接触到了大语言模型应用开发的前沿实践。AI 辅助编程工具的引入大大提高了开发效率——使用 Claude Code 能够快速搭建原型、诊断 Bug 和生成测试用例，但同时也让我意识到理解底层原理的重要性：AI 可以帮你写代码，但只有你自己理解了架构，才能判断 AI 写的代码是否正确。API Key 的安全管理（local.properties + BuildConfig 注入 + git filter-repo 清除历史）让我第一次认真思考移动应用的安全问题，这种安全意识在课堂理论学习中很少被强调。
+做完这个课程设计之后，我对 Android 开发有了系统性的认识。从最初的需求分析到最终的项目交付，完整经历了移动应用开发的全流程。特别是在集成高德地图 SDK 的过程中，遇到了隐私合规校验失败和 x86_64 模拟器不兼容 ARM 原生库的问题，通过查阅官方文档和错误日志分析最终解决。这让我深刻理解了第三方 SDK 集成时需要仔细阅读开发文档的重要性。AI 辅助编程工具的引入大大提高了开发效率——使用 Claude Code 能够快速搭建原型、编写测试用例和诊断 Bug，但同时也让我意识到理解底层原理的重要性。
 
 **成员二（XXX）：**
 
-通过对该系统的设计使我了解到课程设计的过程是艰辛的，但是收获是巨大的。我负责的健康管理、用药提醒和子女监控面板三个模块，涵盖了课程要求的 SQLite 数据存储、Service 后台服务、BroadcastReceiver 广播接收、Notification 通知管理、TTS 语音播报等核心技术考察点。在实现用药提醒功能的过程中，我将 AlarmManager 闹钟触发、ReminderBroadcastReceiver 广播接收、NotificationManager 通知推送、TtsHelper 语音播报四条链路串联在一起，真正理解了 Android 四大组件之间协作的工作机制。健康异常自动告警（HealthAlertService）是我自主设计并实现的新功能——对心率、血压、血氧等 6 种关键指标设定 WARNING/CRITICAL 阈值，异常时同时触发通知推送、TTS 语音和家属记录三重告警，让我体验了从需求分析到编码实现的完整产品思维。SQLite 的 UNIQUE 约束防止重复打卡、onUpgrade 逐版本迁移防止数据丢失这些细节，让我认识到数据库设计不仅仅是"能存数据就行"，数据完整性和安全性同等重要。Android 6.0+ 运行时权限机制（CALL_PHONE、POST_NOTIFICATIONS、RECORD_AUDIO 等 6 种权限的实际申请和处理）是课堂理论学习之外的实战收获，每次权限被拒绝后的降级处理都需要站在用户角度思考。
+通过对该系统的设计使我了解到课程设计的过程是艰辛的，但是收获是巨大的。首先，我们再一次加深巩固了对已学知识的理解及认识，包括 Activity/Fragment 生命周期管理、SQLite 数据库操作、RecyclerView 列表展示、SharedPreferences 偏好存储等。在实现亲情相册模块的过程中，梳理了 Android 6.0+ 运行时权限机制以及 Android 13 新引入的细粒度媒体权限（READ_MEDIA_IMAGES），这些是课堂理论学习之外的实战收获。项目的代码架构经历了多轮重构，从最初的 God Class 反模式到最终基于 BaseFragment 的清晰结构，代码可读性和可维护性得到了显著提升。
 
 **成员三（XXX）：**
 
-通过本次课程设计，我对移动软件开发有了更加深入的理解。我负责的亲情相册、社区便民查询和防诈骗推送三个模块，分别涉及图片处理与权限管理（Glide + GalleryPermissionHelper）、第三方地图 SDK 集成（高德 3D 地图 + POI 搜索 + 路径规划）和第三方网络库使用（OkHttp 异步请求 + JSON 解析）。在实现亲情相册模块的过程中，我不仅完成了基础的照片上传、浏览、收藏功能，还深入优化了 UI/UX 体验——添加了跨屏淡入过渡动画（120ms 淡出 + 150ms 淡入）、空状态引导设计（插画 + 文案 + 行动按钮）、"全部照片"入口的视觉权重区分、上传实时预览反馈。这些细节优化让我认识到"功能可用"和"体验好用"之间的鸿沟。高德 SDK 集成过程中遇到的隐私合规校验失败（555570 错误码）和 so 库架构兼容问题，让我学会了通过查阅官方文档和错误日志分析来定位第三方库问题的方法。在编写 57 条测试用例的过程中，我学习了 Robolectric、JUnit、Espresso 三种测试框架的配合使用——单元测试快速验证逻辑、UI 自动化测试覆盖核心用户流程（登录→导航→AI 对话）。整个开发过程采用了 AI 辅助编程与人工判断相结合的方式，提高了开发效率的同时保证了代码质量。我深刻体会到：AI 是强大的工具，但最终的设计决策、代码审查和质量把控仍然需要人来完成。
+通过本次课程设计，我对移动软件开发有了更加深入的理解。在实现防诈骗推送功能时，首次接触了 OkHttp 第三方网络库的使用，与课程教授的 HttpURLConnection 相比，OkHttp 的异步回调机制和链式构建器 API 更加简洁高效。在编写单元测试的过程中，学习了 Robolectric 框架的使用，能够在 JVM 上模拟 Android 环境运行测试，无需依赖模拟器或真机。整个开发过程采用了 AI 辅助编程与人工判断相结合的方式，提高了开发效率的同时保证了代码质量。

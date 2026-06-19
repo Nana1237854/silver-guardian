@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.silverguardian.prototype.R;
-import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.MemoryRecord;
 import com.silverguardian.prototype.utils.FormFieldFactory;
 
@@ -84,25 +83,25 @@ public class MemoryFragment extends BaseFragment {
     }
 
     private void seedMemoriesIfNeeded() {
-        if (!MockData.getMemories().isEmpty()) {
+        if (!memories().getMemories().isEmpty()) {
             return;
         }
         String[] categories = getResources().getStringArray(R.array.memory_category_choices);
-        MockData.addMemory(getString(R.string.memory_seed_hobby), categories[1]);
-        MockData.addMemory(getString(R.string.memory_seed_family), categories[2]);
-        MockData.addMemory(getString(R.string.memory_seed_health), categories[0]);
+        memories().addMemory(getString(R.string.memory_seed_hobby), categories[1]);
+        memories().addMemory(getString(R.string.memory_seed_family), categories[2]);
+        memories().addMemory(getString(R.string.memory_seed_health), categories[0]);
     }
 
     private void refreshCategories() {
-        ArrayList<String> categories = new ArrayList<>(MockData.memoryCategories());
+        ArrayList<String> categories = new ArrayList<>(memories().getCategories());
         categorySpinner.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories));
     }
 
     private void refreshList() {
         visible.clear();
         String selected = categorySpinner.getSelectedItem() == null ? getString(R.string.memory_all) : categorySpinner.getSelectedItem().toString();
-        for (MemoryRecord record : MockData.getMemories()) {
-            if (getString(R.string.memory_all).equals(selected) || record.category.equals(selected)) {
+        for (MemoryRecord record : memories().getMemories()) {
+            if (com.silverguardian.prototype.modules.MemoryModule.ALL.equals(selected) || getString(R.string.memory_all).equals(selected) || record.category.equals(selected)) {
                 visible.add(record);
             }
         }
@@ -136,7 +135,7 @@ public class MemoryFragment extends BaseFragment {
                 content.requestFocus();
                 return;
             }
-            MockData.addMemory(text, category.getSelectedItem().toString());
+            memories().addMemory(text, category.getSelectedItem().toString());
             refreshCategories();
             refreshList();
             dialog.dismiss();
@@ -185,7 +184,7 @@ public class MemoryFragment extends BaseFragment {
                     .setTitle(R.string.memory_delete_title)
                     .setMessage(getString(R.string.memory_delete_confirm, record.content))
                     .setPositiveButton(R.string.memory_delete, (dialog, which) -> {
-                        MockData.deleteMemory(record);
+                        memories().deleteMemory(record);
                         refreshList();
                     })
                     .setNegativeButton(R.string.common_cancel, null)

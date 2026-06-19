@@ -7,13 +7,30 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.silverguardian.prototype.ai.AiChatModule;
+import com.silverguardian.prototype.app.AppContainer;
+import com.silverguardian.prototype.community.CommunityPoiSearchModule;
+import com.silverguardian.prototype.modules.EmergencyModule;
+import com.silverguardian.prototype.modules.FamilyAlbumModule;
+import com.silverguardian.prototype.modules.HealthRecordModule;
+import com.silverguardian.prototype.modules.MedicineReminderModule;
+import com.silverguardian.prototype.modules.MemoryModule;
+import com.silverguardian.prototype.modules.SafetyContentModule;
+import com.silverguardian.prototype.modules.UserSessionModule;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 
-/**
- * Shared activity base that applies the app's elder-friendly font preference
- * before any XML or programmatic views are inflated.
- */
 public abstract class BaseActivity extends AppCompatActivity {
+    protected AppContainer appContainer() { return SilverGuardianApp.from(this); }
+    protected UserSessionModule userSession() { return appContainer().userSession(); }
+    protected HealthRecordModule healthRecords() { return appContainer().healthRecords(); }
+    protected MedicineReminderModule medicineReminders() { return appContainer().medicineReminders(); }
+    protected FamilyAlbumModule familyAlbum() { return appContainer().familyAlbum(); }
+    protected MemoryModule memories() { return appContainer().memories(); }
+    protected EmergencyModule emergencies() { return appContainer().emergencies(); }
+    protected SafetyContentModule safetyContent() { return appContainer().safetyContent(); }
+    protected CommunityPoiSearchModule communitySearch() { return appContainer().community(); }
+    protected AiChatModule aiChat() { return appContainer().aiChat(); }
+
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(FontScaleHelper.withAppFontScale(newBase));

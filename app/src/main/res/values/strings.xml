@@ -68,7 +68,7 @@
     <string name="chat_send_desc">发送消息</string>
     <string name="chat_drawer_title">最近对话</string>
     <string name="chat_new_chat">开始新对话</string>
-    <string name="chat_system_prompt_fallback">你是银发守护者智能助手，专门为老年人提供健康管理、用药提醒、生活辅助等服务。</string>
+    <string name="chat_system_prompt_fallback">我是银发守护者智能助手，专门为老年人提供健康管理、用药提醒、生活辅助等服务。</string>
     <string name="chat_suggestion_1">我今天血压有点高，怎么办？</string>
     <string name="chat_suggestion_2">适合长辈的简单运动有哪些？</string>
     <string name="chat_suggestion_3">晚上睡不好，如何改善？</string>

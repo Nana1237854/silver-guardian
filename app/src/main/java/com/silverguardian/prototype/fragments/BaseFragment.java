@@ -5,19 +5,36 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.silverguardian.prototype.SilverGuardianApp;
+import com.silverguardian.prototype.ai.AiChatModule;
+import com.silverguardian.prototype.app.AppContainer;
+import com.silverguardian.prototype.community.CommunityPoiSearchModule;
+import com.silverguardian.prototype.modules.EmergencyModule;
+import com.silverguardian.prototype.modules.FamilyAlbumModule;
+import com.silverguardian.prototype.modules.HealthRecordModule;
+import com.silverguardian.prototype.modules.MedicineReminderModule;
+import com.silverguardian.prototype.modules.MemoryModule;
+import com.silverguardian.prototype.modules.SafetyContentModule;
+import com.silverguardian.prototype.modules.UserSessionModule;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 
-/**
- * 所有 Fragment 的基类 — 消除 dp/sp/color/toast 重复。
- */
 public abstract class BaseFragment extends Fragment {
+    protected AppContainer appContainer() { return SilverGuardianApp.from(requireContext()); }
+    protected UserSessionModule userSession() { return appContainer().userSession(); }
+    protected HealthRecordModule healthRecords() { return appContainer().healthRecords(); }
+    protected MedicineReminderModule medicineReminders() { return appContainer().medicineReminders(); }
+    protected FamilyAlbumModule familyAlbum() { return appContainer().familyAlbum(); }
+    protected MemoryModule memories() { return appContainer().memories(); }
+    protected EmergencyModule emergencies() { return appContainer().emergencies(); }
+    protected SafetyContentModule safetyContent() { return appContainer().safetyContent(); }
+    protected CommunityPoiSearchModule communitySearch() { return appContainer().community(); }
+    protected AiChatModule aiChat() { return appContainer().aiChat(); }
 
     protected int dp(int value) {
         return FontScaleHelper.dp(requireContext(), value);
     }
 
     protected int sp(int base) {
-        // Activity configuration already scales every sp value globally.
         return base;
     }
 

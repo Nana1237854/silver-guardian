@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/album_memory_action"
+    style="@style/Widget.SilverGuardian.CardActionText"
+    android:layout_width="0dp"
+    android:layout_height="@dimen/touch_target"
+    android:layout_weight="1" />

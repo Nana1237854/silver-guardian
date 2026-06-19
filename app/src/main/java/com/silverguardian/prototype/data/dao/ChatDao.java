@@ -32,13 +32,20 @@ public class ChatDao {
 
     public void add(int userId, String text, String type) {
         ContentValues values = new ContentValues();
-        values.put("user_id", userId); values.put("content", text); values.put("type", type);
+        values.put("user_id", userId);
+        values.put("content", text);
+        values.put("type", type);
         dbHelper.getWritableDatabase().insert("messages", null, values);
+    }
+
+    public void clearForUser(int userId) {
+        dbHelper.getWritableDatabase().delete("messages", "user_id=?", new String[]{String.valueOf(userId)});
     }
 
     public void seed(SQLiteDatabase db, long userId) {
         ContentValues v = new ContentValues();
-        v.put("user_id", userId); v.put("content", "你好！我是银发守护助手，有健康问题、用药疑问或生活困扰，随时告诉我。");
+        v.put("user_id", userId);
+        v.put("content", "Hello, I am Silver Guardian. Ask me about health, medicine, or daily care.");
         v.put("type", "ai");
         db.insert("messages", null, v);
     }

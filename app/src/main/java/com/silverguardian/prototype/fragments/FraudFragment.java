@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.silverguardian.prototype.FraudApiClient;
 import com.silverguardian.prototype.FraudDetailActivity;
 import com.silverguardian.prototype.R;
-import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.FraudTip;
 
 import java.util.ArrayList;
@@ -36,7 +35,7 @@ public class FraudFragment extends BaseFragment {
         bindList(root);
 
         visible.clear();
-        visible.addAll(MockData.getFraudTips());
+        visible.addAll(safetyContent().getFraudTips());
         adapter.notifyDataSetChanged();
         loadingHint.setText(getString(R.string.fraud_loaded_local, visible.size()));
 
@@ -86,7 +85,7 @@ public class FraudFragment extends BaseFragment {
             @Override
             public void onFailure(String error) {
                 if (visible.isEmpty()) {
-                    visible.addAll(MockData.getFraudTips());
+                    visible.addAll(safetyContent().getFraudTips());
                     adapter.notifyDataSetChanged();
                 }
                 loadingHint.setText(getString(R.string.fraud_network_fail, error));

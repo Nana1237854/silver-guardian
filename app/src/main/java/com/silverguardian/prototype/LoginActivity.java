@@ -16,10 +16,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.User;
 import com.silverguardian.prototype.utils.FormFieldFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LoginActivity extends BaseActivity {
@@ -28,15 +28,15 @@ public class LoginActivity extends BaseActivity {
     private TextView selectedUserName;
     private UserAdapter adapter;
     private User selectedUser;
-    private List<User> users;
+    private final List<User> users = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MockData.init(this);
         setContentView(R.layout.activity_login);
 
-        users = MockData.getUsers();
+        users.clear();
+        users.addAll(userSession().getUsers());
         pinInput = findViewById(R.id.pin_input);
         loginButton = findViewById(R.id.login_button);
         selectedUserName = findViewById(R.id.selected_user_name);
@@ -47,22 +47,16 @@ public class LoginActivity extends BaseActivity {
         userGrid.setAdapter(adapter);
 
         TextView addUser = findViewById(R.id.add_user_button);
-        if (addUser != null) {
-            addUser.setOnClickListener(v -> showAddUserDialog());
-        }
+        if (addUser != null) addUser.setOnClickListener(v -> showAddUserDialog());
 
         pinInput.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            @Override public void afterTextChanged(Editable s) {
-                loginButton.setEnabled(s.length() == 4 && selectedUser != null);
-            }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override public void afterTextChanged(Editable s) { loginButton.setEnabled(s.length() == 4 && selectedUser != null); }
         });
 
         loginButton.setOnClickListener(v -> login());
-        if (!users.isEmpty()) {
-            selectUser(users.get(0));
-        }
+        if (!users.isEmpty()) selectUser(users.get(0));
     }
 
     private void login() {
@@ -72,7 +66,7 @@ public class LoginActivity extends BaseActivity {
         }
         String pin = pinInput.getText().toString().trim();
         if (pin.equals(selectedUser.pin)) {
-            MockData.setActiveUser(selectedUser.id);
+            userSession().setActiveUser(selectedUser.id);
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra("user_name", selectedUser.name);
             intent.putExtra("user_id", selectedUser.id);
@@ -89,16 +83,12 @@ public class LoginActivity extends BaseActivity {
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(24), dp(8), dp(24), 0);
 
-        EditText nameInput = FormFieldFactory.addTextField(this, form,
-            getString(R.string.login_field_name), getString(R.string.login_field_name_hint), false);
-        EditText pin = FormFieldFactory.addTextField(this, form,
-            getString(R.string.login_field_pin), getString(R.string.login_field_pin_hint), false);
+        EditText nameInput = FormFieldFactory.addTextField(this, form, getString(R.string.login_field_name), getString(R.string.login_field_name_hint), false);
+        EditText pin = FormFieldFactory.addTextField(this, form, getString(R.string.login_field_pin), getString(R.string.login_field_pin_hint), false);
         pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-        EditText ageInput = FormFieldFactory.addTextField(this, form,
-            getString(R.string.login_field_age), getString(R.string.login_field_age_hint), false);
+        EditText ageInput = FormFieldFactory.addTextField(this, form, getString(R.string.login_field_age), getString(R.string.login_field_age_hint), false);
         ageInput.setInputType(InputType.TYPE_CLASS_NUMBER);
-        EditText conditionInput = FormFieldFactory.addTextField(this, form,
-            getString(R.string.login_field_condition), getString(R.string.login_field_condition_hint), false);
+        EditText conditionInput = FormFieldFactory.addTextField(this, form, getString(R.string.login_field_condition), getString(R.string.login_field_condition_hint), false);
 
         AlertDialog dialog = new AlertDialog.Builder(this)
             .setTitle(R.string.login_add_user_title)
@@ -119,15 +109,15 @@ public class LoginActivity extends BaseActivity {
                 pin.requestFocus();
                 return;
             }
-            int age = ageInput.getText().toString().trim().isEmpty()
-                ? 60
-                : Integer.parseInt(ageInput.getText().toString().trim());
+            int age = ageInput.getText().toString().trim().isEmpty() ? 60 : Integer.parseInt(ageInput.getText().toString().trim());
             if (age < 1 || age > 150) {
                 ageInput.setError(getString(R.string.login_age_invalid));
                 ageInput.requestFocus();
                 return;
             }
-            User user = MockData.addUser(name, pinText, age, conditionInput.getText().toString().trim());
+            User user = userSession().addUser(name, pinText, age, conditionInput.getText().toString().trim());
+            users.clear();
+            users.addAll(userSession().getUsers());
             selectUser(user);
             adapter.notifyDataSetChanged();
             dialog.dismiss();
@@ -169,7 +159,9 @@ public class LoginActivity extends BaseActivity {
                     .setTitle(R.string.login_delete_user_title)
                     .setMessage(getString(R.string.login_delete_user_message, user.name))
                     .setPositiveButton(R.string.common_delete, (d, w) -> {
-                        MockData.deleteUser(user);
+                        userSession().deleteUser(user);
+                        users.clear();
+                        users.addAll(userSession().getUsers());
                         selectedUser = users.isEmpty() ? null : users.get(0);
                         selectedUserName.setText(selectedUser == null ? "" : selectedUser.name);
                         notifyDataSetChanged();

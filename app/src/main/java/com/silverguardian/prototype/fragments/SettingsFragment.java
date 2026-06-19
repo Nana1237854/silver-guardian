@@ -139,12 +139,8 @@ public class SettingsFragment extends BaseFragment {
             family.setContentDescription(getString(R.string.settings_child_mode_title));
             end.addView(family, new FrameLayout.LayoutParams(dimen(R.dimen.settings_family_preview_width), dimen(R.dimen.settings_family_preview_height)));
         } else {
-            TextView arrow = new TextView(requireContext());
-            arrow.setText(R.string.settings_arrow);
-            arrow.setTextColor(color(R.color.text_secondary));
-            arrow.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.settings_arrow_text_size));
-            arrow.setGravity(android.view.Gravity.CENTER);
-            end.addView(arrow, new FrameLayout.LayoutParams(dimen(R.dimen.settings_row_end_width), dimen(R.dimen.settings_row_end_height)));
+            View arrow = LayoutInflater.from(requireContext()).inflate(R.layout.view_settings_row_arrow, end, false);
+            end.addView(arrow);
         }
 
         group.addView(row);
@@ -197,14 +193,10 @@ public class SettingsFragment extends BaseFragment {
     }
 
     private TextView buildHighContrastControl() {
-        TextView toggle = new TextView(requireContext());
+        TextView toggle = (TextView) LayoutInflater.from(requireContext())
+            .inflate(R.layout.view_settings_row_status, null, false);
         boolean enabled = FontScaleHelper.isHighContrast(requireContext());
         toggle.setText(enabled ? R.string.settings_toggle_on : R.string.settings_toggle_off);
-        toggle.setTextColor(color(R.color.primary_dark));
-        toggle.setBackgroundResource(R.drawable.bg_status_good);
-        toggle.setGravity(android.view.Gravity.CENTER);
-        toggle.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.settings_toggle_text_size));
-        toggle.setPadding(dimen(R.dimen.compact_chip_padding_horizontal), dimen(R.dimen.compact_chip_padding_vertical), dimen(R.dimen.compact_chip_padding_horizontal), dimen(R.dimen.compact_chip_padding_vertical));
         toggle.setContentDescription(getString(R.string.settings_toggle_content_desc, getString(R.string.settings_high_contrast_title), toggle.getText()));
         toggle.setSelected(enabled);
         toggle.setOnClickListener(v -> {

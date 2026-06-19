@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.silverguardian.prototype.R;
-import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.Medicine;
 import com.silverguardian.prototype.models.MedicineLibraryItem;
 import com.silverguardian.prototype.utils.FormFieldFactory;
@@ -105,14 +104,14 @@ public class MedicineFragment extends BaseFragment {
     private void refresh() {
         visible.clear();
         String selected = typeFilter == null || typeFilter.getSelectedItem() == null ? getString(R.string.medicine_all_types) : typeFilter.getSelectedItem().toString();
-        for (Medicine medicine : MockData.getMedicines()) {
-            if (getString(R.string.medicine_all_types).equals(selected) || medicine.type.equals(selected)) {
+        for (Medicine medicine : medicineReminders().getMedicines()) {
+            if (com.silverguardian.prototype.modules.MedicineReminderModule.ALL_TYPES.equals(selected) || getString(R.string.medicine_all_types).equals(selected) || medicine.type.equals(selected)) {
                 visible.add(medicine);
             }
         }
-        int total = MockData.getMedicines().size();
+        int total = medicineReminders().getMedicines().size();
         int taken = 0;
-        for (Medicine medicine : MockData.getMedicines()) {
+        for (Medicine medicine : medicineReminders().getMedicines()) {
             if (medicine.takenToday) {
                 taken++;
             }
@@ -129,7 +128,7 @@ public class MedicineFragment extends BaseFragment {
     }
 
     private void refreshFilter() {
-        typeFilter.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, new ArrayList<>(MockData.medicineTypes())));
+        typeFilter.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, new ArrayList<>(medicineReminders().getMedicineTypes())));
     }
 
     private void showAddMedicineDialog() {
@@ -144,7 +143,7 @@ public class MedicineFragment extends BaseFragment {
         EditText desc = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_desc_label), getString(R.string.medicine_desc_hint), true);
 
         search.setOnEditorActionListener((v, actionId, event) -> {
-            List<MedicineLibraryItem> result = MockData.searchMedicineLibrary(search.getText().toString());
+            List<MedicineLibraryItem> result = medicineReminders().searchMedicineLibrary(search.getText().toString());
             if (!result.isEmpty()) {
                 MedicineLibraryItem item = result.get(0);
                 name.setText(item.name);
@@ -172,7 +171,7 @@ public class MedicineFragment extends BaseFragment {
                     name.requestFocus();
                     return;
                 }
-                MockData.addMedicine(
+                medicineReminders().addMedicine(
                     medName,
                     type.getText().toString().trim().isEmpty() ? getString(R.string.medicine_other) : type.getText().toString().trim(),
                     time.getText().toString().trim().isEmpty() ? "08:00" : time.getText().toString().trim(),
@@ -189,7 +188,7 @@ public class MedicineFragment extends BaseFragment {
     }
 
     private void showLibraryDialog(String keyword) {
-        List<MedicineLibraryItem> items = MockData.searchMedicineLibrary(keyword);
+        List<MedicineLibraryItem> items = medicineReminders().searchMedicineLibrary(keyword);
         String[] names = new String[items.size()];
         for (int i = 0; i < items.size(); i++) {
             MedicineLibraryItem item = items.get(i);
@@ -199,7 +198,7 @@ public class MedicineFragment extends BaseFragment {
             .setTitle(R.string.medicine_library_title)
             .setItems(names, (dialog, which) -> {
                 MedicineLibraryItem item = items.get(which);
-                MockData.addMedicine(item.name, item.type, "08:00", getString(R.string.medicine_oral), item.brand + " - " + item.description);
+                medicineReminders().addMedicine(item.name, item.type, "08:00", getString(R.string.medicine_oral), item.brand + " - " + item.description);
                 refreshFilter();
                 refresh();
             })
@@ -251,7 +250,7 @@ public class MedicineFragment extends BaseFragment {
             checkbox.setChecked(medicine.takenToday);
             checkbox.setText(medicine.takenToday ? R.string.medicine_taken : R.string.medicine_untaken);
             checkbox.setOnCheckedChangeListener((buttonView, checked) -> {
-                MockData.toggleMedicineTaken(medicine, checked);
+                medicineReminders().toggleMedicineTaken(medicine, checked);
                 checkbox.setText(checked ? R.string.medicine_taken : R.string.medicine_untaken);
                 refresh();
                 Toast.makeText(getContext(), checked ? R.string.medicine_done_toast : R.string.medicine_undone_toast, Toast.LENGTH_SHORT).show();
@@ -274,7 +273,7 @@ public class MedicineFragment extends BaseFragment {
             .setTitle(R.string.medicine_delete_title)
             .setMessage(getString(R.string.medicine_delete_confirm, medicine.name))
             .setPositiveButton(R.string.common_delete, (dialog, which) -> {
-                MockData.deleteMedicine(medicine);
+                medicineReminders().deleteMedicine(medicine);
                 refresh();
             })
             .setNegativeButton(R.string.common_cancel, null)

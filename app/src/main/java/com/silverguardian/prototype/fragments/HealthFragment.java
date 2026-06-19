@@ -15,19 +15,15 @@ import androidx.annotation.Nullable;
 import com.silverguardian.prototype.BluetoothActivity;
 import com.silverguardian.prototype.ChatDetailActivity;
 import com.silverguardian.prototype.R;
-import com.silverguardian.prototype.data.MockData;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 public class HealthFragment extends BaseFragment {
-
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_health, container, false);
         bindHeader(root);
         bindSummary(root);
@@ -39,11 +35,10 @@ public class HealthFragment extends BaseFragment {
 
     private void bindHeader(View root) {
         ((TextView) root.findViewById(R.id.health_header_title)).setText(R.string.health_title_refined);
-
         TextView date = root.findViewById(R.id.health_header_date);
-        String today = new SimpleDateFormat("M月d日", Locale.CHINESE).format(new Date());
+        String today = new SimpleDateFormat("M/d", Locale.US).format(new Date());
         date.setText(today);
-        date.setContentDescription("今天是 " + today);
+        date.setContentDescription("Today " + today);
     }
 
     private void bindSummary(View root) {
@@ -65,36 +60,26 @@ public class HealthFragment extends BaseFragment {
         bindMetricRow(root.findViewById(R.id.health_metric_blood_pressure), R.drawable.ic_health,
             getString(R.string.health_metric_blood_pressure), "128/76", "mmHg", getString(R.string.health_metric_status_normal), false);
         bindMetricRow(root.findViewById(R.id.health_metric_heart_rate), R.drawable.ic_health,
-            getString(R.string.health_metric_heart_rate), "72", "次/分", getString(R.string.health_metric_status_normal), false);
+            getString(R.string.health_metric_heart_rate), "72", "bpm", getString(R.string.health_metric_status_normal), false);
         bindMetricRow(root.findViewById(R.id.health_metric_blood_oxygen), R.drawable.ic_breathe,
             getString(R.string.bluetooth_type_blood_oxygen), "98", "%", getString(R.string.health_metric_status_normal), false);
         bindMetricRow(root.findViewById(R.id.health_metric_sleep), R.drawable.ic_sleep,
-            getString(R.string.health_metric_sleep), "7小时20分", "", getString(R.string.health_metric_status_good_sleep), true);
+            getString(R.string.health_metric_sleep), "7h20m", "", getString(R.string.health_metric_status_good_sleep), true);
     }
 
-    private void bindMetricRow(View row, int iconRes, String label, String value, String unit,
-                               String status, boolean warmStatus) {
+    private void bindMetricRow(View row, int iconRes, String label, String value, String unit, String status, boolean warmStatus) {
         ImageView icon = row.findViewById(R.id.health_metric_icon);
         icon.setImageResource(iconRes);
         icon.setColorFilter(color(R.color.primary));
         icon.setContentDescription(null);
-
         ((TextView) row.findViewById(R.id.health_metric_title)).setText(label);
         ((TextView) row.findViewById(R.id.health_metric_value)).setText(value);
-
         TextView unitView = row.findViewById(R.id.health_metric_unit);
-        if (unit == null || unit.isEmpty()) {
-            unitView.setVisibility(View.GONE);
-        } else {
-            unitView.setVisibility(View.VISIBLE);
-            unitView.setText(unit);
-        }
-
+        if (unit == null || unit.isEmpty()) unitView.setVisibility(View.GONE); else { unitView.setVisibility(View.VISIBLE); unitView.setText(unit); }
         TextView badge = row.findViewById(R.id.health_metric_status);
         badge.setText(status);
         badge.setTextColor(warmStatus ? color(R.color.accent_orange_dark) : color(R.color.status_good));
         badge.setBackgroundResource(warmStatus ? R.drawable.bg_status_warm : R.drawable.bg_status_good);
-
         row.setContentDescription(label + value + unit + status);
         row.setOnClickListener(v -> toast(getString(R.string.health_metric_view_record, label)));
     }
@@ -111,7 +96,6 @@ public class HealthFragment extends BaseFragment {
 
     private void bindActions(View root) {
         ((TextView) root.findViewById(R.id.health_actions_title)).setText(R.string.health_record_title_refined);
-
         TextView bluetooth = root.findViewById(R.id.health_action_bluetooth);
         bluetooth.setText(R.string.health_bluetooth_action_refined);
         bluetooth.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bluetooth, 0, 0, 0);
@@ -125,7 +109,7 @@ public class HealthFragment extends BaseFragment {
         manual.setCompoundDrawableTintList(ColorStateList.valueOf(color(R.color.primary_dark)));
         manual.setCompoundDrawablePadding(dp(7));
         manual.setOnClickListener(v -> {
-            MockData.addHealthData("heart_rate", "69", getString(R.string.health_metric_status_normal));
+            healthRecords().addHealthData("heart_rate", "69", getString(R.string.health_metric_status_normal));
             toast(getString(R.string.health_manual_success_refined));
         });
     }

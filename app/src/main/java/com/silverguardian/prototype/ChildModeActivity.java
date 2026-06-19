@@ -20,7 +20,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.EmergencyAlert;
 import com.silverguardian.prototype.models.FamilyMember;
 import com.silverguardian.prototype.models.HealthData;
@@ -46,8 +45,7 @@ public class ChildModeActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MockData.init(this);
-        setContentView(R.layout.activity_child_mode);
+setContentView(R.layout.activity_child_mode);
         initDraftValues();
         bindHeader();
         bindSections();
@@ -100,7 +98,7 @@ public class ChildModeActivity extends BaseActivity {
 
     private void bindHealthSummary() {
         healthSection.removeAllViews();
-        List<HealthData> data = MockData.getHealthData();
+        List<HealthData> data = healthRecords().getHealthData();
         String[][] keys = {
             {"heart_rate", getString(R.string.health_metric_heart_rate)},
             {"steps", getString(R.string.health_metric_steps)},
@@ -126,7 +124,7 @@ public class ChildModeActivity extends BaseActivity {
 
     private void bindMedicineSummary() {
         medicineSection.removeAllViews();
-        List<Medicine> meds = MockData.getMedicines();
+        List<Medicine> meds = medicineReminders().getMedicines();
         if (meds.isEmpty()) {
             addEmptyState(medicineSection, R.string.child_mode_empty_medicine);
             return;
@@ -158,7 +156,7 @@ public class ChildModeActivity extends BaseActivity {
 
     private void bindAlerts() {
         alertSection.removeAllViews();
-        List<EmergencyAlert> alerts = MockData.getEmergencyAlerts();
+        List<EmergencyAlert> alerts = emergencies().getAlerts();
         if (alerts.isEmpty()) {
             addEmptyState(alertSection, R.string.child_mode_empty_alert);
             return;
@@ -176,7 +174,7 @@ public class ChildModeActivity extends BaseActivity {
 
     private void bindFamily() {
         familySection.removeAllViews();
-        List<FamilyMember> members = MockData.getFamilyMembers();
+        List<FamilyMember> members = userSession().getFamilyMembers();
         if (members.isEmpty()) {
             addEmptyState(familySection, R.string.child_mode_empty_family);
             return;
@@ -242,7 +240,7 @@ public class ChildModeActivity extends BaseActivity {
                 pendingTitle = titleInput.getText().toString().trim().isEmpty() ? pendingTitle : titleInput.getText().toString().trim();
                 pendingCategory = categoryInput.getText().toString().trim().isEmpty() ? pendingCategory : categoryInput.getText().toString().trim();
                 pendingMessage = messageInput.getText().toString().trim().isEmpty() ? pendingMessage : messageInput.getText().toString().trim();
-                MockData.addPhoto(pendingTitle, pendingCategory, pendingMessage);
+                familyAlbum().addPhoto(pendingTitle, pendingCategory, pendingMessage);
                 Toast.makeText(this, R.string.child_mode_upload_success, Toast.LENGTH_SHORT).show();
             })
             .setNegativeButton(R.string.common_cancel, null)

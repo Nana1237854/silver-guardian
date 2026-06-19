@@ -99,6 +99,31 @@
         <item name="android:paddingTop">@dimen/chip_padding_vertical</item>
         <item name="android:paddingBottom">@dimen/chip_padding_vertical</item>
     </style>
+    <style name="Widget.SilverGuardian.CardActionText">
+        <item name="android:textAppearance">@style/TextAppearance.SilverGuardian.BodyMuted</item>
+        <item name="android:textColor">@color/primary_dark</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minHeight">@dimen/touch_target</item>
+        <item name="android:background">@drawable/bg_health_row_selector</item>
+    </style>
+    <style name="Widget.SilverGuardian.SettingsRowArrow">
+        <item name="android:textAppearance">@style/TextAppearance.SilverGuardian.BodyMuted</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">@dimen/settings_arrow_text_size</item>
+        <item name="android:gravity">center</item>
+    </style>
+    <style name="Widget.SilverGuardian.SettingsRowStatus">
+        <item name="android:background">@drawable/bg_status_good</item>
+        <item name="android:textColor">@color/primary_dark</item>
+        <item name="android:textSize">@dimen/settings_toggle_text_size</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/compact_chip_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/compact_chip_padding_vertical</item>
+        <item name="android:paddingEnd">@dimen/compact_chip_padding_horizontal</item>
+        <item name="android:paddingBottom">@dimen/compact_chip_padding_vertical</item>
+    </style>
+
     <style name="Widget.SilverGuardian.CompactChip">
         <item name="android:background">@drawable/bg_chip_soft</item>
         <item name="android:textColor">@color/primary_dark</item>

@@ -26,7 +26,6 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.BluetoothDeviceMock;
 
 import java.util.ArrayList;
@@ -52,8 +51,7 @@ public class BluetoothActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MockData.init(this);
-        setContentView(R.layout.activity_bluetooth);
+setContentView(R.layout.activity_bluetooth);
         bindHeader();
         bindControls();
         bindList();
@@ -290,13 +288,13 @@ public class BluetoothActivity extends BaseActivity {
 
     private void loadMockDevices() {
         foundDevices.clear();
-        foundDevices.addAll(MockData.getBluetoothDevices());
+        foundDevices.addAll(healthRecords().getBluetoothDevices());
         statusText.setText(getString(R.string.bluetooth_mock_loaded, foundDevices.size()));
         refreshDevices();
     }
 
     private void connectDevice(BluetoothDeviceMock device) {
-        MockData.addHealthData(device.type, device.value, getString(R.string.bluetooth_health_status_normal));
+        healthRecords().addHealthData(device.type, device.value, getString(R.string.bluetooth_health_status_normal));
         device.status = getString(R.string.common_connected);
         new AlertDialog.Builder(this)
             .setTitle(R.string.bluetooth_connect_success_title)

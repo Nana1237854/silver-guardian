@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/primary_action_button"
+    style="@style/Widget.SilverGuardian.PrimaryTextAction"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/button_height"
+    android:drawablePadding="@dimen/action_row_gap"
+    android:gravity="center" />

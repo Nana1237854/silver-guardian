@@ -26,7 +26,6 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import com.bumptech.glide.Glide;
 import com.silverguardian.prototype.PhotoDetailActivity;
 import com.silverguardian.prototype.R;
-import com.silverguardian.prototype.data.MockData;
 import com.silverguardian.prototype.models.AlbumGroup;
 import com.silverguardian.prototype.models.AlbumPhoto;
 import com.silverguardian.prototype.utils.FormFieldFactory;
@@ -64,7 +63,7 @@ public class AlbumFragment extends BaseFragment {
             buildAlbumList();
         } else {
             allPhotos.clear();
-            allPhotos.addAll(MockData.getPhotos());
+            allPhotos.addAll(familyAlbum().getPhotos());
             buildPhotoGrid(initialAlbum);
         }
         return root;
@@ -101,7 +100,7 @@ public class AlbumFragment extends BaseFragment {
         root.addView(familyBanner());
 
         allPhotos.clear();
-        allPhotos.addAll(MockData.getPhotos());
+        allPhotos.addAll(familyAlbum().getPhotos());
         albumGroups.clear();
         Map<String, List<AlbumPhoto>> grouped = new LinkedHashMap<>();
         for (AlbumPhoto photo : allPhotos) {
@@ -125,7 +124,7 @@ public class AlbumFragment extends BaseFragment {
         list.setAdapter(new AlbumListAdapter());
         root.addView(list, lp(-1, 0, 1));
 
-        TextView create = primaryButton(getString(R.string.album_create_new), R.drawable.ic_add);
+        TextView create = inflatePrimaryActionButton(getString(R.string.album_create_new), R.drawable.ic_add);
         create.setOnClickListener(v -> askCreateAlbum());
         LinearLayout.LayoutParams createParams = new LinearLayout.LayoutParams(-1, getResources().getDimensionPixelSize(R.dimen.button_height));
         createParams.topMargin = getResources().getDimensionPixelSize(R.dimen.section_gap);
@@ -246,20 +245,16 @@ public class AlbumFragment extends BaseFragment {
         ((TextView) card.findViewById(R.id.card_body)).setText(R.string.album_memory_body);
 
         LinearLayout actions = card.findViewById(R.id.card_actions);
-        int actionHeight = getResources().getDimensionPixelSize(R.dimen.touch_target);
-        actions.addView(memoryAction(getString(R.string.album_favorite), v -> toggleFirstFavorite()), lp(0, actionHeight, 1));
-        actions.addView(memoryAction(getString(R.string.album_share), v -> toast(getString(R.string.album_share_opened))), lp(0, actionHeight, 1));
-        actions.addView(memoryAction(getString(R.string.album_voice_memory), v -> toast(getString(R.string.album_voice_hint))), lp(0, actionHeight, 1));
+        actions.addView(memoryAction(actions, getString(R.string.album_favorite), v -> toggleFirstFavorite()));
+        actions.addView(memoryAction(actions, getString(R.string.album_share), v -> toast(getString(R.string.album_share_opened))));
+        actions.addView(memoryAction(actions, getString(R.string.album_voice_memory), v -> toast(getString(R.string.album_voice_hint))));
         return card;
     }
 
-    private TextView memoryAction(String label, View.OnClickListener listener) {
-        TextView action = txt(label, R.dimen.text_small, true);
-        action.setGravity(Gravity.CENTER);
-        action.setTextColor(color(R.color.primary_dark));
-        action.setBackgroundResource(R.drawable.bg_health_row_selector);
-        action.setClickable(true);
-        action.setFocusable(true);
+    private TextView memoryAction(LinearLayout parent, String label, View.OnClickListener listener) {
+        TextView action = (TextView) LayoutInflater.from(requireContext())
+            .inflate(R.layout.view_album_memory_action, parent, false);
+        action.setText(label);
         action.setContentDescription(label);
         action.setOnClickListener(listener);
         return action;
@@ -269,7 +264,7 @@ public class AlbumFragment extends BaseFragment {
         if (albumPhotos.isEmpty()) {
             return;
         }
-        MockData.toggleFavorite(albumPhotos.get(0));
+        familyAlbum().toggleFavorite(albumPhotos.get(0));
         toast(getString(albumPhotos.get(0).favorite ? R.string.album_memory_favorited : R.string.album_memory_unfavorited));
         buildPhotoGrid(currentAlbum);
     }
@@ -307,9 +302,8 @@ public class AlbumFragment extends BaseFragment {
     }
 
     private void showPhotoSearch() {
-        LinearLayout form = new LinearLayout(requireContext());
-        form.setOrientation(LinearLayout.VERTICAL);
-        form.setPadding(dimen(R.dimen.dialog_form_padding_horizontal), dimen(R.dimen.dialog_form_padding_top), dimen(R.dimen.dialog_form_padding_horizontal), 0);
+        LinearLayout form = (LinearLayout) LayoutInflater.from(requireContext())
+            .inflate(R.layout.view_dialog_form_container, null, false);
         EditText input = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.album_search_title), getString(R.string.album_search_hint), false);
         new AlertDialog.Builder(requireContext())
             .setTitle(R.string.album_search_title)
@@ -323,9 +317,8 @@ public class AlbumFragment extends BaseFragment {
     }
 
     private void askCreateAlbum() {
-        LinearLayout form = new LinearLayout(requireContext());
-        form.setOrientation(LinearLayout.VERTICAL);
-        form.setPadding(dimen(R.dimen.dialog_form_padding_horizontal), dimen(R.dimen.dialog_form_padding_top), dimen(R.dimen.dialog_form_padding_horizontal), 0);
+        LinearLayout form = (LinearLayout) LayoutInflater.from(requireContext())
+            .inflate(R.layout.view_dialog_form_container, null, false);
         EditText input = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.album_name), getString(R.string.album_name_hint), false);
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
             .setTitle(R.string.album_create_new)
@@ -348,25 +341,18 @@ public class AlbumFragment extends BaseFragment {
 
     private void askUploadPhoto() {
         pendingImageUri = null;
-        pendingPreview = null;
-        pendingPickChip = null;
 
-        LinearLayout form = new LinearLayout(requireContext());
-        form.setOrientation(LinearLayout.VERTICAL);
-        form.setPadding(dimen(R.dimen.dialog_form_padding_horizontal_wide), dimen(R.dimen.dialog_form_padding_top), dimen(R.dimen.dialog_form_padding_horizontal_wide), 0);
+        View form = LayoutInflater.from(requireContext()).inflate(R.layout.view_album_upload_form, null, false);
+        pendingPreview = form.findViewById(R.id.album_upload_preview);
+        pendingPickChip = form.findViewById(R.id.album_upload_pick_chip);
+        LinearLayout fieldsContainer = form.findViewById(R.id.album_upload_fields_container);
 
-        pendingPreview = new ImageView(requireContext());
-        pendingPreview.setLayoutParams(new LinearLayout.LayoutParams(dimen(R.dimen.album_upload_preview_size), dimen(R.dimen.album_upload_preview_size)));
-        pendingPreview.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        pendingPreview.setBackgroundColor(color(R.color.surface_mint));
+        pendingPreview.setClipToOutline(true);
+        pendingPreview.setBackgroundTintList(ColorStateList.valueOf(color(R.color.surface_mint)));
         pendingPreview.setImageResource(R.drawable.ic_album);
-        form.addView(pendingPreview);
 
-        pendingPickChip = chip(getString(R.string.album_pick_from_gallery));
-        form.addView(pendingPickChip, new LinearLayout.LayoutParams(-1, -2));
-
-        EditText titleInput = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.album_photo_title), getString(R.string.album_name_hint), false);
-        EditText messageInput = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.album_message_label), getString(R.string.album_message_hint), true);
+        EditText titleInput = FormFieldFactory.addTextField(requireContext(), fieldsContainer, getString(R.string.album_photo_title), getString(R.string.album_name_hint), false);
+        EditText messageInput = FormFieldFactory.addTextField(requireContext(), fieldsContainer, getString(R.string.album_message_label), getString(R.string.album_message_hint), true);
         pendingPickChip.setOnClickListener(v -> permHelper.requestPermissionThen(permHelper::openGallery));
 
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
@@ -384,8 +370,8 @@ public class AlbumFragment extends BaseFragment {
             if (title.isEmpty()) {
                 title = getString(R.string.album_new_photo);
             }
-            MockData.addPhoto(title, currentAlbum, messageInput.getText().toString().trim());
-            AlbumPhoto added = MockData.getPhotos().isEmpty() ? null : MockData.getPhotos().get(0);
+            familyAlbum().addPhoto(title, currentAlbum, messageInput.getText().toString().trim());
+            AlbumPhoto added = familyAlbum().getPhotos().isEmpty() ? null : familyAlbum().getPhotos().get(0);
             if (added != null) {
                 added.url = pendingImageUri.toString();
             }
@@ -476,7 +462,7 @@ public class AlbumFragment extends BaseFragment {
                         .setPositiveButton(R.string.common_delete, (dialog, which) -> {
                             for (AlbumPhoto photo : new ArrayList<>(allPhotos)) {
                                 if (group.name.equals(photo.category)) {
-                                    MockData.deletePhoto(photo);
+                                    familyAlbum().deletePhoto(photo);
                                 }
                             }
                             buildAlbumList();
@@ -539,7 +525,7 @@ public class AlbumFragment extends BaseFragment {
                 startActivity(intent);
             });
             itemView.setOnLongClickListener(v -> {
-                MockData.toggleFavorite(photo);
+                familyAlbum().toggleFavorite(photo);
                 buildPhotoGrid(currentAlbum);
                 return true;
             });
@@ -558,38 +544,13 @@ public class AlbumFragment extends BaseFragment {
         imageView.setImageResource(R.drawable.family_companion);
     }
 
-    private TextView txt(String text, int textSizeRes, boolean bold) {
-        TextView view = new TextView(requireContext());
-        view.setText(text);
-        view.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(textSizeRes));
-        if (bold) {
-            view.setTypeface(null, android.graphics.Typeface.BOLD);
-        }
-        view.setTextColor(color(R.color.text_primary));
-        return view;
-    }
-
-    private TextView chip(String text) {
-        TextView view = txt(text, R.dimen.text_small, true);
-        view.setTextColor(color(R.color.primary_dark));
-        view.setBackgroundResource(R.drawable.bg_chip_soft);
-        view.setPadding(dimen(R.dimen.chip_padding_horizontal), dimen(R.dimen.chip_padding_vertical), dimen(R.dimen.chip_padding_horizontal), dimen(R.dimen.chip_padding_vertical));
-        view.setMinWidth(getResources().getDimensionPixelSize(R.dimen.touch_target));
-        view.setMinHeight(getResources().getDimensionPixelSize(R.dimen.touch_target));
-        return view;
-    }
-
-    private TextView primaryButton(String label, int iconRes) {
-        TextView button = txt(label, R.dimen.text_body, true);
-        button.setTextColor(color(R.color.surface_white));
-        button.setGravity(Gravity.CENTER);
-        button.setBackgroundResource(R.drawable.bg_button_primary);
+    private TextView inflatePrimaryActionButton(String label, int iconRes) {
+        TextView button = (TextView) LayoutInflater.from(requireContext())
+            .inflate(R.layout.view_primary_action_button, root, false);
+        button.setText(label);
+        button.setContentDescription(label);
         button.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0);
         button.setCompoundDrawableTintList(ColorStateList.valueOf(color(R.color.surface_white)));
-        button.setCompoundDrawablePadding(getResources().getDimensionPixelSize(R.dimen.action_row_gap));
-        button.setClickable(true);
-        button.setFocusable(true);
-        button.setContentDescription(label);
         return button;
     }
 
