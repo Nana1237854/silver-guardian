@@ -1,0 +1,3 @@
+package com.silverguardian.prototype.data.dao;
+import android.database.Cursor;import com.silverguardian.prototype.data.ElderlyDbHelper;import com.silverguardian.prototype.models.FraudTip;import java.util.*;
+public class FraudTipDao{private final ElderlyDbHelper h;public FraudTipDao(ElderlyDbHelper h){this.h=h;}public List<FraudTip> readAll(int uid){List<FraudTip>r=new ArrayList<>();Cursor c=h.getReadableDatabase().rawQuery("SELECT id,title,category,content,action FROM fraud_tips WHERE user_id=? ORDER BY id",new String[]{String.valueOf(uid)});while(c.moveToNext())r.add(new FraudTip(c.getInt(0),c.getString(1),c.getString(2),c.getString(3),c.getString(4)));c.close();return r;}}

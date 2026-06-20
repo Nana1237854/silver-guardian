@@ -68,6 +68,35 @@
             android:text="@string/child_mode_upload_for_elder" />
 
         <TextView
+            android:id="@+id/child_mode_call_button"
+            style="@style/Widget.SilverGuardian.SecondaryTextAction"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/touch_target"
+            android:layout_marginTop="12dp"
+            android:text="一键回拨" />
+        <TextView
+            android:id="@+id/child_mode_add_medicine_button"
+            style="@style/Widget.SilverGuardian.SecondaryTextAction"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/touch_target"
+            android:layout_marginTop="8dp"
+            android:text="添加用药提醒" />
+        <TextView
+            android:id="@+id/child_mode_library_button"
+            style="@style/Widget.SilverGuardian.SecondaryTextAction"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/touch_target"
+            android:layout_marginTop="8dp"
+            android:text="&#x7BA1;&#x7406;&#x836F;&#x54C1;&#x5E93;" />
+        <TextView
+            android:id="@+id/child_mode_location_button"
+            style="@style/Widget.SilverGuardian.SecondaryTextAction"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/touch_target"
+            android:layout_marginTop="8dp"
+            android:text="查看老人位置" />
+
+        <TextView
             android:id="@+id/child_mode_back_button"
             style="@style/Widget.SilverGuardian.SecondaryTextAction"
             android:layout_width="match_parent"

@@ -1,28 +1,3 @@
 package com.silverguardian.prototype.modules;
-
-import com.silverguardian.prototype.data.Repository;
-import com.silverguardian.prototype.models.BluetoothDeviceMock;
-import com.silverguardian.prototype.models.HealthData;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class HealthRecordModule {
-    private final Repository repository;
-
-    public HealthRecordModule(Repository repository) {
-        this.repository = repository;
-    }
-
-    public List<HealthData> getHealthData() {
-        return new ArrayList<>(repository.getHealthData());
-    }
-
-    public HealthData addHealthData(String type, String value, String status) {
-        return repository.addHealthData(type, value, status);
-    }
-
-    public List<BluetoothDeviceMock> getBluetoothDevices() {
-        return new ArrayList<>(repository.getBluetoothDevices());
-    }
-}
+import com.silverguardian.prototype.data.Repository;import com.silverguardian.prototype.models.*;import java.util.*;
+public class HealthRecordModule{private final Repository r;public HealthRecordModule(Repository r){this.r=r;}public List<HealthData>getHealthData(){return new ArrayList<>(r.getHealthData());}public List<HealthData>getTodayHealthData(){return new ArrayList<>(r.getTodayHealthData());}public HealthData addHealthData(String t,String v,String s){return r.addHealthData(t,v,s);}public HealthData addHealthData(String t,String v,String s,String n){return r.addHealthData(t,v,s,n);}public List<BluetoothDeviceMock>getBluetoothDevices(){return new ArrayList<>(r.getBluetoothDevices());}}

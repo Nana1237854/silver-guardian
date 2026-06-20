@@ -86,6 +86,10 @@ setContentView(R.layout.activity_child_mode);
         ((TextView) findViewById(R.id.child_mode_upload_button)).setText(R.string.child_mode_upload_for_elder);
         ((TextView) findViewById(R.id.child_mode_back_button)).setText(R.string.child_mode_back_to_elder);
         findViewById(R.id.child_mode_upload_button).setOnClickListener(v -> showUploadDialog());
+        findViewById(R.id.child_mode_call_button).setOnClickListener(v -> callPrimaryFamily());
+        findViewById(R.id.child_mode_add_medicine_button).setOnClickListener(v -> showChildAddMedicineDialog());
+        findViewById(R.id.child_mode_library_button).setOnClickListener(v -> startActivity(new Intent(this, MedicineLibraryActivity.class).putExtra("editable", true)));
+        findViewById(R.id.child_mode_location_button).setOnClickListener(v -> showElderLocation());
         findViewById(R.id.child_mode_back_button).setOnClickListener(v -> finish());
     }
 
@@ -208,6 +212,38 @@ setContentView(R.layout.activity_child_mode);
         parent.addView(empty);
     }
 
+    private void callPrimaryFamily() {
+        String phone = userSession().findPrimaryFamilyPhone();
+        if (phone == null) { Toast.makeText(this, "暂无家属电话", Toast.LENGTH_SHORT).show(); return; }
+        try { startActivity(new Intent(Intent.ACTION_CALL, android.net.Uri.parse("tel:" + phone))); }
+        catch (SecurityException e) { Toast.makeText(this, "需要电话权限", Toast.LENGTH_LONG).show(); }
+    }
+
+    private void showElderLocation() {
+        String time = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(new java.util.Date());
+        new AlertDialog.Builder(this)
+            .setTitle("老人当前位置")
+            .setMessage("老人当前位置：广州市越秀区附近\n更新时间：" + time + "\n（课程演示定位，非后台实时追踪）")
+            .setPositiveButton(R.string.common_ok, null)
+            .show();
+    }
+    private void showChildAddMedicineDialog() {
+        LinearLayout form = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.view_dialog_form_container, null, false);
+        EditText name = FormFieldFactory.addTextField(this, form, "药品名称", "例如：硝苯地平", false);
+        EditText type = FormFieldFactory.addTextField(this, form, "类型", "降压药", false);
+        EditText time = FormFieldFactory.addTextField(this, form, "服用时间", "08:00", false);
+        EditText desc = FormFieldFactory.addTextField(this, form, "说明", "遵医嘱服用", true);
+        new AlertDialog.Builder(this)
+            .setTitle("远程添加用药提醒")
+            .setView(form)
+            .setPositiveButton(R.string.common_save, (d, w) -> {
+                medicineReminders().addMedicine(name.getText().toString().trim(), type.getText().toString().trim(), time.getText().toString().trim().isEmpty() ? "08:00" : time.getText().toString().trim(), "口服", desc.getText().toString().trim());
+                Toast.makeText(this, "用药提醒已添加", Toast.LENGTH_SHORT).show();
+                refreshContent();
+            })
+            .setNegativeButton(R.string.common_cancel, null)
+            .show();
+    }
     private void showUploadDialog() {
         pendingImageUri = null;
         View form = LayoutInflater.from(this).inflate(R.layout.view_child_mode_upload_form, null, false);
@@ -240,7 +276,14 @@ setContentView(R.layout.activity_child_mode);
                 pendingTitle = titleInput.getText().toString().trim().isEmpty() ? pendingTitle : titleInput.getText().toString().trim();
                 pendingCategory = categoryInput.getText().toString().trim().isEmpty() ? pendingCategory : categoryInput.getText().toString().trim();
                 pendingMessage = messageInput.getText().toString().trim().isEmpty() ? pendingMessage : messageInput.getText().toString().trim();
-                familyAlbum().addPhoto(pendingTitle, pendingCategory, pendingMessage);
+                if (pendingImageUri == null) { Toast.makeText(this, "请先选择照片", Toast.LENGTH_SHORT).show(); return; }
+                try {
+                    com.silverguardian.prototype.album.PhotoStorage.SavedPhoto saved = com.silverguardian.prototype.album.PhotoStorage.save(this, pendingImageUri);
+                    familyAlbum().addPhoto(saved.privatePath, saved.publicUri, pendingTitle, pendingCategory, pendingMessage);
+                } catch (java.io.IOException error) {
+                    Toast.makeText(this, "照片双存失败，请重试", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 Toast.makeText(this, R.string.child_mode_upload_success, Toast.LENGTH_SHORT).show();
             })
             .setNegativeButton(R.string.common_cancel, null)

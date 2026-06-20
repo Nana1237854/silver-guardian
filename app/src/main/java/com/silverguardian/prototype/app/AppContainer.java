@@ -13,6 +13,7 @@ import com.silverguardian.prototype.modules.MemoryModule;
 import com.silverguardian.prototype.modules.SafetyContentModule;
 import com.silverguardian.prototype.modules.UserSessionModule;
 import com.silverguardian.prototype.reminder.TtsHelper;
+import com.silverguardian.prototype.weather.WeatherModule;
 
 public class AppContainer {
     private final Context appContext;
@@ -26,6 +27,7 @@ public class AppContainer {
     private final SafetyContentModule safetyContentModule;
     private final CommunityPoiSearchModule communityPoiSearchModule;
     private final AiChatModule aiChatModule;
+    private final WeatherModule weatherModule;
 
     public AppContainer(Context context) {
         appContext = context.getApplicationContext();
@@ -40,6 +42,7 @@ public class AppContainer {
         safetyContentModule = new SafetyContentModule(repository);
         communityPoiSearchModule = new CommunityPoiSearchModule(appContext);
         aiChatModule = new AiChatModule(appContext, repository);
+        weatherModule = new WeatherModule(appContext);
     }
 
     public Context appContext() { return appContext; }
@@ -52,4 +55,5 @@ public class AppContainer {
     public SafetyContentModule safetyContent() { return safetyContentModule; }
     public CommunityPoiSearchModule community() { return communityPoiSearchModule; }
     public AiChatModule aiChat() { return aiChatModule; }
+    public WeatherModule weather() { return weatherModule; }
 }

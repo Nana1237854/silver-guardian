@@ -142,7 +142,7 @@ public class AppContainerDbTest {
 
     @Test
     public void medicineLibraryAndFraudTipsRemainAvailable() {
-        List<MedicineLibraryItem> library = container.medicineReminders().searchMedicineLibrary("Hyper");
+        List<MedicineLibraryItem> library = container.medicineReminders().searchMedicineLibrary("高血压");
         assertTrue(container.medicineReminders().getMedicineTypes().size() >= 1);
         assertTrue(library.size() >= 1);
         assertTrue(container.safetyContent().getFraudTips().size() >= 4);

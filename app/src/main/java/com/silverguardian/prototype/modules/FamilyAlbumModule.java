@@ -47,6 +47,7 @@ public class FamilyAlbumModule {
     }
 
     public AlbumPhoto addPhoto(String title, String category, String message) { return repository.addPhoto(title, category, message); }
+    public AlbumPhoto addPhoto(String privatePath,String publicUri,String title,String category,String message){return repository.addPhoto(privatePath,publicUri,title,category,message);}
     public void deletePhoto(AlbumPhoto photo) { repository.deletePhoto(photo); }
     public void toggleFavorite(AlbumPhoto photo) { repository.toggleFavorite(photo); }
 }

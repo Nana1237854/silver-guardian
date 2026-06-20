@@ -27,6 +27,8 @@ android {
 
         buildConfigField "String", "ZHIPU_API_KEY", "\"${localProperties.getProperty('zhipu.api.key', 'YOUR_ZHIPU_API_KEY')}\""
         buildConfigField "String", "AMAP_API_KEY", "\"${localProperties.getProperty('amap.api.key', 'YOUR_AMAP_KEY')}\""
+        buildConfigField "String", "QWEATHER_API_KEY", "\"${localProperties.getProperty('qweather.api.key', '')}\""
+        buildConfigField "String", "QWEATHER_API_HOST", "\"${localProperties.getProperty('qweather.api.host', '')}\""
 
         manifestPlaceholders = [AMAP_KEY: localProperties.getProperty('amap.api.key', 'YOUR_AMAP_KEY')]
     }

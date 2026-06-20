@@ -90,6 +90,12 @@
             </LinearLayout>
         </LinearLayout>
 
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/screen_padding" android:layout_marginTop="12dp" android:layout_marginEnd="@dimen/screen_padding" android:orientation="horizontal">
+            <TextView android:id="@+id/home_call_action" android:layout_width="0dp" android:layout_height="60dp" android:layout_weight="1" android:background="@drawable/bg_button_primary" android:gravity="center" android:text="一键呼叫" android:textColor="@color/surface_white" android:textSize="18sp" android:textStyle="bold" />
+            <TextView android:id="@+id/home_sos_action" android:layout_width="0dp" android:layout_height="60dp" android:layout_marginStart="12dp" android:layout_weight="1" android:background="@drawable/bg_button_sos" android:gravity="center" android:text="SOS 紧急呼叫" android:textColor="@color/surface_white" android:textSize="17sp" android:textStyle="bold" />
+        </LinearLayout>
+
+
         <LinearLayout
             android:id="@+id/home_shortcuts_group"
             android:layout_width="match_parent"
@@ -133,6 +139,7 @@
                 android:id="@+id/home_settings_action"
                 layout="@layout/view_home_shortcut_row" />
         </LinearLayout>
+
 
         <LinearLayout
             android:id="@+id/home_ai_action"
@@ -192,5 +199,15 @@
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
+
+        <include
+                    android:id="@+id/home_weather_card"
+                    layout="@layout/view_weather_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/screen_padding"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="@dimen/screen_padding" />
+
     </LinearLayout>
 </ScrollView>

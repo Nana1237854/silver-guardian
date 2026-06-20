@@ -164,6 +164,11 @@
                 layout="@layout/view_health_metric_row" />
         </LinearLayout>
 
+        <TextView android:id="@+id/health_records_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="更多记录" android:textColor="@color/text_primary" android:textSize="@dimen/text_subtitle" android:textStyle="bold" />
+        <TextView android:id="@+id/health_records_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="18dp" android:text="今天还没有健康档案记录" android:textColor="@color/text_secondary" />
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/health_records_list" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" />
+
+
         <include
             android:id="@+id/health_analysis_card"
             layout="@layout/view_health_analysis_card" />

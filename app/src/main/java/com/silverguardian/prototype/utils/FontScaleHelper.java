@@ -25,6 +25,9 @@ public class FontScaleHelper {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_FONT_MODE, mode).apply();
     }
 
+    public static boolean isSimplifiedMode(Context context) { return getFontModeIndex(context) == 1; }
+    public static boolean isMinimalMode(Context context) { return getFontModeIndex(context) == 2; }
+
     public static boolean isHighContrast(Context context) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_HIGH_CONTRAST, true);
     }

@@ -6,6 +6,9 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -131,6 +134,36 @@ public class MainActivity extends BaseActivity {
             .show();
     }
 
+    public void showOneTapChooser() {
+        List<FamilyMember> members = userSession().getFamilyMembers();
+        if (members.isEmpty()) { Toast.makeText(this, "还没有家属联系方式", Toast.LENGTH_SHORT).show(); return; }
+        LinearLayout buttons = new LinearLayout(this); buttons.setOrientation(LinearLayout.VERTICAL); buttons.setPadding(24, 8, 24, 8);
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("选择家属").setView(buttons).setNegativeButton(R.string.common_cancel, null).create();
+        for (FamilyMember member : members) {
+            Button button = new Button(this); button.setText(member.name + "（" + member.relationship + "）");
+            button.setMinHeight((int) (60 * getResources().getDisplayMetrics().density));
+            button.setOnClickListener(v -> { dialog.dismiss(); makePhoneCall(member.phone); }); buttons.addView(button);
+        }
+        dialog.show();
+    }
+
+    public void showSosDialog() {
+        TextView countdown = new TextView(this); countdown.setTextSize(22); countdown.setPadding(32, 24, 32, 24);
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("是否紧急呼叫？").setView(countdown)
+            .setPositiveButton("确认呼叫", null).setNegativeButton("取消", null).create();
+        android.os.CountDownTimer timer = new android.os.CountDownTimer(10000, 1000) {
+            public void onTick(long ms) { countdown.setText((ms / 1000 + 1) + " 秒后自动拨打课程测试号码 10086"); }
+            public void onFinish() { if (dialog.isShowing()) { dialog.dismiss(); makePhoneCall("10086"); } }
+        };
+        dialog.setOnShowListener(x -> { timer.start(); dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> { timer.cancel(); dialog.dismiss(); showSosContacts(); }); });
+        dialog.setOnDismissListener(x -> timer.cancel()); dialog.show();
+    }
+
+    private void showSosContacts() {
+        List<FamilyMember> members = userSession().getFamilyMembers(); String[] names = new String[members.size() + 1];
+        names[0] = "课程测试号码 10086"; for (int i = 0; i < members.size(); i++) names[i + 1] = members.get(i).name;
+        new AlertDialog.Builder(this).setTitle("选择首位联系人").setItems(names, (d, which) -> makePhoneCall(which == 0 ? "10086" : members.get(which - 1).phone)).setNegativeButton(R.string.common_cancel, null).show();
+    }
     private void makePhoneCall(String phone) {
         if (phone == null || phone.isEmpty()) {
             Toast.makeText(this, "This contact has no phone number", Toast.LENGTH_SHORT).show();

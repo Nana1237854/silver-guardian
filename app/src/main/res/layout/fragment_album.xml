@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/album_root"
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/album_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_page"
-    android:orientation="vertical"
+    android:clipToPadding="false"
     android:paddingStart="@dimen/screen_padding"
     android:paddingTop="@dimen/screen_padding"
     android:paddingEnd="@dimen/screen_padding"
-    android:paddingBottom="0dp" />
+    android:paddingBottom="@dimen/bottom_nav_safe_space" />

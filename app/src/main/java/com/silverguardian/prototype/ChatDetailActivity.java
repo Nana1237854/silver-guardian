@@ -93,7 +93,7 @@ public class ChatDetailActivity extends BaseActivity implements AiChatModule.Lis
 
     private void setupVoice() {
         voiceButton = findViewById(R.id.btn_voice);
-        voiceButton.setOnClickListener(v -> aiChat().toggleVoiceInput(this));
+        voiceButton.setOnTouchListener((v, event) -> { if (event.getAction() == android.view.MotionEvent.ACTION_DOWN || event.getAction() == android.view.MotionEvent.ACTION_UP || event.getAction() == android.view.MotionEvent.ACTION_CANCEL) aiChat().toggleVoiceInput(this); return true; });
     }
 
     private void setupDrawer() {
@@ -134,10 +134,30 @@ public class ChatDetailActivity extends BaseActivity implements AiChatModule.Lis
     }
 
     @Override
-    public void onVoiceInput(String text) {
-        input.setText(text);
-        input.setSelection(input.length());
+    public void onDrugRecommendations(List<com.silverguardian.prototype.models.MedicineLibraryItem> drugs) {
+        runOnUiThread(() -> {
+            StringBuilder names = new StringBuilder();
+            for (com.silverguardian.prototype.models.MedicineLibraryItem drug : drugs) names.append("• ").append(drug.name).append("\n");
+            android.widget.EditText time = new android.widget.EditText(this);
+            time.setHint("服用时间，例如 08:00");
+            time.setText("08:00");
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("AI 推荐药品")
+                .setMessage(names + "\n请确认服用时间，保存后将加入药品库和用药提醒。")
+                .setView(time)
+                .setPositiveButton("加入", (d, w) -> {
+                    String value = time.getText().toString().trim().isEmpty() ? "08:00" : time.getText().toString().trim();
+                    for (com.silverguardian.prototype.models.MedicineLibraryItem drug : drugs) {
+                        medicineReminders().addLibraryItem(drug);
+                        medicineReminders().addMedicine(drug.name, drug.type, value, "口服", drug.description, 0, 0, 10);
+                    }
+                })
+                .setNegativeButton(R.string.common_cancel, null)
+                .show();
+        });
     }
+    @Override
+    public void onVoiceInput(String text) { input.setText(text); input.setSelection(input.length()); send(); }
 
     @Override
     public void onVoiceListeningChanged(boolean listening) {

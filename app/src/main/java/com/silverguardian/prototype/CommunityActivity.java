@@ -22,8 +22,12 @@ import com.amap.api.maps.model.BitmapDescriptorFactory;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.maps.model.Polyline;
+import com.amap.api.maps.model.PolylineOptions;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
+import com.amap.api.services.route.WalkPath;
+import com.amap.api.services.route.WalkStep;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,12 +46,18 @@ public class CommunityActivity extends BaseActivity {
     private AMapLocationClient locationClient;
     private LocationSource.OnLocationChangedListener locationChangedListener;
     private AMapLocation lastLocation;
+    private TextView poiInfoBar;
+    private android.view.View poiInfoContainer;
+    private PoiItem selectedPoi;
+    private final List<Polyline> routeLines = new ArrayList<>();
     private boolean locationReady;
+    private String initialKeyword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_community);
+        initialKeyword = getIntent().getStringExtra("initial_keyword");
 
         bindHeader();
         bindControls();
@@ -77,6 +87,9 @@ public class CommunityActivity extends BaseActivity {
         statusText.setText(R.string.community_activity_status_initializing);
 
         ((TextView) findViewById(R.id.community_intro)).setText(R.string.community_intro);
+        poiInfoContainer = findViewById(R.id.community_poi_info_bar);
+        poiInfoBar = findViewById(R.id.community_poi_info);
+        findViewById(R.id.community_start_nav).setOnClickListener(v -> startNavigation());
         ((TextView) findViewById(R.id.community_back_button)).setText(R.string.community_activity_back_settings);
         findViewById(R.id.community_back_button).setOnClickListener(v -> finish());
 
@@ -155,14 +168,14 @@ public class CommunityActivity extends BaseActivity {
                         locationReady = true;
                         aMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                             new LatLng(loc.getLatitude(), loc.getLongitude()), 15));
-                        searchPoi(communitySearch().defaultKeyword());
+                        searchPoi(initialKeyword == null || initialKeyword.trim().isEmpty() ? communitySearch().defaultKeyword() : initialKeyword);
                     }
                 }
             });
             locationClient.startLocation();
         } catch (Exception e) {
             locationClient = null;
-            searchPoi(communitySearch().defaultKeyword());
+            searchPoi(initialKeyword == null || initialKeyword.trim().isEmpty() ? communitySearch().defaultKeyword() : initialKeyword);
         }
     }
 
@@ -239,28 +252,39 @@ public class CommunityActivity extends BaseActivity {
     }
 
     private void showPoiDetail(PoiItem poi) {
-        new AlertDialog.Builder(this)
-            .setTitle(poi.getTitle())
-            .setMessage(communitySearch().buildPoiDetail(poi))
-            .setPositiveButton(R.string.community_activity_walk_navigation, (d, w) -> communitySearch().requestWalkRoute(poi, new com.silverguardian.prototype.community.CommunityPoiSearchModule.RouteCallback() {
-                @Override public void onSuccess(String routeInfo) { showRoute(routeInfo); }
-                @Override public void onError(String message) { Toast.makeText(CommunityActivity.this, message, Toast.LENGTH_SHORT).show(); }
-            }))
-            .setNeutralButton(R.string.community_activity_open_amap, (d, w) -> {
-                if (!communitySearch().openNavigation(this, poi)) {
-                    Toast.makeText(this, R.string.community_activity_nav_open_failed, Toast.LENGTH_SHORT).show();
-                }
-            })
-            .setNegativeButton(R.string.common_close, null)
-            .show();
+        selectedPoi = poi;
+        communitySearch().requestWalkRoute(poi, new com.silverguardian.prototype.community.CommunityPoiSearchModule.RouteCallback() {
+            @Override public void onSuccess(WalkPath path) { drawRouteAndInfo(poi, path); }
+            @Override public void onError(String message) { Toast.makeText(CommunityActivity.this, message, Toast.LENGTH_SHORT).show(); }
+        });
     }
 
-    private void showRoute(String routeInfo) {
-        new AlertDialog.Builder(this)
-            .setTitle(R.string.community_activity_walk_route_title)
-            .setMessage(routeInfo)
-            .setPositiveButton(R.string.common_ok, null)
-            .show();
+    private void drawRouteAndInfo(PoiItem poi, WalkPath path) {
+        for (Polyline line : routeLines) line.remove();
+        routeLines.clear();
+        PolylineOptions options = new PolylineOptions().color(0xff2f8f6b).width(12f);
+        for (WalkStep step : path.getSteps()) {
+            for (LatLonPoint point : step.getPolyline()) {
+                options.add(new LatLng(point.getLatitude(), point.getLongitude()));
+            }
+        }
+        routeLines.add(aMap.addPolyline(options));
+        int minutes = Math.max(1, (int) (path.getDuration() / 60));
+        String distance = path.getDistance() < 1000 ? ((int) path.getDistance()) + "m" : String.format(java.util.Locale.getDefault(), "%.1fkm", path.getDistance() / 1000f);
+        poiInfoBar.setText(poi.getTitle() + "\n距离 " + distance + " · 步行约 " + minutes + " 分钟");
+        poiInfoContainer.setVisibility(android.view.View.VISIBLE);
+    }
+
+    private void startNavigation() {
+        if (selectedPoi == null) return;
+        if (!communitySearch().openNavigation(this, selectedPoi)) {
+            new AlertDialog.Builder(this)
+                .setTitle("未安装高德地图")
+                .setMessage("是否使用网页版步行导航？")
+                .setPositiveButton(R.string.common_ok, (d, w) -> communitySearch().openWebNavigation(this, selectedPoi))
+                .setNegativeButton(R.string.common_cancel, null)
+                .show();
+        }
     }
 
     private float getMarkerColor(int index) {
@@ -282,7 +306,7 @@ public class CommunityActivity extends BaseActivity {
                 startLocation();
             } else {
                 Toast.makeText(this, R.string.community_activity_location_permission, Toast.LENGTH_SHORT).show();
-                searchPoi(communitySearch().defaultKeyword());
+                searchPoi(initialKeyword == null || initialKeyword.trim().isEmpty() ? communitySearch().defaultKeyword() : initialKeyword);
             }
         }
     }

@@ -28,7 +28,7 @@ public class CommunityPoiSearchModule {
     }
 
     public interface RouteCallback {
-        void onSuccess(String routeInfo);
+        void onSuccess(WalkPath path);
         void onError(String message);
     }
 
@@ -116,12 +116,7 @@ public class CommunityPoiSearchModule {
                         return;
                     }
                     WalkPath path = result.getPaths().get(0);
-                    callback.onSuccess(appContext.getString(
-                        R.string.community_activity_walk_route_info,
-                        path.getDistance(),
-                        (int) (path.getDuration() / 60),
-                        path.getSteps().size()
-                    ));
+                    callback.onSuccess(path);
                 }
             });
             RouteSearch.WalkRouteQuery query = new RouteSearch.WalkRouteQuery(
@@ -134,6 +129,8 @@ public class CommunityPoiSearchModule {
             callback.onError(appContext.getString(R.string.community_activity_route_unavailable));
         }
     }
+
+    public void openWebNavigation(Context context, PoiItem poi) { String webUrl = "https://uri.amap.com/navigation?to=" + poi.getLatLonPoint().getLongitude() + "," + poi.getLatLonPoint().getLatitude() + ",0&mode=walk&coordinate=gaode"; context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); }
 
     public boolean openNavigation(Context context, PoiItem poi) {
         try {
@@ -148,10 +145,7 @@ public class CommunityPoiSearchModule {
             if (intent.resolveActivity(context.getPackageManager()) != null) {
                 context.startActivity(intent);
             } else {
-                String webUrl = "https://uri.amap.com/navigation?to="
-                    + poi.getLatLonPoint().getLongitude() + "," + poi.getLatLonPoint().getLatitude()
-                    + ",0&mode=walk&coordinate=gaode";
-                context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                return false;
             }
             return true;
         } catch (Exception e) {

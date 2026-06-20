@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/medicine_panel_spacing_bottom">
+
+    <include android:id="@+id/medicine_header" layout="@layout/view_page_header" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_group_surface"
+        android:orientation="vertical"
+        android:padding="@dimen/group_card_padding_compact">
+
+        <TextView android:id="@+id/add_medicine_button" style="@style/Widget.SilverGuardian.PrimaryTextAction"
+            android:layout_width="match_parent" android:layout_height="@dimen/button_height" />
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="@dimen/medicine_filter_row_height"
+            android:layout_marginTop="@dimen/action_row_padding_top" android:gravity="center_vertical" android:orientation="horizontal">
+            <TextView android:id="@+id/medicine_progress" style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:textSize="@dimen/secondary_action_text_size" />
+            <Spinner android:id="@+id/medicine_filter" android:layout_width="@dimen/medicine_filter_width"
+                android:layout_height="@dimen/touch_target" android:background="@drawable/bg_card_surface"
+                android:paddingStart="@dimen/medicine_filter_padding_start" android:paddingEnd="@dimen/medicine_filter_padding_end" />
+        </LinearLayout>
+
+        <include android:id="@+id/medicine_reminder_strip" layout="@layout/view_status_strip"
+            android:layout_marginTop="@dimen/medicine_reminder_gap" />
+    </LinearLayout>
+
+    <include android:id="@+id/medicine_empty_state" layout="@layout/view_empty_state" />
+</LinearLayout>

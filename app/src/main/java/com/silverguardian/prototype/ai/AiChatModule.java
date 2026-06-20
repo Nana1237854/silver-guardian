@@ -18,6 +18,8 @@ import com.silverguardian.prototype.BuildConfig;
 import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.data.Repository;
 import com.silverguardian.prototype.models.ChatMessage;
+import com.silverguardian.prototype.models.Medicine;
+import com.silverguardian.prototype.models.MedicineLibraryItem;
 import com.silverguardian.prototype.reminder.TtsHelper;
 
 import java.io.BufferedReader;
@@ -31,6 +33,7 @@ public class AiChatModule {
         void onMessagesChanged(List<ChatMessage> messages);
         void onVoiceInput(String text);
         void onVoiceListeningChanged(boolean listening);
+        default void onDrugRecommendations(List<MedicineLibraryItem> drugs) { }
     }
 
     private static final int REQUEST_RECORD_AUDIO = 401;
@@ -58,6 +61,9 @@ public class AiChatModule {
     }
 
     public List<ChatMessage> loadMessages() {
+        if (repository.getWelcomeMessages().isEmpty()) {
+            repository.resetChatSession(loadSystemPromptFallback());
+        }
         List<ChatMessage> messages = new ArrayList<>(repository.getWelcomeMessages());
         notifyMessagesChanged(messages);
         return messages;
@@ -160,11 +166,7 @@ public class AiChatModule {
                 if (listener != null && matches != null && !matches.isEmpty()) listener.onVoiceInput(matches.get(0));
             }
 
-            @Override
-            public void onPartialResults(Bundle partialResults) {
-                ArrayList<String> matches = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                if (listener != null && matches != null && !matches.isEmpty()) listener.onVoiceInput(matches.get(0));
-            }
+            @Override public void onPartialResults(Bundle partialResults) { }
         });
     }
 
@@ -174,9 +176,11 @@ public class AiChatModule {
     }
 
     private void appendAiReply(String reply) {
-        repository.addChatMessage(reply, ChatMessage.TYPE_AI);
+        DrugRecommendationParser.Result parsed = DrugRecommendationParser.parse(reply, repository.getMedicineLibrary());
+        repository.addChatMessage(parsed.visibleText, ChatMessage.TYPE_AI);
         notifyMessagesChanged(new ArrayList<>(repository.getWelcomeMessages()));
-        if (voiceEnabled) TtsHelper.speak(reply);
+        if (!parsed.drugs.isEmpty() && listener != null) listener.onDrugRecommendations(parsed.drugs);
+        if (voiceEnabled) TtsHelper.speak(parsed.visibleText);
     }
 
     private void notifyMessagesChanged(List<ChatMessage> messages) {
@@ -191,7 +195,10 @@ public class AiChatModule {
             while ((line = br.readLine()) != null) {
                 sb.append(line).append('\n');
             }
-            return sb.toString();
+            StringBuilder context = new StringBuilder(sb);
+            context.append("\n当前老人的药品库："); for (MedicineLibraryItem item : repository.getMedicineLibrary()) context.append(item.name).append("、");
+            context.append("\n当前用药和今日打卡："); for (Medicine medicine : repository.getMedicines()) context.append(medicine.name).append("(").append(medicine.time).append(medicine.takenToday ? "，已打卡" : "，未打卡").append(")；");
+            return context.toString();
         } catch (Exception e) {
             return loadSystemPromptFallback();
         }

@@ -1,116 +1,18 @@
 package com.silverguardian.prototype.fragments;
-
-import android.content.Intent;
-import android.content.res.ColorStateList;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.silverguardian.prototype.BluetoothActivity;
-import com.silverguardian.prototype.ChatDetailActivity;
-import com.silverguardian.prototype.R;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
-public class HealthFragment extends BaseFragment {
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_health, container, false);
-        bindHeader(root);
-        bindSummary(root);
-        bindMetricSection(root);
-        bindAnalysisCard(root);
-        bindActions(root);
-        return root;
-    }
-
-    private void bindHeader(View root) {
-        ((TextView) root.findViewById(R.id.health_header_title)).setText(R.string.health_title_refined);
-        TextView date = root.findViewById(R.id.health_header_date);
-        String today = new SimpleDateFormat("M/d", Locale.US).format(new Date());
-        date.setText(today);
-        date.setContentDescription("Today " + today);
-    }
-
-    private void bindSummary(View root) {
-        ImageView image = root.findViewById(R.id.health_summary_image);
-        image.setContentDescription(getString(R.string.health_banner_desc_refined));
-        ((TextView) root.findViewById(R.id.health_summary_greeting)).setText(R.string.health_greeting_refined);
-        ((TextView) root.findViewById(R.id.health_summary_status)).setText(R.string.health_status_refined);
-        ((TextView) root.findViewById(R.id.health_summary_detail)).setText(R.string.health_detail_refined);
-        ((TextView) root.findViewById(R.id.health_summary_reminder)).setText(R.string.health_reminder_refined);
-    }
-
-    private void bindMetricSection(View root) {
-        TextView title = root.findViewById(R.id.health_metrics_title);
-        title.setText(R.string.health_metrics_title_refined);
-        title.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_health, 0, 0, 0);
-        title.setCompoundDrawableTintList(ColorStateList.valueOf(color(R.color.primary)));
-        title.setCompoundDrawablePadding(dp(10));
-
-        bindMetricRow(root.findViewById(R.id.health_metric_blood_pressure), R.drawable.ic_health,
-            getString(R.string.health_metric_blood_pressure), "128/76", "mmHg", getString(R.string.health_metric_status_normal), false);
-        bindMetricRow(root.findViewById(R.id.health_metric_heart_rate), R.drawable.ic_health,
-            getString(R.string.health_metric_heart_rate), "72", "bpm", getString(R.string.health_metric_status_normal), false);
-        bindMetricRow(root.findViewById(R.id.health_metric_blood_oxygen), R.drawable.ic_breathe,
-            getString(R.string.bluetooth_type_blood_oxygen), "98", "%", getString(R.string.health_metric_status_normal), false);
-        bindMetricRow(root.findViewById(R.id.health_metric_sleep), R.drawable.ic_sleep,
-            getString(R.string.health_metric_sleep), "7h20m", "", getString(R.string.health_metric_status_good_sleep), true);
-    }
-
-    private void bindMetricRow(View row, int iconRes, String label, String value, String unit, String status, boolean warmStatus) {
-        ImageView icon = row.findViewById(R.id.health_metric_icon);
-        icon.setImageResource(iconRes);
-        icon.setColorFilter(color(R.color.primary));
-        icon.setContentDescription(null);
-        ((TextView) row.findViewById(R.id.health_metric_title)).setText(label);
-        ((TextView) row.findViewById(R.id.health_metric_value)).setText(value);
-        TextView unitView = row.findViewById(R.id.health_metric_unit);
-        if (unit == null || unit.isEmpty()) unitView.setVisibility(View.GONE); else { unitView.setVisibility(View.VISIBLE); unitView.setText(unit); }
-        TextView badge = row.findViewById(R.id.health_metric_status);
-        badge.setText(status);
-        badge.setTextColor(warmStatus ? color(R.color.accent_orange_dark) : color(R.color.status_good));
-        badge.setBackgroundResource(warmStatus ? R.drawable.bg_status_warm : R.drawable.bg_status_good);
-        row.setContentDescription(label + value + unit + status);
-        row.setOnClickListener(v -> toast(getString(R.string.health_metric_view_record, label)));
-    }
-
-    private void bindAnalysisCard(View root) {
-        View card = root.findViewById(R.id.health_analysis_card);
-        ((ImageView) card.findViewById(R.id.health_ai_image)).setContentDescription(getString(R.string.health_analysis_title_refined));
-        ((TextView) card.findViewById(R.id.health_ai_title)).setText(R.string.health_analysis_title_refined);
-        ((TextView) card.findViewById(R.id.health_ai_body)).setText(R.string.health_analysis_body_refined);
-        ((TextView) card.findViewById(R.id.health_ai_action)).setText(R.string.health_analysis_action_refined);
-        card.setContentDescription(getString(R.string.health_analysis_desc_refined));
-        card.setOnClickListener(v -> startActivity(new Intent(requireContext(), ChatDetailActivity.class)));
-    }
-
-    private void bindActions(View root) {
-        ((TextView) root.findViewById(R.id.health_actions_title)).setText(R.string.health_record_title_refined);
-        TextView bluetooth = root.findViewById(R.id.health_action_bluetooth);
-        bluetooth.setText(R.string.health_bluetooth_action_refined);
-        bluetooth.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bluetooth, 0, 0, 0);
-        bluetooth.setCompoundDrawableTintList(ColorStateList.valueOf(color(R.color.surface_white)));
-        bluetooth.setCompoundDrawablePadding(dp(7));
-        bluetooth.setOnClickListener(v -> startActivity(new Intent(requireContext(), BluetoothActivity.class)));
-
-        TextView manual = root.findViewById(R.id.health_action_manual);
-        manual.setText(R.string.health_manual_action_refined);
-        manual.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_add, 0, 0, 0);
-        manual.setCompoundDrawableTintList(ColorStateList.valueOf(color(R.color.primary_dark)));
-        manual.setCompoundDrawablePadding(dp(7));
-        manual.setOnClickListener(v -> {
-            healthRecords().addHealthData("heart_rate", "69", getString(R.string.health_metric_status_normal));
-            toast(getString(R.string.health_manual_success_refined));
-        });
-    }
+import android.os.Bundle;import android.view.*;import android.widget.*;import androidx.annotation.*;import androidx.appcompat.app.AlertDialog;import androidx.recyclerview.widget.*;import com.silverguardian.prototype.R;import com.silverguardian.prototype.health.HealthMetricEvaluator;import com.silverguardian.prototype.models.*;import java.util.*;
+public class HealthFragment extends BaseFragment{
+ private View root;private final List<HealthData>today=new ArrayList<>();private HealthAdapter adapter;
+ private static final String[] TYPES={"heart_rate","blood_pressure","blood_oxygen","sleep","steps","blood_sugar","temperature","weight","body_fat","respiratory_rate","exercise","mood","breathing"};
+ private static final String[] LABELS={"\u5fc3\u7387","\u8840\u538b","\u8840\u6c27","\u7761\u7720","\u6b65\u6570","\u8840\u7cd6","\u4f53\u6e29","\u4f53\u91cd","\u4f53\u8102\u7387","\u547c\u5438\u7387","\u8fd0\u52a8","\u5fc3\u60c5","\u547c\u5438\u6b63\u5ff5"};
+ @Nullable public View onCreateView(@NonNull LayoutInflater i,@Nullable ViewGroup c,@Nullable Bundle b){root=i.inflate(R.layout.fragment_health,c,false);bindStaticText();RecyclerView list=root.findViewById(R.id.health_records_list);list.setLayoutManager(new LinearLayoutManager(getContext()));adapter=new HealthAdapter();list.setAdapter(adapter);root.findViewById(R.id.health_analysis_card).setOnClickListener(v->startActivity(new android.content.Intent(requireContext(),com.silverguardian.prototype.ChatDetailActivity.class)));root.findViewById(R.id.health_action_manual).setOnClickListener(v->showManual());root.findViewById(R.id.health_action_bluetooth).setOnClickListener(v->startActivity(new android.content.Intent(requireContext(),com.silverguardian.prototype.BluetoothActivity.class)));refresh();return root;}
+ private void bindStaticText(){set(R.id.health_header_title,"\u5065\u5eb7\u6863\u6848");set(R.id.health_header_date,new java.text.SimpleDateFormat("MM\u6708dd\u65e5",java.util.Locale.CHINA).format(new java.util.Date()));set(R.id.health_summary_detail,"\u6838\u5fc3\u6307\u6807\u4f1a\u6309\u4eca\u65e5\u6700\u65b0\u8bb0\u5f55\u66f4\u65b0");set(R.id.health_summary_reminder,"\u8bb0\u5f97\u6309\u65f6\u6d4b\u91cf\uff0c\u4fdd\u6301\u89c4\u5f8b\u4f5c\u606f");set(R.id.health_metrics_title,"\u4eca\u65e5\u5065\u5eb7\u6982\u89c8");set(R.id.health_records_title,"\u66f4\u591a\u8bb0\u5f55");set(R.id.health_ai_title,"AI \u5065\u5eb7\u5206\u6790");set(R.id.health_ai_body,"\u6839\u636e\u4eca\u65e5\u6307\u6807\u751f\u6210\u7b80\u5355\u6613\u61c2\u7684\u5065\u5eb7\u5efa\u8bae\u3002");set(R.id.health_ai_action,"\u8fdb\u5165 AI \u5bf9\u8bdd");set(R.id.health_actions_title,"\u8bb0\u5f55\u5065\u5eb7\u6863\u6848");set(R.id.health_action_bluetooth,"\u84dd\u7259\u8bbe\u5907\u540c\u6b65");set(R.id.health_action_manual,"\u624b\u52a8\u8bb0\u5f55");}
+ private void set(int id,String text){View v=root.findViewById(id);if(v instanceof TextView)((TextView)v).setText(text);}
+ @Override public void onResume(){super.onResume();if(root!=null)refresh();}
+ private void refresh(){today.clear();today.addAll(healthRecords().getTodayHealthData());User u=userSession().getActiveUser();((TextView)root.findViewById(R.id.health_summary_greeting)).setText("您好，"+(u==null?"老人家":u.name));boolean abnormal=false;for(HealthData d:today)if(HealthMetricEvaluator.isAbnormal(d))abnormal=true;((TextView)root.findViewById(R.id.health_summary_status)).setText(abnormal?"部分指标异常，请注意":"今天状态平稳");bindCore(R.id.health_metric_blood_pressure,"blood_pressure");bindCore(R.id.health_metric_heart_rate,"heart_rate");bindCore(R.id.health_metric_blood_oxygen,"blood_oxygen");bindCore(R.id.health_metric_sleep,"sleep");root.findViewById(R.id.health_records_empty).setVisibility(today.isEmpty()?View.VISIBLE:View.GONE);adapter.notifyDataSetChanged();}
+ private void bindCore(int id,String type){HealthData f=null;for(HealthData d:today)if(type.equals(d.type)){f=d;break;}View row=root.findViewById(id);((TextView)row.findViewById(R.id.health_metric_title)).setText(label(type));((TextView)row.findViewById(R.id.health_metric_value)).setText(f==null?"--":f.value);((TextView)row.findViewById(R.id.health_metric_unit)).setText(f==null?"":f.getUnit());((TextView)row.findViewById(R.id.health_metric_status)).setText(f==null?"今日未记录":f.status);}
+ private String label(String t){for(int i=0;i<TYPES.length;i++)if(TYPES[i].equals(t))return LABELS[i];return t;}
+ private void showManual(){LinearLayout form=(LinearLayout)LayoutInflater.from(requireContext()).inflate(R.layout.view_dialog_form_container,null,false);Spinner types=new Spinner(requireContext());types.setAdapter(new ArrayAdapter<>(requireContext(),android.R.layout.simple_spinner_dropdown_item,LABELS));form.addView(types);EditText first=new EditText(requireContext());first.setInputType(2|8192);form.addView(first);EditText second=new EditText(requireContext());second.setInputType(2|8192);second.setVisibility(View.GONE);form.addView(second);Spinner mood=new Spinner(requireContext());mood.setAdapter(new ArrayAdapter<>(requireContext(),android.R.layout.simple_spinner_dropdown_item,new String[]{"😊 良好","😐 一般","😟 低落","😢 很差"}));mood.setVisibility(View.GONE);form.addView(mood);EditText notes=new EditText(requireContext());notes.setHint("备注（可选）");form.addView(notes);types.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){public void onNothingSelected(android.widget.AdapterView<?>p){}public void onItemSelected(android.widget.AdapterView<?>p,View v,int pos,long id){String t=TYPES[pos];second.setVisibility(("blood_pressure".equals(t)||"sleep".equals(t))?View.VISIBLE:View.GONE);mood.setVisibility("mood".equals(t)?View.VISIBLE:View.GONE);first.setVisibility("mood".equals(t)?View.GONE:View.VISIBLE);first.setHint("sleep".equals(t)?"小时":unitHint(t));second.setHint("blood_pressure".equals(t)?"舒张压":"分钟");}});AlertDialog d=new AlertDialog.Builder(requireContext()).setTitle("手动记录健康档案").setView(form).setPositiveButton(R.string.common_save,null).setNegativeButton(R.string.common_cancel,null).create();d.setOnShowListener(x->d.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{String type=TYPES[types.getSelectedItemPosition()],value;if("mood".equals(type))value=new String[]{"良好","一般","低落","很差"}[mood.getSelectedItemPosition()];else{String a=first.getText().toString().trim(),b=second.getText().toString().trim();if(a.isEmpty()||(("blood_pressure".equals(type)||"sleep".equals(type))&&b.isEmpty())){first.setError("请完整填写数值");return;}value="blood_pressure".equals(type)?a+"/"+b:"sleep".equals(type)?a+"小时"+b+"分钟":a;}healthRecords().addHealthData(type,value,HealthMetricEvaluator.status(type,value),notes.getText().toString().trim());refresh();Toast.makeText(requireContext(),"健康档案已保存",Toast.LENGTH_SHORT).show();d.dismiss();}));d.show();}
+ private String unitHint(String t){HealthData d=new HealthData(t,"","",0);return "请输入数值"+(d.getUnit().isEmpty()?"":"（"+d.getUnit()+"）");}
+ private class HealthAdapter extends RecyclerView.Adapter<VH>{@NonNull public VH onCreateViewHolder(@NonNull ViewGroup p,int t){return new VH(LayoutInflater.from(p.getContext()).inflate(R.layout.item_health_card,p,false));}public void onBindViewHolder(@NonNull VH h,int p){HealthData d=today.get(p);h.l.setText(d.getLabel()+" · "+d.createdAt);h.v.setText(d.value+" "+d.getUnit());h.s.setText(d.status);}public int getItemCount(){return today.size();}}
+ private static class VH extends RecyclerView.ViewHolder{TextView l,v,s;VH(View x){super(x);l=x.findViewById(R.id.health_label);v=x.findViewById(R.id.health_value);s=x.findViewById(R.id.health_status);}}
 }

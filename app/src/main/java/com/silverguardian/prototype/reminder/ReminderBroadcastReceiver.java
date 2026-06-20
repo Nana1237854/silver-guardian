@@ -1,58 +1,9 @@
 package com.silverguardian.prototype.reminder;
-
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Build;
-
-import androidx.core.app.NotificationCompat;
-
-import com.silverguardian.prototype.MainActivity;
-import com.silverguardian.prototype.R;
-
-public class ReminderBroadcastReceiver extends BroadcastReceiver {
-    private static final String CHANNEL_ID = "medicine_reminder";
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        String medicineName = intent.getStringExtra("medicine_name");
-        String userName = intent.getStringExtra("user_name");
-        String message = buildReminderMessage(userName, medicineName);
-
-        // 通知栏
-        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "用药提醒", NotificationManager.IMPORTANCE_HIGH);
-            nm.createNotificationChannel(channel);
-        }
-
-        Intent tapIntent = new Intent(context, MainActivity.class);
-        tapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pending = PendingIntent.getActivity(context, (int) System.currentTimeMillis(), tapIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_medicine)
-            .setContentTitle("用药提醒")
-            .setContentText(message)
-            .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pending)
-            .setAutoCancel(true);
-
-        nm.notify((int) System.currentTimeMillis(), builder.build());
-
-        // 确保 TTS 已初始化（进程可能已被系统回收，静态单例已丢失）
-        TtsHelper.init(context);
-        TtsHelper.speak(message);
-    }
-
-    // 提取为 package-visible 以便测试
-    static String buildReminderMessage(String userName, String medicineName) {
-        if (medicineName == null || medicineName.isEmpty()) medicineName = "药品";
-        if (userName == null || userName.isEmpty()) userName = "老人家";
-        return userName + "，该吃「" + medicineName + "」了，请按时服药。";
-    }
+import android.app.*;import android.content.*;import android.database.Cursor;import android.database.sqlite.SQLiteDatabase;import android.os.Build;import androidx.core.app.NotificationCompat;import com.silverguardian.prototype.MainActivity;import com.silverguardian.prototype.R;import com.silverguardian.prototype.models.Medicine;import java.text.SimpleDateFormat;import java.util.*;
+public class ReminderBroadcastReceiver extends BroadcastReceiver{
+ private static final String CHANNEL_ID="medicine_reminder";
+ @Override public void onReceive(Context c,Intent i){int uid=i.getIntExtra("user_id",-1),mid=i.getIntExtra("medicine_id",-1);if(uid>0&&mid>0&&taken(c,uid,mid))return;String med=i.getStringExtra("medicine_name"),user=i.getStringExtra("user_name"),msg=buildReminderMessage(user,med);notify(c,msg,uid);TtsHelper.init(c);TtsHelper.speak(msg);int repeat=i.getIntExtra("repeat_index",0),max=i.getIntExtra("repeat_count",0);if(repeat<max){Medicine m=new Medicine(mid,med,"","","","", "",false,0,max,i.getIntExtra("repeat_interval",10));MedicineAlarmScheduler.scheduleAt(c,uid,user,m,i.getIntExtra("slot",0),repeat+1,System.currentTimeMillis()+m.repeatInterval*60000L);}}
+ private boolean taken(Context c,int uid,int mid){SQLiteDatabase db=c.openOrCreateDatabase("elderly_guardian.db",Context.MODE_PRIVATE,null);String day=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).format(new Date());Cursor x=db.rawQuery("SELECT 1 FROM medicine_taken WHERE user_id=? AND medicine_id=? AND taken_date=?",new String[]{String.valueOf(uid),String.valueOf(mid),day});boolean y=x.moveToFirst();x.close();db.close();return y;}
+ private void notify(Context c,String msg,int uid){NotificationManager n=(NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);if(Build.VERSION.SDK_INT>=26)n.createNotificationChannel(new NotificationChannel(CHANNEL_ID,"用药提醒",NotificationManager.IMPORTANCE_HIGH));Intent tap=new Intent(c,MainActivity.class).putExtra("user_id",uid).putExtra("initial_tab","medicine").setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);PendingIntent p=PendingIntent.getActivity(c,uid,tap,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);n.notify((int)System.currentTimeMillis(),new NotificationCompat.Builder(c,CHANNEL_ID).setSmallIcon(R.drawable.ic_notification_medicine).setContentTitle("用药提醒").setContentText(msg).setStyle(new NotificationCompat.BigTextStyle().bigText(msg)).setPriority(NotificationCompat.PRIORITY_HIGH).setContentIntent(p).setAutoCancel(true).build());}
+ static String buildReminderMessage(String user,String med){if(med==null||med.isEmpty())med="药品";if(user==null||user.isEmpty())user="老人家";return user+"，该吃「"+med+"」了，请按时服药。";}
 }

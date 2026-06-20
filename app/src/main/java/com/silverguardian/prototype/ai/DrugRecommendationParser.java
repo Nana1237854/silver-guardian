@@ -1,0 +1,7 @@
+package com.silverguardian.prototype.ai;
+import com.silverguardian.prototype.models.MedicineLibraryItem;import org.json.*;import java.util.*;
+public final class DrugRecommendationParser{
+ public static class Result{public final String visibleText;public final List<MedicineLibraryItem>drugs;Result(String t,List<MedicineLibraryItem>d){visibleText=t;drugs=d;}}
+ private DrugRecommendationParser(){}
+ public static Result parse(String reply,List<MedicineLibraryItem>library){List<MedicineLibraryItem>out=new ArrayList<>();String visible=reply==null?"":reply;int key=visible.indexOf("\"drugs\"");if(key>=0){int start=visible.lastIndexOf('{',key),end=visible.lastIndexOf('}');if(start>=0&&end>start){String json=visible.substring(start,end+1);try{JSONArray a=new JSONObject(json).getJSONArray("drugs");for(int i=0;i<a.length();i++){JSONObject d=a.getJSONObject(i);out.add(new MedicineLibraryItem(0,d.optString("type","AI 推荐"),d.optString("name"),"",d.optString("type","其他"),d.optString("description",d.optString("usage"))));}visible=(visible.substring(0,start)+visible.substring(end+1)).trim();}catch(Exception ignored){}}}if(out.isEmpty())for(MedicineLibraryItem i:library)if(reply!=null&&reply.contains(i.name))out.add(i);return new Result(visible.isEmpty()?"我整理了一份用药建议，请确认后再加入用药提醒。":visible,out);}
+}

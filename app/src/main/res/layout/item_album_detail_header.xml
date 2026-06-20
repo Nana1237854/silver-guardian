@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+    <include android:id="@+id/album_detail_page_header" layout="@layout/view_page_header" />
+    <include android:id="@+id/album_detail_hero" layout="@layout/view_hero_banner" android:layout_width="match_parent" android:layout_height="@dimen/hero_banner_height_large" android:layout_marginBottom="@dimen/hero_banner_spacing_bottom" />
+    <include android:id="@+id/album_detail_memory" layout="@layout/view_section_card" android:layout_marginBottom="@dimen/album_memory_card_spacing_bottom" />
+    <include android:id="@+id/album_detail_section_header" layout="@layout/view_album_section_header" />
+</LinearLayout>

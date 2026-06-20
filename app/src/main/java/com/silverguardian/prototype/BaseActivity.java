@@ -18,6 +18,7 @@ import com.silverguardian.prototype.modules.MemoryModule;
 import com.silverguardian.prototype.modules.SafetyContentModule;
 import com.silverguardian.prototype.modules.UserSessionModule;
 import com.silverguardian.prototype.utils.FontScaleHelper;
+import com.silverguardian.prototype.weather.WeatherModule;
 
 public abstract class BaseActivity extends AppCompatActivity {
     protected AppContainer appContainer() { return SilverGuardianApp.from(this); }
@@ -30,6 +31,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected SafetyContentModule safetyContent() { return appContainer().safetyContent(); }
     protected CommunityPoiSearchModule communitySearch() { return appContainer().community(); }
     protected AiChatModule aiChat() { return appContainer().aiChat(); }
+    protected WeatherModule weather() { return appContainer().weather(); }
 
     @Override
     protected void attachBaseContext(Context newBase) {

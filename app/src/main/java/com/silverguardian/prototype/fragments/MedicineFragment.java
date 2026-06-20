@@ -37,10 +37,7 @@ public class MedicineFragment extends BaseFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_medicine, container, false);
-        bindHeader(view);
-        bindControls(view);
         bindList(view);
-        refreshFilter();
         refresh();
         return view;
     }
@@ -141,6 +138,9 @@ public class MedicineFragment extends BaseFragment {
         EditText time = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_time_label), getString(R.string.medicine_time_hint), false);
         EditText method = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_method_label), getString(R.string.medicine_method_hint), false);
         EditText desc = FormFieldFactory.addTextField(requireContext(), form, getString(R.string.medicine_desc_label), getString(R.string.medicine_desc_hint), true);
+        Spinner advance = new Spinner(requireContext()); advance.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, new String[]{"准时提醒","提前 5 分钟","提前 10 分钟","提前 15 分钟"})); form.addView(advance);
+        Spinner repeats = new Spinner(requireContext()); repeats.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, new String[]{"不重复","重复 1 次","重复 2 次","重复 3 次","重复 4 次","重复 5 次"})); form.addView(repeats);
+        Spinner interval = new Spinner(requireContext()); interval.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, new String[]{"5 分钟","10 分钟","15 分钟","30 分钟"})); form.addView(interval);
 
         search.setOnEditorActionListener((v, actionId, event) -> {
             List<MedicineLibraryItem> result = medicineReminders().searchMedicineLibrary(search.getText().toString());
@@ -182,7 +182,7 @@ public class MedicineFragment extends BaseFragment {
                 refresh();
                 dialog.dismiss();
             });
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> showLibraryDialog(search.getText().toString().trim()));
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> startActivity(new android.content.Intent(requireContext(), com.silverguardian.prototype.MedicineLibraryActivity.class).putExtra("editable", false)));
         });
         dialog.show();
     }
@@ -206,22 +206,61 @@ public class MedicineFragment extends BaseFragment {
             .show();
     }
 
-    private class MedicineAdapter extends RecyclerView.Adapter<MedicineViewHolder> {
-        @NonNull
-        @Override
-        public MedicineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_medicine, parent, false);
-            return new MedicineViewHolder(view);
+    private class MedicineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private static final int TYPE_HEADER = 0;
+        private static final int TYPE_MEDICINE = 1;
+
+        @Override public int getItemViewType(int position) { return position == 0 ? TYPE_HEADER : TYPE_MEDICINE; }
+
+        @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(
+                viewType == TYPE_HEADER ? R.layout.item_medicine_page_header : R.layout.item_medicine, parent, false);
+            return viewType == TYPE_HEADER ? new MedicineHeaderHolder(view) : new MedicineViewHolder(view);
         }
 
-        @Override
-        public void onBindViewHolder(@NonNull MedicineViewHolder holder, int position) {
-            holder.bind(visible.get(position));
+        @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            if (holder instanceof MedicineHeaderHolder) ((MedicineHeaderHolder) holder).bind();
+            else ((MedicineViewHolder) holder).bind(visible.get(position - 1));
         }
 
-        @Override
-        public int getItemCount() {
-            return visible.size();
+        @Override public int getItemCount() { return 1 + visible.size(); }
+    }
+
+    private class MedicineHeaderHolder extends RecyclerView.ViewHolder {
+        final TextView progress;
+        final TextView empty;
+        final Spinner filter;
+
+        MedicineHeaderHolder(View view) {
+            super(view);
+            View header = view.findViewById(R.id.medicine_header);
+            header.findViewById(R.id.header_back).setVisibility(View.GONE);
+            ((TextView) header.findViewById(R.id.header_title)).setText(R.string.medicine_title);
+            header.findViewById(R.id.header_action).setVisibility(View.GONE);
+            TextView add = view.findViewById(R.id.add_medicine_button);
+            add.setText(R.string.medicine_add);
+            add.setOnClickListener(v -> showAddMedicineDialog());
+            progress = view.findViewById(R.id.medicine_progress);
+            empty = view.findViewById(R.id.medicine_empty_state);
+            empty.setText(R.string.medicine_empty);
+            TextView reminder = view.findViewById(R.id.medicine_reminder_strip);
+            reminder.setText(R.string.medicine_reminder);
+            filter = view.findViewById(R.id.medicine_filter);
+            filter.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item,
+                new ArrayList<>(medicineReminders().getMedicineTypes())));
+            filter.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                @Override public void onItemSelected(android.widget.AdapterView<?> parent, View selected, int position, long id) { typeFilter = filter; refresh(); }
+                @Override public void onNothingSelected(android.widget.AdapterView<?> parent) { }
+            });
+            typeFilter = filter;
+            progressView = progress;
+            emptyState = empty;
+        }
+
+        void bind() {
+            int total = medicineReminders().getMedicines().size();
+            progress.setText(getString(R.string.medicine_progress_prefix) + medicineReminders().getTakenCount() + "/" + total);
+            empty.setVisibility(visible.isEmpty() ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -261,13 +300,9 @@ public class MedicineFragment extends BaseFragment {
                 .setPositiveButton(R.string.medicine_detail_ok, null)
                 .setNeutralButton(R.string.common_delete, (dialog, which) -> confirmDelete(medicine))
                 .show());
-            itemView.setOnLongClickListener(v -> {
-                confirmDelete(medicine);
-                return true;
-            });
+            itemView.setOnLongClickListener(v -> { confirmDelete(medicine); return true; });
         }
     }
-
     private void confirmDelete(Medicine medicine) {
         new AlertDialog.Builder(requireContext())
             .setTitle(R.string.medicine_delete_title)
