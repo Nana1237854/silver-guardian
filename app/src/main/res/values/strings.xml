@@ -59,6 +59,7 @@
     <string name="chat_title_with_prefix">%1$s</string>
     <string name="chat_voice_on">语音播报已开启</string>
     <string name="chat_voice_off">语音播报已关闭</string>
+    <string name="chat_replay_message">重播这条消息</string>
     <string name="chat_menu_desc">打开最近对话</string>
     <string name="chat_ai_voice_desc">AI 语音播报</string>
     <string name="chat_close_desc">关闭对话</string>

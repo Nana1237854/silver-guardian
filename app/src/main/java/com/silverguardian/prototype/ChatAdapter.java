@@ -4,12 +4,14 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.silverguardian.prototype.models.ChatMessage;
+import com.silverguardian.prototype.reminder.TtsHelper;
 
 import java.util.List;
 
@@ -52,16 +54,21 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatHolder> {
     static class ChatHolder extends RecyclerView.ViewHolder {
         private final TextView bubble;
         private final TextView time;
+        private final ImageView replayButton;
 
         ChatHolder(View itemView) {
             super(itemView);
             bubble = itemView.findViewById(R.id.chat_bubble);
             time = itemView.findViewById(R.id.chat_time);
+            replayButton = itemView.findViewById(R.id.chat_replay);
         }
 
         void bind(ChatMessage message) {
             bubble.setText(message.content);
             time.setText(message.time);
+            if (replayButton != null) {
+                replayButton.setOnClickListener(v -> TtsHelper.speak(message.content));
+            }
         }
     }
 }

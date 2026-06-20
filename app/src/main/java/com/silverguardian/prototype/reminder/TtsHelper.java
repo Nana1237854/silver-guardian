@@ -57,6 +57,13 @@ public class TtsHelper {
         }
     }
 
+    public static void stop() {
+        pendingMessage = null;
+        if (instance != null) {
+            instance.stop();
+        }
+    }
+
     public static void release() {
         if (instance != null) { instance.stop(); instance.shutdown(); instance = null; }
         ready = false; pendingMessage = null; initialized = false;

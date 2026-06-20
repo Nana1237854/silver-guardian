@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.silverguardian.prototype.ai.AiChatModule;
 import com.silverguardian.prototype.models.ChatMessage;
+import com.silverguardian.prototype.reminder.TtsHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,11 @@ public class ChatDetailActivity extends BaseActivity implements AiChatModule.Lis
         voiceToggleBtn = findViewById(R.id.btn_voice_toggle);
         updateVoiceToggleState();
         voiceToggleBtn.setOnClickListener(v -> {
-            aiChat().setVoiceEnabled(!aiChat().isVoiceEnabled());
+            boolean enableVoice = !aiChat().isVoiceEnabled();
+            if (!enableVoice) {
+                TtsHelper.stop();
+            }
+            aiChat().setVoiceEnabled(enableVoice);
             updateVoiceToggleState();
         });
     }
@@ -170,6 +175,12 @@ public class ChatDetailActivity extends BaseActivity implements AiChatModule.Lis
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         aiChat().onPermissionResult(requestCode, grantResults, this);
+    }
+
+    @Override
+    protected void onStop() {
+        TtsHelper.stop();
+        super.onStop();
     }
 
     @Override
