@@ -10,8 +10,10 @@ import com.silverguardian.prototype.modules.FamilyAlbumModule;
 import com.silverguardian.prototype.modules.HealthRecordModule;
 import com.silverguardian.prototype.modules.MedicineReminderModule;
 import com.silverguardian.prototype.modules.MemoryModule;
+import com.silverguardian.prototype.modules.SafeCheckModule;
 import com.silverguardian.prototype.modules.SafetyContentModule;
 import com.silverguardian.prototype.modules.UserSessionModule;
+import com.silverguardian.prototype.reminder.SafeCheckScheduler;
 import com.silverguardian.prototype.reminder.TtsHelper;
 import com.silverguardian.prototype.weather.WeatherModule;
 
@@ -23,6 +25,7 @@ public class AppContainer {
     private final MedicineReminderModule medicineReminderModule;
     private final FamilyAlbumModule familyAlbumModule;
     private final MemoryModule memoryModule;
+    private final SafeCheckModule safeCheckModule;
     private final EmergencyModule emergencyModule;
     private final SafetyContentModule safetyContentModule;
     private final CommunityPoiSearchModule communityPoiSearchModule;
@@ -38,11 +41,13 @@ public class AppContainer {
         medicineReminderModule = new MedicineReminderModule(repository);
         familyAlbumModule = new FamilyAlbumModule(repository);
         memoryModule = new MemoryModule(repository);
+        safeCheckModule = new SafeCheckModule(repository);
         emergencyModule = new EmergencyModule(repository);
         safetyContentModule = new SafetyContentModule(repository);
         communityPoiSearchModule = new CommunityPoiSearchModule(appContext);
         aiChatModule = new AiChatModule(appContext, repository);
         weatherModule = new WeatherModule(appContext);
+        SafeCheckScheduler.scheduleForAll(appContext, repository);
     }
 
     public Context appContext() { return appContext; }
@@ -51,9 +56,11 @@ public class AppContainer {
     public MedicineReminderModule medicineReminders() { return medicineReminderModule; }
     public FamilyAlbumModule familyAlbum() { return familyAlbumModule; }
     public MemoryModule memories() { return memoryModule; }
+    public SafeCheckModule safeChecks() { return safeCheckModule; }
     public EmergencyModule emergencies() { return emergencyModule; }
     public SafetyContentModule safetyContent() { return safetyContentModule; }
     public CommunityPoiSearchModule community() { return communityPoiSearchModule; }
     public AiChatModule aiChat() { return aiChatModule; }
     public WeatherModule weather() { return weatherModule; }
 }
+

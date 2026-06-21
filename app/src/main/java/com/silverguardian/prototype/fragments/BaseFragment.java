@@ -14,6 +14,7 @@ import com.silverguardian.prototype.modules.FamilyAlbumModule;
 import com.silverguardian.prototype.modules.HealthRecordModule;
 import com.silverguardian.prototype.modules.MedicineReminderModule;
 import com.silverguardian.prototype.modules.MemoryModule;
+import com.silverguardian.prototype.modules.SafeCheckModule;
 import com.silverguardian.prototype.modules.SafetyContentModule;
 import com.silverguardian.prototype.modules.UserSessionModule;
 import com.silverguardian.prototype.utils.FontScaleHelper;
@@ -26,6 +27,7 @@ public abstract class BaseFragment extends Fragment {
     protected MedicineReminderModule medicineReminders() { return appContainer().medicineReminders(); }
     protected FamilyAlbumModule familyAlbum() { return appContainer().familyAlbum(); }
     protected MemoryModule memories() { return appContainer().memories(); }
+    protected SafeCheckModule safeChecks() { return appContainer().safeChecks(); }
     protected EmergencyModule emergencies() { return appContainer().emergencies(); }
     protected SafetyContentModule safetyContent() { return appContainer().safetyContent(); }
     protected CommunityPoiSearchModule communitySearch() { return appContainer().community(); }
@@ -48,3 +50,4 @@ public abstract class BaseFragment extends Fragment {
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
     }
 }
+

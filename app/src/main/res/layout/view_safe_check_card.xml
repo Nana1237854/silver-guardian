@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/home_safe_check_card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card_surface"
+    android:orientation="vertical"
+    android:padding="@dimen/card_padding">
+
+    <TextView
+        android:id="@+id/home_safe_check_title"
+        style="@style/TextAppearance.SilverGuardian.SectionTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/safe_check_card_title" />
+
+    <TextView
+        android:id="@+id/home_safe_check_desc"
+        style="@style/TextAppearance.SilverGuardian.BodyMuted"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:lineSpacingExtra="2dp"
+        android:text="@string/safe_check_card_desc" />
+
+    <TextView
+        android:id="@+id/home_safe_check_status"
+        style="@style/TextAppearance.SilverGuardian.BodyMuted"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_reminder_strip"
+        android:paddingStart="@dimen/status_strip_padding_horizontal"
+        android:paddingTop="@dimen/status_strip_padding_vertical"
+        android:paddingEnd="@dimen/status_strip_padding_horizontal"
+        android:paddingBottom="@dimen/status_strip_padding_vertical"
+        android:textColor="@color/primary_dark"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/home_safe_check_ok"
+            style="@style/Widget.SilverGuardian.PrimaryTextAction"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height"
+            android:layout_weight="1"
+            android:text="@string/safe_check_action_ok"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/home_safe_check_unwell"
+            style="@style/Widget.SilverGuardian.SecondaryTextAction"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="@string/safe_check_action_unwell"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/home_safe_check_need_family"
+            style="@style/Widget.SilverGuardian.SecondaryTextAction"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height"
+            android:layout_weight="1"
+            android:text="@string/safe_check_action_need_family"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/home_safe_check_remind_later"
+            style="@style/Widget.SilverGuardian.SecondaryTextAction"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="@string/safe_check_action_remind_later"
+            android:textSize="15sp" />
+    </LinearLayout>
+</LinearLayout>
