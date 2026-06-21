@@ -28,6 +28,7 @@
     <dimen name="hero_banner_height_small">150dp</dimen>
     <dimen name="hero_banner_height_large">218dp</dimen>
     <dimen name="bottom_nav_safe_space">110dp</dimen>
+    <dimen name="home_bottom_safe_space">136dp</dimen>
     <dimen name="bottom_nav_margin_horizontal">12dp</dimen>
     <dimen name="bottom_nav_margin_bottom">10dp</dimen>
     <dimen name="bottom_nav_icon_size">27dp</dimen>
@@ -105,6 +106,8 @@
     <dimen name="detail_body_line_spacing">4dp</dimen>
     <dimen name="detail_bullet_gap_bottom">8dp</dimen>
     <dimen name="status_strip_line_spacing">2dp</dimen>
+    <dimen name="safe_check_button_gap">10dp</dimen>
+    <dimen name="safe_check_button_padding_vertical">10dp</dimen>
     <dimen name="card_content_padding_compact">16dp</dimen>
     <dimen name="section_card_padding_horizontal">16dp</dimen>
     <dimen name="section_card_padding_top">14dp</dimen>

@@ -140,9 +140,10 @@ public class HomeFragment extends BaseFragment {
             status.setVisibility(View.GONE);
         } else {
             status.setVisibility(View.VISIBLE);
-            status.setText(getString(R.string.safe_check_status_summary,
-                labelFor(record.status),
-                record.checkedAt == null || record.checkedAt.isEmpty() ? getString(R.string.safe_check_time_unknown) : record.checkedAt));
+            String checkedAt = record.checkedAt == null || record.checkedAt.isEmpty()
+                ? getString(R.string.safe_check_time_unknown)
+                : record.checkedAt;
+            status.setText("当前状态：" + labelFor(record.status) + "\n确认时间：" + checkedAt);
         }
 
         ok.setOnClickListener(v -> maybeShowGuideThen(SeniorGuideModule.GUIDE_SAFE_CHECK,
