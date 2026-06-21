@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -45,6 +46,25 @@ public class FraudFragment extends BaseFragment {
         apiClient = new FraudApiClient();
         fetchRemote();
         return root;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        maybeShowFraudGuide();
+    }
+
+    private void maybeShowFraudGuide() {
+        if (!seniorGuide().shouldShow(com.silverguardian.prototype.modules.SeniorGuideModule.GUIDE_FRAUD)) {
+            return;
+        }
+        new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.guide_fraud_title)
+            .setMessage(R.string.guide_fraud_message)
+            .setPositiveButton(R.string.common_ok, (dialog, which) ->
+                seniorGuide().markShown(com.silverguardian.prototype.modules.SeniorGuideModule.GUIDE_FRAUD))
+            .setCancelable(false)
+            .show();
     }
 
     private void bindHeader(View root) {

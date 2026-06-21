@@ -516,4 +516,84 @@
 %5$s
 %6$s
 %7$s</string>
+    <string name="sos_help_dialog_title">一键求助信息</string>
+    <string name="sos_help_action_call">拨打家属电话</string>
+    <string name="sos_help_action_copy">复制求助信息</string>
+    <string name="sos_help_action_send">模拟发送给家属</string>
+    <string name="sos_help_no_family">暂无家属联系人，请先添加家属联系人</string>
+    <string name="sos_help_copy_success">求助信息已复制</string>
+    <string name="sos_help_send_success">已模拟发送给家属</string>
+    <string name="sos_help_dial_unavailable">当前无法拨号，请稍后重试</string>
+    <string name="sos_help_phone_missing">家属联系人暂无电话号码</string>
+
+    <string name="medicine_feedback_title">服药后感觉怎么样？</string>
+    <string name="medicine_feedback_option_normal">感觉正常</string>
+    <string name="medicine_feedback_option_dizzy">有点头晕</string>
+    <string name="medicine_feedback_option_nausea">有点恶心</string>
+    <string name="medicine_feedback_option_palpitation">心慌不舒服</string>
+    <string name="medicine_feedback_option_other">其他不适</string>
+    <string name="medicine_feedback_option_skipped">暂不填写</string>
+    <string name="medicine_feedback_other_title">其他不适说明</string>
+    <string name="medicine_feedback_other_hint">可以简单记录现在的感受</string>
+    <string name="medicine_feedback_saved_toast">已保存服药反馈</string>
+    <string name="medicine_feedback_skipped_saved">已记录本次暂不填写</string>
+    <string name="medicine_feedback_warning_saved">已记录服药反馈，建议必要时联系家人或医生。</string>
+    <string name="care_summary_feedback_recorded">服药反馈：已记录，暂无不适反馈</string>
+
+    <string name="guide_home_title">欢迎使用</string>
+    <string name="guide_home_message">欢迎使用银发守护者。&#10;这里可以查看健康、用药、平安确认和一键求助。&#10;遇到紧急情况，请点击红色求助按钮。</string>
+    <string name="guide_medicine_title">用药提醒指引</string>
+    <string name="guide_medicine_message">这里可以查看今天要吃的药。&#10;吃过药后，请点击“已服药”。&#10;如果服药后不舒服，可以记录身体反馈。</string>
+    <string name="guide_family_title">家属联系人指引</string>
+    <string name="guide_family_message">这里可以添加家属电话。&#10;紧急情况时，系统会优先联系这里的家属。</string>
+    <string name="guide_album_title">家人相册指引</string>
+    <string name="guide_album_message">这里可以创建家庭相册。&#10;点击上传照片，可以保存家人陪伴回忆。</string>
+    <string name="guide_fraud_title">防诈提醒指引</string>
+    <string name="guide_fraud_message">这里可以学习常见诈骗案例。&#10;遇到陌生电话、验证码、转账要求时，一定要先和家人确认。</string>
+    <string name="guide_safe_check_title">平安确认说明</string>
+    <string name="guide_safe_check_message">每天点击一次平安确认，可以让家人更快了解您的状态。</string>
+    <string name="guide_sos_title">一键求助说明</string>
+    <string name="guide_sos_message">遇到紧急情况时，可以一键生成求助信息。&#10;系统会自动整理健康、用药和家属联系人信息。</string>
+
+    <string name="settings_reset_guides_title">重新查看操作引导</string>
+    <string name="settings_reset_guides_desc">清空已经看过的引导提示</string>
+    <string name="settings_reset_guides_toast">操作引导已重置</string>
+    <string name="settings_manage_family_title">家属联系人管理</string>
+    <string name="settings_manage_family_desc">管理家属电话与紧急联系方式</string>
+
+    <string name="family_manage_title">家属联系人</string>
+    <string name="family_manage_add_button">添加家属</string>
+    <string name="family_manage_add_title">添加家属联系人</string>
+    <string name="family_manage_edit_title">编辑家属联系人</string>
+    <string name="family_manage_delete_title">删除家属联系人</string>
+    <string name="family_manage_delete_message">确定删除“%1$s”吗？</string>
+    <string name="family_manage_name_label">家属姓名</string>
+    <string name="family_manage_name_hint">请输入家属姓名</string>
+    <string name="family_manage_name_required">请输入家属姓名</string>
+    <string name="family_manage_relationship_label">关系</string>
+    <string name="family_manage_relationship_hint">例如：儿子、女儿、老伴</string>
+    <string name="family_manage_relationship_required">请输入关系</string>
+    <string name="family_manage_phone_label">电话号码</string>
+    <string name="family_manage_phone_hint">请输入联系电话</string>
+    <string name="family_manage_phone_required">请输入联系电话</string>
+    <string name="family_manage_phone_too_short">电话号码长度不正确</string>
+
+    <string name="fraud_daily_reminder_title">每日防诈提醒</string>
+    <string name="fraud_daily_reminder_desc">每天提醒学习一条防诈知识</string>
+    <string name="fraud_notification_permission_message">请先允许通知权限，才能开启每日防诈提醒</string>
+    <string name="fraud_notification_title">每日防诈提醒</string>
+    <string name="fraud_offline_badge">离线</string>
+    <string name="fraud_offline_hint_detail">当前显示的是本地防诈内容，联网后可获取最新案例。</string>
+    <string name="fraud_detail_summary_title">骗局简介</string>
+    <string name="fraud_detail_risk_title">风险说明</string>
+    <string name="fraud_detail_advice_title">防范措施</string>
+    <string name="fraud_detail_source_title">内容来源</string>
+    <string name="fraud_source_label_name">来源：</string>
+    <string name="fraud_source_label_date">时间：</string>
+    <string name="fraud_source_label_type">类型：</string>
+    <string name="fraud_source_local">本地内置</string>
+    <string name="fraud_source_official">官方数据</string>
+    <string name="family_manage_empty">&#x8FD8;&#x6CA1;&#x6709;&#x6DFB;&#x52A0;&#x5BB6;&#x5C5E;&#x8054;&#x7CFB;&#x4EBA;</string>
+    <string name="chat_replay_message">&#x91CD;&#x64AD;&#x8FD9;&#x6761;&#x6D88;&#x606F;</string>
+    <string name="family_manage_edit_hint">&#x70B9;&#x51FB;&#x7F16;&#x8F91;&#xFF0C;&#x957F;&#x6309;&#x5220;&#x9664;</string>
 </resources>

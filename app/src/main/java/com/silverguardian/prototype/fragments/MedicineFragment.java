@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.models.Medicine;
+import com.silverguardian.prototype.models.MedicineFeedback;
 import com.silverguardian.prototype.models.MedicineLibraryItem;
 import com.silverguardian.prototype.utils.FormFieldFactory;
 
@@ -48,6 +49,20 @@ public class MedicineFragment extends BaseFragment {
         if (adapter != null) {
             refresh();
         }
+        maybeShowMedicineGuide();
+    }
+
+    private void maybeShowMedicineGuide() {
+        if (!seniorGuide().shouldShow(com.silverguardian.prototype.modules.SeniorGuideModule.GUIDE_MEDICINE)) {
+            return;
+        }
+        new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.guide_medicine_title)
+            .setMessage(R.string.guide_medicine_message)
+            .setPositiveButton(R.string.common_ok, (dialog, which) ->
+                seniorGuide().markShown(com.silverguardian.prototype.modules.SeniorGuideModule.GUIDE_MEDICINE))
+            .setCancelable(false)
+            .show();
     }
 
     private void bindHeader(View root) {
@@ -126,6 +141,71 @@ public class MedicineFragment extends BaseFragment {
 
     private void refreshFilter() {
         typeFilter.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, new ArrayList<>(medicineReminders().getMedicineTypes())));
+    }
+
+    private void showMedicineFeedbackDialog(Medicine medicine) {
+        String[] options = {
+            getString(R.string.medicine_feedback_option_normal),
+            getString(R.string.medicine_feedback_option_dizzy),
+            getString(R.string.medicine_feedback_option_nausea),
+            getString(R.string.medicine_feedback_option_palpitation),
+            getString(R.string.medicine_feedback_option_other),
+            getString(R.string.medicine_feedback_option_skipped)
+        };
+        new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.medicine_feedback_title)
+            .setItems(options, (dialog, which) -> {
+                if (which == 4) {
+                    showOtherFeedbackDialog(medicine);
+                    return;
+                }
+                saveMedicineFeedback(medicine, feedbackTypeFor(which), "");
+            })
+            .setNegativeButton(R.string.common_cancel, null)
+            .show();
+    }
+
+    private void showOtherFeedbackDialog(Medicine medicine) {
+        EditText input = new EditText(requireContext());
+        input.setHint(R.string.medicine_feedback_other_hint);
+        input.setMinLines(2);
+        input.setMaxLines(4);
+        new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.medicine_feedback_other_title)
+            .setView(input)
+            .setPositiveButton(R.string.common_save, (dialog, which) ->
+                saveMedicineFeedback(medicine, MedicineFeedback.TYPE_OTHER, input.getText().toString().trim()))
+            .setNegativeButton(R.string.common_cancel, null)
+            .show();
+    }
+
+    private String feedbackTypeFor(int which) {
+        if (which == 0) {
+            return MedicineFeedback.TYPE_NORMAL;
+        }
+        if (which == 1) {
+            return MedicineFeedback.TYPE_DIZZY;
+        }
+        if (which == 2) {
+            return MedicineFeedback.TYPE_NAUSEA;
+        }
+        if (which == 3) {
+            return MedicineFeedback.TYPE_PALPITATION;
+        }
+        return MedicineFeedback.TYPE_SKIPPED;
+    }
+
+    private void saveMedicineFeedback(Medicine medicine, String feedbackType, String feedbackText) {
+        appContainer().medicineFeedback().addFeedback(medicine.id, medicine.name, feedbackType, feedbackText);
+        if (MedicineFeedback.isWarning(feedbackType)) {
+            toast(getString(R.string.medicine_feedback_warning_saved));
+            return;
+        }
+        if (MedicineFeedback.TYPE_SKIPPED.equals(feedbackType)) {
+            toast(getString(R.string.medicine_feedback_skipped_saved));
+            return;
+        }
+        toast(getString(R.string.medicine_feedback_saved_toast));
     }
 
     private void showAddMedicineDialog() {
@@ -293,6 +373,9 @@ public class MedicineFragment extends BaseFragment {
                 checkbox.setText(checked ? R.string.medicine_taken : R.string.medicine_untaken);
                 refresh();
                 Toast.makeText(getContext(), checked ? R.string.medicine_done_toast : R.string.medicine_undone_toast, Toast.LENGTH_SHORT).show();
+                if (checked) {
+                    showMedicineFeedbackDialog(medicine);
+                }
             });
             itemView.setOnClickListener(v -> new AlertDialog.Builder(requireContext())
                 .setTitle(medicine.name)
@@ -303,6 +386,7 @@ public class MedicineFragment extends BaseFragment {
             itemView.setOnLongClickListener(v -> { confirmDelete(medicine); return true; });
         }
     }
+
     private void confirmDelete(Medicine medicine) {
         new AlertDialog.Builder(requireContext())
             .setTitle(R.string.medicine_delete_title)

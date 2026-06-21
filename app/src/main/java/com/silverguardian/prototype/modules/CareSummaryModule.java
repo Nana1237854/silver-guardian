@@ -112,6 +112,9 @@ public class CareSummaryModule {
         if (warningCount > 0) {
             return appContext.getString(R.string.care_summary_feedback_warning_value, warningCount);
         }
+        if (!repository.getTodayMedicineFeedbacks().isEmpty()) {
+            return appContext.getString(R.string.care_summary_feedback_recorded);
+        }
         return appContext.getString(R.string.care_summary_feedback_empty);
     }
 

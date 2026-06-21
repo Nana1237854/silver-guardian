@@ -99,7 +99,7 @@ public class SettingsFragment extends BaseFragment {
         addActionRow(safetyGroup, R.drawable.ic_shield, R.drawable.bg_icon_coral, color(R.color.accent_orange),
             R.string.settings_fraud_title, R.string.settings_fraud_desc, v -> switchToFragment("fraud"), false);
         addDivider(safetyGroup);
-        // 濮ｅ繑妫╅梼鑼剁槗閹绘劙鍟嬪鈧崗?
+        // 防诈提醒开关
         addPreferenceRow(safetyGroup, R.drawable.ic_notifications, R.drawable.bg_icon_blue, color(R.color.info),
             R.string.fraud_daily_reminder_title, R.string.fraud_daily_reminder_desc, buildFraudReminderControl());
         addDivider(safetyGroup);
@@ -120,6 +120,10 @@ public class SettingsFragment extends BaseFragment {
             R.string.settings_notifications_title, R.string.settings_notifications_desc,
             v -> openSimpleDialog(R.string.settings_notifications_title, R.string.settings_notifications_desc), false);
 
+        addActionRow(otherGroup, R.drawable.ic_info, R.drawable.bg_icon_blue, color(R.color.info),
+            R.string.settings_reset_guides_title, R.string.settings_reset_guides_desc,
+            v -> resetGuides(), false);
+        addDivider(otherGroup);
         addActionRow(otherGroup, R.drawable.ic_info, R.drawable.bg_icon_mint, color(R.color.primary),
             R.string.settings_about_title, R.string.settings_about_desc,
             v -> openSimpleDialog(R.string.settings_about_title, R.string.settings_about_dialog_body), false);
@@ -236,12 +240,12 @@ public class SettingsFragment extends BaseFragment {
         toggle.setOnClickListener(v -> {
             boolean next = !FraudReminderScheduler.isReminderEnabled(requireContext());
             if (next) {
-                // Android 13+ 闂団偓鐟曚線鈧氨鐓￠弶鍐
+                // Android 13+ 需要先申请通知权限
                 if (Build.VERSION.SDK_INT >= 33) {
                     if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
                         != PackageManager.PERMISSION_GRANTED) {
                         requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1001);
-                        // 閺夊啴妾洪幒鍫滅埃閸氬骸鍟€瀵偓閸氼垽绱濈憴?onRequestPermissionsResult
+                        // 授权结果会在 onRequestPermissionsResult 中继续处理
                         return;
                     }
                 }
@@ -311,6 +315,11 @@ public class SettingsFragment extends BaseFragment {
             .setMessage(messageRes)
             .setPositiveButton(R.string.common_ok, null)
             .show();
+    }
+
+    private void resetGuides() {
+        seniorGuide().resetAll();
+        toast(getString(R.string.settings_reset_guides_toast));
     }
 
     private void logout() {

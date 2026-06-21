@@ -37,6 +37,25 @@ public class FamilyManageActivity extends BaseActivity {
         refreshMembers();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        maybeShowFamilyGuide();
+    }
+
+    private void maybeShowFamilyGuide() {
+        if (!seniorGuide().shouldShow(com.silverguardian.prototype.modules.SeniorGuideModule.GUIDE_FAMILY_MANAGE)) {
+            return;
+        }
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.guide_family_title)
+            .setMessage(R.string.guide_family_message)
+            .setPositiveButton(R.string.common_ok, (dialog, which) ->
+                seniorGuide().markShown(com.silverguardian.prototype.modules.SeniorGuideModule.GUIDE_FAMILY_MANAGE))
+            .setCancelable(false)
+            .show();
+    }
+
     private void bindHeader() {
         View header = findViewById(R.id.family_manage_header);
         TextView back = header.findViewById(R.id.header_back);

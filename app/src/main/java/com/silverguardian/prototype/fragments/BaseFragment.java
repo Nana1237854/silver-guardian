@@ -16,6 +16,7 @@ import com.silverguardian.prototype.modules.MedicineReminderModule;
 import com.silverguardian.prototype.modules.MemoryModule;
 import com.silverguardian.prototype.modules.SafeCheckModule;
 import com.silverguardian.prototype.modules.SafetyContentModule;
+import com.silverguardian.prototype.modules.SeniorGuideModule;
 import com.silverguardian.prototype.modules.UserSessionModule;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 import com.silverguardian.prototype.weather.WeatherModule;
@@ -30,6 +31,7 @@ public abstract class BaseFragment extends Fragment {
     protected SafeCheckModule safeChecks() { return appContainer().safeChecks(); }
     protected EmergencyModule emergencies() { return appContainer().emergencies(); }
     protected SafetyContentModule safetyContent() { return appContainer().safetyContent(); }
+    protected SeniorGuideModule seniorGuide() { return appContainer().seniorGuide(); }
     protected CommunityPoiSearchModule communitySearch() { return appContainer().community(); }
     protected AiChatModule aiChat() { return appContainer().aiChat(); }
     protected WeatherModule weather() { return appContainer().weather(); }

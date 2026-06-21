@@ -7,7 +7,7 @@
     android:paddingStart="@dimen/screen_padding"
     android:paddingTop="@dimen/screen_padding"
     android:paddingEnd="@dimen/screen_padding"
-    android:paddingBottom="@dimen/bottom_nav_safe_space">
+    android:paddingBottom="0dp">
 
     <include
         android:id="@+id/memory_header"
@@ -56,5 +56,5 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingBottom="@dimen/section_gap" />
+        android:paddingBottom="@dimen/bottom_nav_safe_space" />
 </LinearLayout>

@@ -19,6 +19,7 @@ import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.models.HealthData;
 import com.silverguardian.prototype.models.SafeCheckRecord;
 import com.silverguardian.prototype.models.User;
+import com.silverguardian.prototype.modules.SeniorGuideModule;
 import com.silverguardian.prototype.reminder.SafeCheckScheduler;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 import com.silverguardian.prototype.weather.WeatherNavigationPlace;
@@ -57,6 +58,7 @@ public class HomeFragment extends BaseFragment {
         super.onResume();
         if (rootView != null) {
             bindSafeCheck(rootView);
+            maybeShowHomeGuide();
         }
     }
 
@@ -72,7 +74,8 @@ public class HomeFragment extends BaseFragment {
         setText(root, R.id.home_ai_action, "智能对话");
 
         click(root, R.id.home_call_action, view -> main().showOneTapChooser());
-        click(root, R.id.home_sos_action, view -> main().showSosDialog());
+        click(root, R.id.home_sos_action, view -> maybeShowGuideThen(SeniorGuideModule.GUIDE_SOS,
+            R.string.guide_sos_title, R.string.guide_sos_message, () -> main().showSosDialog()));
         click(root, R.id.home_health_action, view -> main().openHealth());
         click(root, R.id.home_medicine_action, view -> main().openMedicine());
         click(root, R.id.home_album_action, view -> main().openAlbum());
@@ -142,28 +145,59 @@ public class HomeFragment extends BaseFragment {
                 record.checkedAt == null || record.checkedAt.isEmpty() ? getString(R.string.safe_check_time_unknown) : record.checkedAt));
         }
 
-        ok.setOnClickListener(v -> {
-            safeChecks().saveTodayStatus(SafeCheckRecord.STATUS_OK, getString(R.string.safe_check_status_ok));
-            toast(getString(R.string.safe_check_saved_toast));
-            bindSafeCheck(root);
-        });
-        unwell.setOnClickListener(v -> {
-            safeChecks().saveTodayStatus(SafeCheckRecord.STATUS_UNWELL, getString(R.string.safe_check_status_unwell));
-            toast(getString(R.string.safe_check_unwell_toast));
-            bindSafeCheck(root);
-        });
-        needFamily.setOnClickListener(v -> {
-            safeChecks().saveTodayStatus(SafeCheckRecord.STATUS_NEED_FAMILY, getString(R.string.safe_check_status_need_family));
-            toast(getString(R.string.safe_check_need_family_toast));
-            bindSafeCheck(root);
-            main().showOneTapChooser();
-        });
-        remindLater.setOnClickListener(v -> {
-            safeChecks().saveTodayStatus(SafeCheckRecord.STATUS_REMIND_LATER, getString(R.string.safe_check_status_remind_later));
-            SafeCheckScheduler.scheduleDelayedReminder(requireContext(), userSession().getActiveUserId(), REMIND_LATER_MINUTES);
-            toast(getString(R.string.safe_check_remind_later_toast));
-            bindSafeCheck(root);
-        });
+        ok.setOnClickListener(v -> maybeShowGuideThen(SeniorGuideModule.GUIDE_SAFE_CHECK,
+            R.string.guide_safe_check_title, R.string.guide_safe_check_message, () -> {
+                safeChecks().saveTodayStatus(SafeCheckRecord.STATUS_OK, getString(R.string.safe_check_status_ok));
+                toast(getString(R.string.safe_check_saved_toast));
+                bindSafeCheck(root);
+            }));
+        unwell.setOnClickListener(v -> maybeShowGuideThen(SeniorGuideModule.GUIDE_SAFE_CHECK,
+            R.string.guide_safe_check_title, R.string.guide_safe_check_message, () -> {
+                safeChecks().saveTodayStatus(SafeCheckRecord.STATUS_UNWELL, getString(R.string.safe_check_status_unwell));
+                toast(getString(R.string.safe_check_unwell_toast));
+                bindSafeCheck(root);
+            }));
+        needFamily.setOnClickListener(v -> maybeShowGuideThen(SeniorGuideModule.GUIDE_SAFE_CHECK,
+            R.string.guide_safe_check_title, R.string.guide_safe_check_message, () -> {
+                safeChecks().saveTodayStatus(SafeCheckRecord.STATUS_NEED_FAMILY, getString(R.string.safe_check_status_need_family));
+                toast(getString(R.string.safe_check_need_family_toast));
+                bindSafeCheck(root);
+                main().showOneTapChooser();
+            }));
+        remindLater.setOnClickListener(v -> maybeShowGuideThen(SeniorGuideModule.GUIDE_SAFE_CHECK,
+            R.string.guide_safe_check_title, R.string.guide_safe_check_message, () -> {
+                safeChecks().saveTodayStatus(SafeCheckRecord.STATUS_REMIND_LATER, getString(R.string.safe_check_status_remind_later));
+                SafeCheckScheduler.scheduleDelayedReminder(requireContext(), userSession().getActiveUserId(), REMIND_LATER_MINUTES);
+                toast(getString(R.string.safe_check_remind_later_toast));
+                bindSafeCheck(root);
+            }));
+    }
+
+    private void maybeShowHomeGuide() {
+        maybeShowGuideThen(SeniorGuideModule.GUIDE_HOME,
+            R.string.guide_home_title,
+            R.string.guide_home_message,
+            null);
+    }
+
+    private void maybeShowGuideThen(String key, int titleRes, int messageRes, @Nullable Runnable afterDismiss) {
+        if (!seniorGuide().shouldShow(key)) {
+            if (afterDismiss != null) {
+                afterDismiss.run();
+            }
+            return;
+        }
+        new AlertDialog.Builder(requireContext())
+            .setTitle(titleRes)
+            .setMessage(messageRes)
+            .setPositiveButton(R.string.common_ok, (dialog, which) -> {
+                seniorGuide().markShown(key);
+                if (afterDismiss != null) {
+                    afterDismiss.run();
+                }
+            })
+            .setCancelable(false)
+            .show();
     }
 
     private String descriptionFor(SafeCheckRecord record) {

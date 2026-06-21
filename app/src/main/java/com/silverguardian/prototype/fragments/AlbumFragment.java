@@ -76,6 +76,25 @@ public class AlbumFragment extends BaseFragment {
         return root;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        maybeShowAlbumGuide();
+    }
+
+    private void maybeShowAlbumGuide() {
+        if (!seniorGuide().shouldShow(com.silverguardian.prototype.modules.SeniorGuideModule.GUIDE_ALBUM)) {
+            return;
+        }
+        new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.guide_album_title)
+            .setMessage(R.string.guide_album_message)
+            .setPositiveButton(R.string.common_ok, (dialog, which) ->
+                seniorGuide().markShown(com.silverguardian.prototype.modules.SeniorGuideModule.GUIDE_ALBUM))
+            .setCancelable(false)
+            .show();
+    }
+
     private void refreshData() {
         albums.clear();
         albums.addAll(familyAlbum().getAlbums());
