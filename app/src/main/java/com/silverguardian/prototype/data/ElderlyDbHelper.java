@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class ElderlyDbHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "elderly_guardian.db";
-    private static final int DB_VERSION = 4;
+    private static final int DB_VERSION = 5;
 
     public ElderlyDbHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -42,6 +42,7 @@ public class ElderlyDbHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE safe_check_records (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, status TEXT NOT NULL, note TEXT, checked_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), record_date TEXT NOT NULL, UNIQUE(user_id, record_date), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
         db.execSQL("CREATE TABLE medicine_library (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, disease TEXT NOT NULL, medicine_name TEXT NOT NULL, brand TEXT, type TEXT, description TEXT, image TEXT, UNIQUE(user_id, medicine_name), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
         db.execSQL("CREATE TABLE fraud_tips (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, category TEXT NOT NULL, content TEXT NOT NULL, action TEXT, UNIQUE(user_id, title), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
+        db.execSQL("CREATE TABLE medicine_feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, medicine_id INTEGER, medicine_name TEXT, feedback_type TEXT NOT NULL, feedback_text TEXT, date TEXT NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
         db.execSQL("CREATE INDEX idx_health_user_date ON health_data(user_id, created_at)");
         db.execSQL("CREATE INDEX idx_safe_check_user_date ON safe_check_records(user_id, record_date)");
     }
@@ -67,6 +68,9 @@ public class ElderlyDbHelper extends SQLiteOpenHelper {
         }
         if (oldVersion < 4) {
             upgradeToVersion4(db);
+        }
+        if (oldVersion < 5) {
+            upgradeToVersion5(db);
         }
     }
 
@@ -119,6 +123,10 @@ public class ElderlyDbHelper extends SQLiteOpenHelper {
     private void upgradeToVersion4(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS safe_check_records (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, status TEXT NOT NULL, note TEXT, checked_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), record_date TEXT NOT NULL, UNIQUE(user_id, record_date), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_safe_check_user_date ON safe_check_records(user_id, record_date)");
+    }
+
+    private void upgradeToVersion5(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS medicine_feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, medicine_id INTEGER, medicine_name TEXT, feedback_type TEXT NOT NULL, feedback_text TEXT, date TEXT NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
     }
 
     public static void seedDefaultTemplates(SQLiteDatabase db, long userId) {

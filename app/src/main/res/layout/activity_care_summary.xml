@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_page"
+    android:clipToPadding="false"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/screen_padding"
+        android:paddingTop="@dimen/page_top_padding_compact"
+        android:paddingEnd="@dimen/screen_padding"
+        android:paddingBottom="@dimen/page_bottom_padding_standalone">
+
+        <include
+            android:id="@+id/care_summary_header"
+            layout="@layout/view_page_header" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/section_gap"
+            android:background="@drawable/bg_group_surface"
+            android:orientation="vertical"
+            android:padding="@dimen/group_card_padding_compact">
+
+            <TextView
+                style="@style/TextAppearance.SilverGuardian.SectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/care_summary_title" />
+
+            <TextView
+                style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/child_intro_gap_top"
+                android:text="@string/care_summary_intro" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/care_summary_priority"
+            style="@style/TextAppearance.SilverGuardian.BodyMuted"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_reminder_strip"
+            android:paddingStart="@dimen/status_strip_padding_horizontal"
+            android:paddingTop="@dimen/status_strip_padding_vertical"
+            android:paddingEnd="@dimen/status_strip_padding_horizontal"
+            android:paddingBottom="@dimen/status_strip_padding_vertical" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/section_gap"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="@dimen/group_card_padding_compact">
+
+            <TextView
+                android:id="@+id/care_summary_overview"
+                style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="@dimen/status_strip_line_spacing" />
+
+            <TextView
+                android:id="@+id/care_summary_status_value"
+                style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/section_gap" />
+
+            <TextView
+                android:id="@+id/care_summary_medicine_value"
+                style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/child_intro_gap_top" />
+
+            <TextView
+                android:id="@+id/care_summary_health_value"
+                style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/child_intro_gap_top" />
+
+            <TextView
+                android:id="@+id/care_summary_feedback_value"
+                style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/child_intro_gap_top" />
+
+            <TextView
+                android:id="@+id/care_summary_alert_value"
+                style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/child_intro_gap_top" />
+
+            <TextView
+                android:id="@+id/care_summary_family_value"
+                style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/child_intro_gap_top" />
+
+            <TextView
+                android:id="@+id/care_summary_fraud_value"
+                style="@style/TextAppearance.SilverGuardian.BodyMuted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/child_intro_gap_top" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

@@ -1,6 +1,9 @@
 package com.silverguardian.prototype.fragments;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,13 +18,18 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 
 import com.silverguardian.prototype.BluetoothActivity;
 import com.silverguardian.prototype.ChildModeActivity;
+import com.silverguardian.prototype.CareSummaryActivity;
 import com.silverguardian.prototype.CommunityActivity;
+import com.silverguardian.prototype.FamilyManageActivity;
 import com.silverguardian.prototype.LoginActivity;
 import com.silverguardian.prototype.MainActivity;
 import com.silverguardian.prototype.R;
+import com.silverguardian.prototype.reminder.FraudNotificationHelper;
+import com.silverguardian.prototype.reminder.FraudReminderScheduler;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 
 public class SettingsFragment extends BaseFragment {
@@ -72,6 +80,14 @@ public class SettingsFragment extends BaseFragment {
             R.string.settings_child_mode_title, R.string.settings_child_mode_desc,
             v -> startActivity(new Intent(requireContext(), ChildModeActivity.class)), true);
         addDivider(familyGroup);
+        addActionRow(familyGroup, R.drawable.ic_info, R.drawable.bg_icon_lilac, color(R.color.memory),
+            R.string.settings_manage_family_title, R.string.settings_manage_family_desc,
+            v -> startActivity(new Intent(requireContext(), FamilyManageActivity.class)), false);
+        addDivider(familyGroup);
+        addActionRow(familyGroup, R.drawable.ic_info, R.drawable.bg_icon_blue, color(R.color.info),
+            R.string.care_summary_entry_title, R.string.care_summary_entry_desc,
+            v -> startActivity(new Intent(requireContext(), CareSummaryActivity.class)), false);
+        addDivider(familyGroup);
         addActionRow(familyGroup, R.drawable.ic_bluetooth, R.drawable.bg_icon_blue, color(R.color.info),
             R.string.settings_bluetooth_title, R.string.settings_bluetooth_desc,
             v -> startActivity(new Intent(requireContext(), BluetoothActivity.class)), false);
@@ -82,6 +98,10 @@ public class SettingsFragment extends BaseFragment {
 
         addActionRow(safetyGroup, R.drawable.ic_shield, R.drawable.bg_icon_coral, color(R.color.accent_orange),
             R.string.settings_fraud_title, R.string.settings_fraud_desc, v -> switchToFragment("fraud"), false);
+        addDivider(safetyGroup);
+        // 濮ｅ繑妫╅梼鑼剁槗閹绘劙鍟嬪鈧崗?
+        addPreferenceRow(safetyGroup, R.drawable.ic_notifications, R.drawable.bg_icon_blue, color(R.color.info),
+            R.string.fraud_daily_reminder_title, R.string.fraud_daily_reminder_desc, buildFraudReminderControl());
         addDivider(safetyGroup);
         addActionRow(safetyGroup, R.drawable.ic_memory, R.drawable.bg_icon_lilac, color(R.color.memory),
             R.string.settings_memory_title, R.string.settings_memory_desc, v -> switchToFragment("memory"), false);
@@ -206,6 +226,58 @@ public class SettingsFragment extends BaseFragment {
         return toggle;
     }
 
+    private TextView buildFraudReminderControl() {
+        TextView toggle = (TextView) LayoutInflater.from(requireContext())
+            .inflate(R.layout.view_settings_row_status, null, false);
+        boolean enabled = FraudReminderScheduler.isReminderEnabled(requireContext());
+        toggle.setText(enabled ? R.string.settings_toggle_on : R.string.settings_toggle_off);
+        toggle.setContentDescription(getString(R.string.settings_toggle_content_desc, getString(R.string.fraud_daily_reminder_title), toggle.getText()));
+        toggle.setSelected(enabled);
+        toggle.setOnClickListener(v -> {
+            boolean next = !FraudReminderScheduler.isReminderEnabled(requireContext());
+            if (next) {
+                // Android 13+ 闂団偓鐟曚線鈧氨鐓￠弶鍐
+                if (Build.VERSION.SDK_INT >= 33) {
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1001);
+                        // 閺夊啴妾洪幒鍫滅埃閸氬骸鍟€瀵偓閸氼垽绱濈憴?onRequestPermissionsResult
+                        return;
+                    }
+                }
+                enableReminder();
+            } else {
+                disableReminder();
+            }
+        });
+        return toggle;
+    }
+
+    private void enableReminder() {
+        FraudReminderScheduler.setReminderEnabled(requireContext(), true);
+        FraudNotificationHelper.createChannel(requireContext());
+        FraudReminderScheduler.scheduleDailyReminder(requireContext());
+        requireActivity().recreate();
+    }
+
+    private void disableReminder() {
+        FraudReminderScheduler.setReminderEnabled(requireContext(), false);
+        FraudReminderScheduler.cancelDailyReminder(requireContext());
+        requireActivity().recreate();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1001) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableReminder();
+            } else {
+                toast(getString(R.string.fraud_notification_permission_message));
+            }
+        }
+    }
+
     private View inflateRow() {
         return LayoutInflater.from(requireContext()).inflate(R.layout.view_settings_row, null, false);
     }
@@ -246,3 +318,5 @@ public class SettingsFragment extends BaseFragment {
         requireActivity().finish();
     }
 }
+
+

@@ -24,7 +24,6 @@ import com.silverguardian.prototype.fragments.HomeFragment;
 import com.silverguardian.prototype.fragments.MedicineFragment;
 import com.silverguardian.prototype.fragments.MemoryFragment;
 import com.silverguardian.prototype.fragments.SettingsFragment;
-import com.silverguardian.prototype.health.HealthAlertService;
 import com.silverguardian.prototype.models.FamilyMember;
 
 import java.util.List;
@@ -49,7 +48,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        HealthAlertService.initChannel(this);
         int userId = getIntent().getIntExtra("user_id", 1);
         userSession().setActiveUser(userId);
         setContentView(R.layout.activity_main);

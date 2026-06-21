@@ -25,6 +25,8 @@ public class FraudFragment extends BaseFragment {
     private FraudAdapter adapter;
     private TextView loadingHint;
     private FraudApiClient apiClient;
+    /** 标记当前展示的是否为远程数据，用于离线提示 */
+    private boolean isRemoteData = false;
 
     @Nullable
     @Override
@@ -37,6 +39,7 @@ public class FraudFragment extends BaseFragment {
         visible.clear();
         visible.addAll(safetyContent().getFraudTips());
         adapter.notifyDataSetChanged();
+        isRemoteData = false;
         loadingHint.setText(getString(R.string.fraud_loaded_local, visible.size()));
 
         apiClient = new FraudApiClient();
@@ -75,9 +78,12 @@ public class FraudFragment extends BaseFragment {
             public void onSuccess(List<FraudApiClient.FraudItem> items) {
                 visible.clear();
                 for (FraudApiClient.FraudItem item : items) {
-                    String content = item.detail + (item.measures.isEmpty() ? "" : getString(R.string.fraud_measures_prefix) + item.measures);
-                    visible.add(new FraudTip(visible.size() + 1, item.title, item.category, item.summary, content));
+                    visible.add(new FraudTip(
+                        item.id, item.title, item.category, item.summary,
+                        item.detail, item.risk, item.advice,
+                        item.sourceName, item.sourceType, item.sourceDate));
                 }
+                isRemoteData = true;
                 loadingHint.setText(getString(R.string.fraud_loaded_remote, items.size()));
                 adapter.notifyDataSetChanged();
             }
@@ -88,6 +94,7 @@ public class FraudFragment extends BaseFragment {
                     visible.addAll(safetyContent().getFraudTips());
                     adapter.notifyDataSetChanged();
                 }
+                isRemoteData = false;
                 loadingHint.setText(getString(R.string.fraud_network_fail, error));
             }
         });
@@ -114,23 +121,42 @@ public class FraudFragment extends BaseFragment {
 
     private class FraudHolder extends RecyclerView.ViewHolder {
         private final TextView title;
-        private final TextView meta;
+        private final TextView category;
+        private final TextView summary;
 
         FraudHolder(@NonNull View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.fraud_item_title);
-            meta = itemView.findViewById(R.id.fraud_item_meta);
+            category = itemView.findViewById(R.id.fraud_item_category);
+            summary = itemView.findViewById(R.id.fraud_item_summary);
         }
 
         void bind(FraudTip tip) {
             title.setText(tip.title);
-            meta.setText(tip.category + " · " + (tip.action != null ? tip.action : getString(R.string.fraud_action_view_detail)));
+            // 分类标签 + 离线提示
+            String catText = tip.category;
+            if (!isRemoteData) {
+                catText += " · " + getString(R.string.fraud_offline_badge);
+            }
+            category.setText(catText);
+            // 显示摘要，为空时用 detail 截断兜底
+            String sumText = !tip.summary.isEmpty() ? tip.summary
+                : (tip.detail.length() > 60 ? tip.detail.substring(0, 60) + "…" : tip.detail);
+            summary.setText(sumText);
+
             itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(requireContext(), FraudDetailActivity.class);
+                intent.putExtra("fraud_id", tip.id);
                 intent.putExtra("fraud_title", tip.title);
                 intent.putExtra("fraud_category", tip.category);
-                intent.putExtra("fraud_detail", tip.content);
-                intent.putExtra("fraud_measures", tip.action);
+                intent.putExtra("fraud_summary", tip.summary);
+                intent.putExtra("fraud_detail", tip.detail);
+                intent.putExtra("fraud_risk", tip.risk);
+                intent.putExtra("fraud_advice", tip.advice);
+                intent.putExtra("fraud_source_name", tip.sourceName);
+                intent.putExtra("fraud_source_type", tip.sourceType);
+                intent.putExtra("fraud_source_date", tip.sourceDate);
+                intent.putExtra("fraud_is_remote", isRemoteData);
                 startActivity(intent);
             });
         }

@@ -21,6 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="156dp"
             android:background="@color/primary_light"
+            android:src="@drawable/ic_album"
             android:contentDescription="@string/album_cover_desc"
             android:scaleType="centerCrop" />
 

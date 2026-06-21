@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="wrap_content"
     android:background="@drawable/bg_card_surface" android:clickable="true" android:focusable="true"
@@ -10,4 +10,18 @@
     <TextView android:id="@+id/home_weather_advice" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:layout_marginTop="4dp" android:maxLines="4" android:ellipsize="end"
         android:text="将综合天气、温度和空气质量生成出行建议。" android:textColor="@color/text_secondary" android:textSize="14sp" />
+    <TextView
+        android:id="@+id/home_weather_nav_btn"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_button_primary"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="一键导航"
+        android:textColor="@color/surface_white"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 </LinearLayout>

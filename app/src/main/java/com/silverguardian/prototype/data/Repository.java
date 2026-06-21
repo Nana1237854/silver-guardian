@@ -13,6 +13,7 @@ import com.silverguardian.prototype.data.dao.FamilyDao;
 import com.silverguardian.prototype.data.dao.FraudTipDao;
 import com.silverguardian.prototype.data.dao.HealthDao;
 import com.silverguardian.prototype.data.dao.MedicineDao;
+import com.silverguardian.prototype.data.dao.MedicineFeedbackDao;
 import com.silverguardian.prototype.data.dao.MedicineLibraryDao;
 import com.silverguardian.prototype.data.dao.MemoryDao;
 import com.silverguardian.prototype.data.dao.SafeCheckDao;
@@ -28,6 +29,7 @@ import com.silverguardian.prototype.models.FamilyMember;
 import com.silverguardian.prototype.models.FraudTip;
 import com.silverguardian.prototype.models.HealthData;
 import com.silverguardian.prototype.models.Medicine;
+import com.silverguardian.prototype.models.MedicineFeedback;
 import com.silverguardian.prototype.models.MedicineLibraryItem;
 import com.silverguardian.prototype.models.MemoryRecord;
 import com.silverguardian.prototype.models.SafeCheckRecord;
@@ -50,6 +52,7 @@ public class Repository {
     private final UserDao userDao;
     private final HealthDao healthDao;
     private final MedicineDao medicineDao;
+    private final MedicineFeedbackDao feedbackDao;
     private final AlbumDao albumDao;
     private final ChatDao chatDao;
     private final MemoryDao memoryDao;
@@ -64,6 +67,7 @@ public class Repository {
     private final List<HealthData> healthData = new ArrayList<>();
     private final List<FamilyMember> familyMembers = new ArrayList<>();
     private final List<Medicine> medicines = new ArrayList<>();
+    private final List<MedicineFeedback> medicineFeedbacks = new ArrayList<>();
     private final List<Album> albums = new ArrayList<>();
     private final List<AlbumPhoto> photos = new ArrayList<>();
     private final List<ChatMessage> chatMessages = new ArrayList<>();
@@ -81,6 +85,7 @@ public class Repository {
         userDao = new UserDao(dbHelper);
         healthDao = new HealthDao(dbHelper);
         medicineDao = new MedicineDao(dbHelper);
+        feedbackDao = new MedicineFeedbackDao(dbHelper);
         albumDao = new AlbumDao(dbHelper);
         chatDao = new ChatDao(dbHelper);
         memoryDao = new MemoryDao(dbHelper);
@@ -154,6 +159,8 @@ public class Repository {
         emergencyAlerts.addAll(emergencyDao.readAll(activeUserId));
         fraudTips.addAll(fraudDao.readAll(activeUserId));
         medicineLibrary.addAll(libraryDao.search(activeUserId, ""));
+        medicineFeedbacks.clear();
+        medicineFeedbacks.addAll(feedbackDao.readAll(activeUserId));
     }
 
     private boolean findUser(int id) {
@@ -179,6 +186,27 @@ public class Repository {
     public List<HealthData> getTodayHealthData() { return healthDao.readToday(activeUserId); }
     public List<FamilyMember> getFamilyMembers() { return familyMembers; }
     public List<Medicine> getMedicines() { return medicines; }
+    public List<MedicineFeedback> getTodayMedicineFeedbacks() {
+        return feedbackDao.readByDate(activeUserId, today());
+    }
+    public int getTodayMedicineFeedbackWarningCount() {
+        return feedbackDao.countWarningsByDate(activeUserId, today());
+    }
+    public List<MedicineFeedback> getTodayMedicineFeedbackWarnings() {
+        return feedbackDao.readWarningsByDate(activeUserId, today());
+    }
+    public MedicineFeedback addMedicineFeedback(int medicineId, String medicineName, String feedbackType, String feedbackText) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        String date = today();
+        String createdAt = nowDateTime();
+        String safeName = (medicineName == null || medicineName.trim().isEmpty()) ? "未知药品" : medicineName.trim();
+        String safeType = (feedbackType == null || feedbackType.trim().isEmpty()) ? MedicineFeedback.TYPE_SKIPPED : feedbackType;
+        String safeText = feedbackText == null ? "" : feedbackText;
+        long id = feedbackDao.add(db, activeUserId, medicineId, safeName, safeType, safeText, date, createdAt);
+        MedicineFeedback feedback = new MedicineFeedback((int) id, activeUserId, medicineId, safeName, safeType, safeText, createdAt, date);
+        medicineFeedbacks.add(0, feedback);
+        return feedback;
+    }
     public List<Album> getAlbums() { return albums; }
     public List<AlbumPhoto> getPhotos() { return photos; }
     public List<ChatMessage> getWelcomeMessages() { return chatMessages; }
@@ -514,6 +542,25 @@ public class Repository {
             }
         }
         return "Elder";
+    }
+
+    public int getTodayEmergencyAlertCount() {
+        int count = 0;
+        String date = today();
+        for (int i = 0; i < emergencyAlerts.size(); i++) {
+            EmergencyAlert alert = emergencyAlerts.get(i);
+            if (alert.time != null && alert.time.startsWith(date)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int getTodayPhotoCount() {
+        if (activeUserId <= 0) {
+            return 0;
+        }
+        return albumDao.readTodayCount(activeUserId);
     }
 
     public String now() {

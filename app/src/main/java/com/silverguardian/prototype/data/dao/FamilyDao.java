@@ -26,6 +26,29 @@ public class FamilyDao {
         return list;
     }
 
+    public long add(SQLiteDatabase db, int userId, String name, String relationship, String phone) {
+        ContentValues values = new ContentValues();
+        values.put("user_id", userId);
+        values.put("name", name);
+        values.put("relationship", relationship);
+        values.put("phone", phone);
+        values.put("avatar", "");
+        values.put("status", "offline");
+        return db.insertOrThrow("family_members", null, values);
+    }
+
+    public int update(SQLiteDatabase db, int id, String name, String relationship, String phone) {
+        ContentValues values = new ContentValues();
+        values.put("name", name);
+        values.put("relationship", relationship);
+        values.put("phone", phone);
+        return db.update("family_members", values, "id=?", new String[]{String.valueOf(id)});
+    }
+
+    public void delete(SQLiteDatabase db, int id) {
+        db.delete("family_members", "id=?", new String[]{String.valueOf(id)});
+    }
+
     public void seed(SQLiteDatabase db, long userId) {
         ContentValues v1 = new ContentValues();
         v1.put("user_id", userId); v1.put("name", "大明"); v1.put("relationship", "儿子");
