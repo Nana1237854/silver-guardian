@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// 亲情相册页面：相册列表、照片网格展示、上传入口
 public class AlbumFragment extends BaseFragment {
     private static final int REQUEST_CAMERA = 702;
 
@@ -56,7 +55,6 @@ public class AlbumFragment extends BaseFragment {
     private final List<AlbumPhoto> allPhotos = new ArrayList<>();
     private final List<AlbumPhoto> albumPhotos = new ArrayList<>();
 
-    // 创建相册视图：解析初始相册参数，构建相册列表或照片网格
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -236,7 +234,6 @@ public class AlbumFragment extends BaseFragment {
             .show();
     }
 
-    // 上传照片对话框：选图、填标题/留言、双存照片
     private void askUploadPhoto() {
         if (showingAllPhotos || currentAlbum == null) {
             toast(getString(R.string.album_manage_hint));

@@ -17,9 +17,16 @@
         android:layout_height="wrap_content" />
 
     <TextView
-        android:id="@+id/fraud_item_meta"
+        android:id="@+id/fraud_item_category"
+        style="@style/Widget.SilverGuardian.CompactChip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/fraud_item_summary"
         style="@style/TextAppearance.SilverGuardian.BodyMuted"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="6dp" />
 </LinearLayout>

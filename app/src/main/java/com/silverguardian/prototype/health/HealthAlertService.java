@@ -17,7 +17,9 @@ import com.silverguardian.prototype.tts.TtsAdapter;
 
 import java.util.List;
 
-// 健康异常告警服务：通知推送、TTS播报、家属端异常记录
+/**
+ * 健康异常自动告警。当健康指标超出安全范围时，发出通知并记录。
+ */
 public class HealthAlertService {
     private static final String CHANNEL_ID = "health_alert";
     private static final String CHANNEL_NAME = "健康异常告警";
@@ -26,7 +28,7 @@ public class HealthAlertService {
     private static final TtsAdapter ttsAdapter = new AndroidTtsAdapter();
     private static int alertIdCounter = 200;
 
-    // 检查健康数据是否异常，异常则触发通知推送、TTS语音播报、家属端记录
+    /** 检查健康数据是否异常，异常则告警 */
     public static void checkAndAlert(Context context, HealthData data) {
         EvaluationResult result = HealthMetricEvaluator.evaluate(data.type, data.value);
         if (result.alertLevel == AlertLevel.NORMAL) return;

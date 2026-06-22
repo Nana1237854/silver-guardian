@@ -6,10 +6,8 @@ import android.widget.TextView;
 
 import com.silverguardian.prototype.models.CareSummary;
 
-// 家属端照护摘要页面：健康/用药/SOS/平安确认汇总展示
 public class CareSummaryActivity extends BaseActivity {
     @Override
-    // 加载照护摘要页面，绑定汇总数据展示
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_care_summary);

@@ -20,7 +20,8 @@ import com.silverguardian.prototype.data.Repository;
 import com.silverguardian.prototype.models.ChatMessage;
 import com.silverguardian.prototype.models.Medicine;
 import com.silverguardian.prototype.models.MedicineLibraryItem;
-import com.silverguardian.prototype.reminder.TtsHelper;
+import com.silverguardian.prototype.tts.AndroidTtsAdapter;
+import com.silverguardian.prototype.tts.TtsAdapter;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -44,14 +45,20 @@ public class AiChatModule {
     private final ContentFilter contentFilter;
     private final ReplyProvider replyProvider;
     private final ZhipuApiClient apiClient;
+    private final TtsAdapter ttsAdapter;
     private Listener listener;
     private SpeechRecognizer speechRecognizer;
     private boolean voiceEnabled = true;
     private boolean listening;
 
     public AiChatModule(Context context, Repository repository) {
+        this(context, repository, new AndroidTtsAdapter());
+    }
+
+    public AiChatModule(Context context, Repository repository, TtsAdapter ttsAdapter) {
         this.appContext = context.getApplicationContext();
         this.repository = repository;
+        this.ttsAdapter = ttsAdapter;
         this.contentFilter = new ContentFilter();
         this.replyProvider = new ReplyProvider();
         this.apiClient = new ZhipuApiClient();
@@ -185,7 +192,7 @@ public class AiChatModule {
         repository.addChatMessage(parsed.visibleText, ChatMessage.TYPE_AI);
         notifyMessagesChanged(new ArrayList<>(repository.getWelcomeMessages()));
         if (!parsed.drugs.isEmpty() && listener != null) listener.onDrugRecommendations(parsed.drugs);
-        if (voiceEnabled) TtsHelper.speak(parsed.visibleText);
+        if (voiceEnabled) ttsAdapter.speak(parsed.visibleText);
     }
 
     private void notifyMessagesChanged(List<ChatMessage> messages) {

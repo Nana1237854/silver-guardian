@@ -1,6 +1,5 @@
 package com.silverguardian.prototype.models;
 
-// 防诈内容数据模型：标题、类型、简介、详情、防范措施、来源
 /**
  * 防诈骗知识条目。
  * 字段兼容旧版 JSON（measures）和新版 JSON（id/risk/advice/sourceName/sourceType/sourceDate）。

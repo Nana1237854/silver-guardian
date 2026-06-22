@@ -6,14 +6,12 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-// 防诈详情页：骗局简介、风险说明、防范措施、来源展示
 /**
  * 防诈骗知识详情页。
  * 分块展示：骗局简介、案例详情、风险说明、防范措施、内容来源。
  * 适合老年人阅读：大字号、分块清晰、层级明确。
  */
 public class FraudDetailActivity extends BaseActivity {
-    // 解析Intent传入的防诈数据并绑定到各内容区块
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

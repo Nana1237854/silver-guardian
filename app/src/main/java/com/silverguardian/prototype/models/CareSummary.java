@@ -1,6 +1,5 @@
 package com.silverguardian.prototype.models;
 
-// 照护摘要数据模型：汇总健康/用药/SOS/平安确认多维度
 public class CareSummary {
     public final String safeCheckStatus;
     public final int medicineTotal;

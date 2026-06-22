@@ -14,11 +14,9 @@ import androidx.core.content.ContextCompat;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-// Android通知发送实现：系统NotificationManager通知发送
 public final class AndroidNotificationDispatcher implements NotificationDispatcher {
     private static final AtomicInteger NEXT_NOTIFICATION_ID = new AtomicInteger(1000);
 
-    // 通知分发实现：权限检查、渠道创建、通知构建与发送
     @Override
     public void notify(Context context, NotificationRequest request) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU

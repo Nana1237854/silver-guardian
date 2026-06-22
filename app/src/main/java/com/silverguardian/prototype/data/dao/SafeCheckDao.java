@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import com.silverguardian.prototype.data.ElderlyDbHelper;
 import com.silverguardian.prototype.models.SafeCheckRecord;
 
-// 平安确认记录数据读写
 public class SafeCheckDao {
     private final ElderlyDbHelper dbHelper;
 

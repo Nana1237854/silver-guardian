@@ -1,14 +1,20 @@
 package com.silverguardian.prototype;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.Toast;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -24,8 +30,8 @@ import com.silverguardian.prototype.fragments.HomeFragment;
 import com.silverguardian.prototype.fragments.MedicineFragment;
 import com.silverguardian.prototype.fragments.MemoryFragment;
 import com.silverguardian.prototype.fragments.SettingsFragment;
-import com.silverguardian.prototype.health.HealthAlertService;
 import com.silverguardian.prototype.models.FamilyMember;
+import com.silverguardian.prototype.models.SosHelpInfo;
 
 import java.util.List;
 
@@ -51,7 +57,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        HealthAlertService.initChannel(this);
         int userId = getIntent().getIntExtra("user_id", 1);
         userSession().setActiveUser(userId);
         setContentView(R.layout.activity_main);
@@ -84,32 +89,92 @@ public class MainActivity extends BaseActivity {
     }
 
     private void applyInitialDestination(String initialTab) {
-        if (TAB_FRAUD.equals(initialTab)) { bottomNavigation.setSelectedItemId(R.id.bottom_settings); showContextFragment(new FraudFragment()); return; }
-        if (TAB_MEMORY.equals(initialTab)) { bottomNavigation.setSelectedItemId(R.id.bottom_settings); showContextFragment(new MemoryFragment()); return; }
-        if (TAB_HEALTH.equals(initialTab)) { bottomNavigation.setSelectedItemId(R.id.bottom_health); return; }
-        if (TAB_MEDICINE.equals(initialTab)) { bottomNavigation.setSelectedItemId(R.id.bottom_medicine); return; }
-        if (TAB_ALBUM.equals(initialTab)) { bottomNavigation.setSelectedItemId(R.id.bottom_album); return; }
-        if (TAB_SETTINGS.equals(initialTab)) { bottomNavigation.setSelectedItemId(R.id.bottom_settings); return; }
+        if (TAB_FRAUD.equals(initialTab)) {
+            bottomNavigation.setSelectedItemId(R.id.bottom_settings);
+            showContextFragment(new FraudFragment());
+            return;
+        }
+        if (TAB_MEMORY.equals(initialTab)) {
+            bottomNavigation.setSelectedItemId(R.id.bottom_settings);
+            showContextFragment(new MemoryFragment());
+            return;
+        }
+        if (TAB_HEALTH.equals(initialTab)) {
+            bottomNavigation.setSelectedItemId(R.id.bottom_health);
+            return;
+        }
+        if (TAB_MEDICINE.equals(initialTab)) {
+            bottomNavigation.setSelectedItemId(R.id.bottom_medicine);
+            return;
+        }
+        if (TAB_ALBUM.equals(initialTab)) {
+            bottomNavigation.setSelectedItemId(R.id.bottom_album);
+            return;
+        }
+        if (TAB_SETTINGS.equals(initialTab)) {
+            bottomNavigation.setSelectedItemId(R.id.bottom_settings);
+            return;
+        }
         bottomNavigation.setSelectedItemId(R.id.bottom_home);
     }
 
     private void showPrimaryDestination(int itemId) {
-        if (itemId == R.id.bottom_health) { switchFragment(healthFragment); return; }
-        if (itemId == R.id.bottom_medicine) { switchFragment(medicineFragment); return; }
-        if (itemId == R.id.bottom_album) { switchFragment(albumFragment); return; }
-        if (itemId == R.id.bottom_settings) { switchFragment(settingsFragment); return; }
+        if (itemId == R.id.bottom_health) {
+            switchFragment(healthFragment);
+            return;
+        }
+        if (itemId == R.id.bottom_medicine) {
+            switchFragment(medicineFragment);
+            return;
+        }
+        if (itemId == R.id.bottom_album) {
+            switchFragment(albumFragment);
+            return;
+        }
+        if (itemId == R.id.bottom_settings) {
+            switchFragment(settingsFragment);
+            return;
+        }
         switchFragment(homeFragment);
     }
 
-    private void showContextFragment(Fragment fragment) { switchFragment(fragment); }
-    private void switchFragment(Fragment fragment) { getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, fragment).commit(); }
-    public void openHealth() { bottomNavigation.setSelectedItemId(R.id.bottom_health); }
-    public void openMedicine() { bottomNavigation.setSelectedItemId(R.id.bottom_medicine); }
-    public void openAlbum() { bottomNavigation.setSelectedItemId(R.id.bottom_album); }
-    public void openSettings() { bottomNavigation.setSelectedItemId(R.id.bottom_settings); }
-    public void openHome() { bottomNavigation.setSelectedItemId(R.id.bottom_home); }
-    public void switchToFraud() { bottomNavigation.setSelectedItemId(R.id.bottom_settings); showContextFragment(new FraudFragment()); }
-    public void switchToMemory() { bottomNavigation.setSelectedItemId(R.id.bottom_settings); showContextFragment(new MemoryFragment()); }
+    private void showContextFragment(Fragment fragment) {
+        switchFragment(fragment);
+    }
+
+    private void switchFragment(Fragment fragment) {
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, fragment).commit();
+    }
+
+    public void openHealth() {
+        bottomNavigation.setSelectedItemId(R.id.bottom_health);
+    }
+
+    public void openMedicine() {
+        bottomNavigation.setSelectedItemId(R.id.bottom_medicine);
+    }
+
+    public void openAlbum() {
+        bottomNavigation.setSelectedItemId(R.id.bottom_album);
+    }
+
+    public void openSettings() {
+        bottomNavigation.setSelectedItemId(R.id.bottom_settings);
+    }
+
+    public void openHome() {
+        bottomNavigation.setSelectedItemId(R.id.bottom_home);
+    }
+
+    public void switchToFraud() {
+        bottomNavigation.setSelectedItemId(R.id.bottom_settings);
+        showContextFragment(new FraudFragment());
+    }
+
+    public void switchToMemory() {
+        bottomNavigation.setSelectedItemId(R.id.bottom_settings);
+        showContextFragment(new MemoryFragment());
+    }
 
     public void oneTapCall() {
         String phone = userSession().findPrimaryFamilyPhone();
@@ -139,34 +204,127 @@ public class MainActivity extends BaseActivity {
 
     public void showOneTapChooser() {
         List<FamilyMember> members = userSession().getFamilyMembers();
-        if (members.isEmpty()) { Toast.makeText(this, "还没有家属联系方式", Toast.LENGTH_SHORT).show(); return; }
-        LinearLayout buttons = new LinearLayout(this); buttons.setOrientation(LinearLayout.VERTICAL); buttons.setPadding(24, 8, 24, 8);
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("选择家属").setView(buttons).setNegativeButton(R.string.common_cancel, null).create();
+        if (members.isEmpty()) {
+            Toast.makeText(this, "还没有家属联系方式", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        LinearLayout buttons = new LinearLayout(this);
+        buttons.setOrientation(LinearLayout.VERTICAL);
+        buttons.setPadding(24, 8, 24, 8);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("选择家属")
+            .setView(buttons)
+            .setNegativeButton(R.string.common_cancel, null)
+            .create();
         for (FamilyMember member : members) {
-            Button button = new Button(this); button.setText(member.name + "（" + member.relationship + "）");
+            Button button = new Button(this);
+            button.setText(member.name + "（" + member.relationship + "）");
             button.setMinHeight((int) (60 * getResources().getDisplayMetrics().density));
-            button.setOnClickListener(v -> { dialog.dismiss(); makePhoneCall(member.phone); }); buttons.addView(button);
+            button.setOnClickListener(v -> {
+                dialog.dismiss();
+                makePhoneCall(member.phone);
+            });
+            buttons.addView(button);
         }
         dialog.show();
     }
 
     public void showSosDialog() {
-        TextView countdown = new TextView(this); countdown.setTextSize(22); countdown.setPadding(32, 24, 32, 24);
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("是否紧急呼叫？").setView(countdown)
-            .setPositiveButton("确认呼叫", null).setNegativeButton("取消", null).create();
-        android.os.CountDownTimer timer = new android.os.CountDownTimer(10000, 1000) {
-            public void onTick(long ms) { countdown.setText((ms / 1000 + 1) + " 秒后自动拨打课程测试号码 10086"); }
-            public void onFinish() { if (dialog.isShowing()) { dialog.dismiss(); makePhoneCall("10086"); } }
-        };
-        dialog.setOnShowListener(x -> { timer.start(); dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> { timer.cancel(); dialog.dismiss(); showSosContacts(); }); });
-        dialog.setOnDismissListener(x -> timer.cancel()); dialog.show();
+        SosHelpInfo info = appContainer().sosHelp().buildCurrentHelpInfo();
+        if (userSession().getFamilyMembers().isEmpty() || info.familyContactPhone == null || info.familyContactPhone.trim().isEmpty()) {
+            Toast.makeText(this, R.string.sos_help_no_family, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        container.setPadding(padding, padding, padding, padding);
+
+        ScrollView scrollView = new ScrollView(this);
+        TextView messageView = new TextView(this);
+        messageView.setText(info.fullMessage);
+        messageView.setTextSize(16f);
+        messageView.setTextIsSelectable(true);
+        scrollView.addView(messageView, new ScrollView.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT));
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            0,
+            1f);
+        container.addView(scrollView, scrollParams);
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.VERTICAL);
+        actions.setPadding(0, padding, 0, 0);
+
+        Button callButton = buildDialogActionButton(R.string.sos_help_action_call);
+        Button copyButton = buildDialogActionButton(R.string.sos_help_action_copy);
+        Button sendButton = buildDialogActionButton(R.string.sos_help_action_send);
+        actions.addView(callButton);
+        actions.addView(copyButton);
+        actions.addView(sendButton);
+        container.addView(actions, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle(R.string.sos_help_dialog_title)
+            .setView(container)
+            .setNegativeButton(R.string.common_cancel, null)
+            .create();
+
+        callButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            openDialer(info.familyContactPhone);
+        });
+        copyButton.setOnClickListener(v -> copyHelpMessage(info.fullMessage));
+        sendButton.setOnClickListener(v -> {
+            emergencies().addAlert(info.fullMessage);
+            Toast.makeText(this, R.string.sos_help_send_success, Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
-    private void showSosContacts() {
-        List<FamilyMember> members = userSession().getFamilyMembers(); String[] names = new String[members.size() + 1];
-        names[0] = "课程测试号码 10086"; for (int i = 0; i < members.size(); i++) names[i + 1] = members.get(i).name;
-        new AlertDialog.Builder(this).setTitle("选择首位联系人").setItems(names, (d, which) -> makePhoneCall(which == 0 ? "10086" : members.get(which - 1).phone)).setNegativeButton(R.string.common_cancel, null).show();
+    private Button buildDialogActionButton(int textRes) {
+        Button button = new Button(this);
+        button.setText(textRes);
+        button.setAllCaps(false);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT);
+        int marginTop = (int) (8 * getResources().getDisplayMetrics().density);
+        params.topMargin = marginTop;
+        button.setLayoutParams(params);
+        return button;
     }
+
+    private void copyHelpMessage(String message) {
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboardManager != null) {
+            clipboardManager.setPrimaryClip(ClipData.newPlainText(getString(R.string.sos_help_dialog_title), message));
+            Toast.makeText(this, R.string.sos_help_copy_success, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Toast.makeText(this, R.string.sos_help_copy_success, Toast.LENGTH_SHORT).show();
+    }
+
+    private void openDialer(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            Toast.makeText(this, R.string.sos_help_phone_missing, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(phone.trim())));
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, R.string.sos_help_dial_unavailable, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void makePhoneCall(String phone) {
         if (phone == null || phone.isEmpty()) {
             Toast.makeText(this, "This contact has no phone number", Toast.LENGTH_SHORT).show();

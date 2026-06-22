@@ -14,7 +14,6 @@ import com.silverguardian.prototype.modules.SafetyContentModule;
 
 import java.util.List;
 
-// 每日防诈提醒后台任务：WorkManager定期推送防诈知识
 /**
  * WorkManager 周期任务：每日防诈提醒 Worker。
  *
@@ -35,7 +34,6 @@ public class FraudReminderWorker extends Worker {
         super(context, params);
     }
 
-    // 同步拉取远程防诈内容，选取一条推送系统通知
     @NonNull
     @Override
     public Result doWork() {

@@ -1,6 +1,5 @@
 package com.silverguardian.prototype.models;
 
-// 平安确认记录模型：确认时间、状态、备注
 public class SafeCheckRecord {
     public static final String STATUS_OK = "OK";
     public static final String STATUS_UNWELL = "UNWELL";

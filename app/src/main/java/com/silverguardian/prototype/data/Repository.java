@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-// 全局数据仓库：统一协调各DAO、维护当前老人上下文、蓝牙同步数据写入
 public class Repository {
     private static Repository instance;
 
@@ -112,7 +111,6 @@ public class Repository {
         return instance;
     }
 
-    // 获取全局唯一仓库实例
     public static Repository getInstance() {
         if (instance == null) {
             throw new IllegalStateException("Repository not initialized");
@@ -224,7 +222,6 @@ public class Repository {
     }
     public List<MedicineLibraryItem> getMedicineLibrary() { return medicineLibrary; }
     public List<BluetoothDeviceMock> getBluetoothDevices() { return bluetoothDevices; }
-    // 获取当前活跃老人ID
     public int getActiveUserId() { return activeUserId; }
     public void setActiveUser(int id) {
         if (!findUser(id)) {

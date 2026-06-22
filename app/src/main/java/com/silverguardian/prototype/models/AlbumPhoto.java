@@ -1,6 +1,5 @@
 package com.silverguardian.prototype.models;
 
-// 照片数据模型：照片路径、标题、留言、收藏状态
 public class AlbumPhoto {
     public int id;
     public int albumId;

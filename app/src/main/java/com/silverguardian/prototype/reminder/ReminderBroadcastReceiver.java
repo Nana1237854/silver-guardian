@@ -15,7 +15,6 @@ import com.silverguardian.prototype.notification.NotificationRequest;
 import com.silverguardian.prototype.tts.AndroidTtsAdapter;
 import com.silverguardian.prototype.tts.TtsAdapter;
 
-// 用药提醒广播接收器：接收闹钟广播、发送通知、TTS语音播报、重复提醒
 public class ReminderBroadcastReceiver extends BroadcastReceiver {
     private static final String CHANNEL_ID = "medicine_reminder";
     private static final NotificationDispatcher notificationDispatcher =
@@ -23,7 +22,6 @@ public class ReminderBroadcastReceiver extends BroadcastReceiver {
     private static final TtsAdapter ttsAdapter = new AndroidTtsAdapter();
 
     @Override
-    // 接收闹钟广播：发送通知、TTS语音播报、处理重复提醒逻辑
     public void onReceive(Context context, Intent intent) {
         int userId = intent.getIntExtra("user_id", -1);
         int medicineId = intent.getIntExtra("medicine_id", -1);

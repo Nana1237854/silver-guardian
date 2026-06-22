@@ -4,7 +4,6 @@ import androidx.annotation.Nullable;
 
 import com.amap.api.services.core.PoiItem;
 
-// 首页一键导航推荐地点模型：POI名称、地址、距离
 public final class WeatherNavigationPlace {
     public final String name;
     public final double lat;

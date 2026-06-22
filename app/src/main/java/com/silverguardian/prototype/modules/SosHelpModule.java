@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// SOS紧急求助业务模块：一键呼叫家属、发送紧急通知、SOS记录
 public class SosHelpModule {
     private final Repository repository;
 

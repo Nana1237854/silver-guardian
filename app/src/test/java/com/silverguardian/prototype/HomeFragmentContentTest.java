@@ -39,6 +39,9 @@ public class HomeFragmentContentTest {
                 assertShortcut(activity, R.id.home_album_action, "家人相册");
                 assertShortcut(activity, R.id.home_settings_action, "设置");
                 assertText(activity, R.id.home_ai_title, "AI 健康分析与建议");
+                View navButton = activity.findViewById(R.id.home_weather_nav_btn);
+                assertNotNull(navButton);
+                assertEquals(View.GONE, navButton.getVisibility());
             });
         }
     }

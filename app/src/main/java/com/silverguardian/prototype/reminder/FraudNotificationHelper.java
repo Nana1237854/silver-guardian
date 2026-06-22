@@ -13,7 +13,6 @@ import com.silverguardian.prototype.FraudDetailActivity;
 import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.models.FraudTip;
 
-// 防诈通知渠道管理：通知渠道创建与通知发送
 /**
  * 防诈提醒通知工具类。
  *
@@ -31,7 +30,6 @@ public class FraudNotificationHelper {
     /** 通知 ID 基础值 */
     private static final int NOTIFICATION_ID_BASE = 901;
 
-    // 创建防诈提醒通知渠道（Android 8.0+），确保老人可在系统设置中管理
     /**
      * 创建通知渠道（Android 8.0+）。
      * 在 Application.onCreate 或首次发送通知前调用。

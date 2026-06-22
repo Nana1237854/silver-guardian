@@ -8,10 +8,8 @@ import com.silverguardian.prototype.data.Repository;
 import com.silverguardian.prototype.models.Medicine;
 import com.silverguardian.prototype.models.User;
 
-// 开机广播接收器：开机后恢复所有用药提醒和每日关怀通知
 public class BootReceiver extends BroadcastReceiver {
     @Override
-    // 开机后恢复所有用药提醒闹钟、每日关怀、安全检查和防诈骗提醒
     public void onReceive(Context context, Intent intent) {
         if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             return;

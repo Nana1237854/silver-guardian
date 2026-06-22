@@ -14,7 +14,9 @@ import com.silverguardian.prototype.modules.FamilyAlbumModule;
 import com.silverguardian.prototype.modules.HealthRecordModule;
 import com.silverguardian.prototype.modules.MedicineReminderModule;
 import com.silverguardian.prototype.modules.MemoryModule;
+import com.silverguardian.prototype.modules.SafeCheckModule;
 import com.silverguardian.prototype.modules.SafetyContentModule;
+import com.silverguardian.prototype.modules.SeniorGuideModule;
 import com.silverguardian.prototype.modules.UserSessionModule;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 import com.silverguardian.prototype.weather.WeatherModule;
@@ -27,8 +29,10 @@ public abstract class BaseFragment extends Fragment {
     protected MedicineReminderModule medicineReminders() { return appContainer().medicineReminders(); }
     protected FamilyAlbumModule familyAlbum() { return appContainer().familyAlbum(); }
     protected MemoryModule memories() { return appContainer().memories(); }
+    protected SafeCheckModule safeChecks() { return appContainer().safeChecks(); }
     protected EmergencyModule emergencies() { return appContainer().emergencies(); }
     protected SafetyContentModule safetyContent() { return appContainer().safetyContent(); }
+    protected SeniorGuideModule seniorGuide() { return appContainer().seniorGuide(); }
     protected CommunityPoiSearchModule communitySearch() { return appContainer().community(); }
     protected AiChatModule aiChat() { return appContainer().aiChat(); }
     protected WeatherModule weather() { return appContainer().weather(); }
@@ -49,3 +53,4 @@ public abstract class BaseFragment extends Fragment {
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
     }
 }
+

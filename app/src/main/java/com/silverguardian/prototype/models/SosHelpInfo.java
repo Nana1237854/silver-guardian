@@ -1,6 +1,5 @@
 package com.silverguardian.prototype.models;
 
-// SOS求助信息模型：求助时间、类型、状态
 /**
  * 一键求助结构化信息。
  * 由 SosHelpModule 聚合现有模块数据后生成，供 UI 层展示、复制或拨号使用。

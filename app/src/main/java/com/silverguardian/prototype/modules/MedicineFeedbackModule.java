@@ -6,7 +6,6 @@ import com.silverguardian.prototype.models.MedicineFeedback;
 import java.util.ArrayList;
 import java.util.List;
 
-// 服药后身体反馈业务模块：记录老人服药后感受
 public class MedicineFeedbackModule {
     private final Repository repository;
 

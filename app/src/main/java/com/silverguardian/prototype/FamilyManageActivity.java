@@ -20,7 +20,6 @@ import com.silverguardian.prototype.utils.FormFieldFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-// 家属联系人管理页面：添加/编辑/删除家属信息
 public class FamilyManageActivity extends BaseActivity {
     private final List<FamilyMember> familyMembers = new ArrayList<>();
 
@@ -28,7 +27,6 @@ public class FamilyManageActivity extends BaseActivity {
     private TextView emptyView;
     private FamilyMemberAdapter adapter;
 
-    // 初始化家属管理页面：绑定列表、操作按钮、加载家属数据
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,7 +89,6 @@ public class FamilyManageActivity extends BaseActivity {
         listView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
 
-    // 弹出添加/编辑家属对话框：输入姓名、关系、电话
     private void showFamilyDialog(@Nullable FamilyMember member) {
         boolean editing = member != null;
         LinearLayout form = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.view_dialog_form_container, null, false);

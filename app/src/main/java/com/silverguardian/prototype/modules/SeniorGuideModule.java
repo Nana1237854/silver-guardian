@@ -3,7 +3,6 @@ package com.silverguardian.prototype.modules;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-// 适老化引导模块：首次使用各功能时的引导标记管理
 public class SeniorGuideModule {
     private static final String PREFS_NAME = "senior_guides";
 

@@ -2,11 +2,9 @@ package com.silverguardian.prototype.health;
 
 import com.silverguardian.prototype.models.HealthData;
 
-// 健康指标阈值判断引擎：返回正常/警告/严重三级评估
 public final class HealthMetricEvaluator {
     private HealthMetricEvaluator() { }
 
-    // 根据指标类型和数值执行阈值判断，返回正常/警告/严重评估结果
     public static EvaluationResult evaluate(String type, String value) {
         try {
             switch (type == null ? "" : type) {

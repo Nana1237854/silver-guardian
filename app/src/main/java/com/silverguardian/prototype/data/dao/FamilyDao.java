@@ -10,7 +10,6 @@ import com.silverguardian.prototype.models.FamilyMember;
 import java.util.ArrayList;
 import java.util.List;
 
-// 家属联系人数据访问：家属信息增删改查
 public class FamilyDao {
     private final ElderlyDbHelper dbHelper;
 
@@ -38,7 +37,6 @@ public class FamilyDao {
         return db.insertOrThrow("family_members", null, values);
     }
 
-    // 更新家属联系人信息
     public int update(SQLiteDatabase db, int id, String name, String relationship, String phone) {
         ContentValues values = new ContentValues();
         values.put("name", name);
@@ -47,7 +45,6 @@ public class FamilyDao {
         return db.update("family_members", values, "id=?", new String[]{String.valueOf(id)});
     }
 
-    // 删除家属联系人
     public void delete(SQLiteDatabase db, int id) {
         db.delete("family_members", "id=?", new String[]{String.valueOf(id)});
     }

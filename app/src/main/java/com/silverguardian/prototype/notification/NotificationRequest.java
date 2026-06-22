@@ -2,7 +2,6 @@ package com.silverguardian.prototype.notification;
 
 import android.content.Intent;
 
-// 通知请求数据模型：标题、内容、渠道ID、优先级
 public final class NotificationRequest {
     public final int targetUserId;
     public final String channelId;

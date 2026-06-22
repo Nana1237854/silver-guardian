@@ -11,7 +11,6 @@ import com.silverguardian.prototype.models.AlbumPhoto;
 import java.util.ArrayList;
 import java.util.List;
 
-// 相册和照片数据访问：相册/照片CRUD
 public class AlbumDao {
     private final ElderlyDbHelper h;
 
@@ -19,7 +18,6 @@ public class AlbumDao {
         this.h = h;
     }
 
-    // 查询用户所有照片：按ID倒序返回
     public List<AlbumPhoto> readAll(int uid) {
         List<AlbumPhoto> result = new ArrayList<>();
         Cursor c = h.getReadableDatabase().rawQuery(
@@ -33,7 +31,6 @@ public class AlbumDao {
         return result;
     }
 
-    // 创建新相册：按用户ID和相册名插入，返回相册ID
     public int createAlbum(int userId, String name) {
         SQLiteDatabase db = h.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -50,7 +47,6 @@ public class AlbumDao {
         return albumId;
     }
 
-    // 查询用户所有相册：含封面URL、照片数量统计
     public List<Album> readAlbums(int userId) {
         List<Album> albums = new ArrayList<>();
         Cursor c = h.getReadableDatabase().rawQuery(
@@ -85,7 +81,6 @@ public class AlbumDao {
         return result;
     }
 
-    // 插入照片到指定相册：存储私有路径、公共URI、标题等信息
     public int addPhoto(int userId, int albumId, String privatePath, String publicUri, String title, String category, String message) {
         SQLiteDatabase db = h.getWritableDatabase();
         ContentValues values = new ContentValues();

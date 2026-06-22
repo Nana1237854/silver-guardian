@@ -11,7 +11,6 @@ import com.silverguardian.prototype.models.SafeCheckRecord;
 
 import java.util.List;
 
-// 照护摘要汇总模块：聚合健康、用药、SOS、平安确认等多维度数据
 public class CareSummaryModule {
     private final Context appContext;
     private final Repository repository;

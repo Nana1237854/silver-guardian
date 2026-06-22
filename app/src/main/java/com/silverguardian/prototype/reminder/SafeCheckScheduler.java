@@ -12,7 +12,6 @@ import com.silverguardian.prototype.models.User;
 import java.util.Calendar;
 import java.util.Objects;
 
-// 平安确认定时调度：AlarmManager定时触发每日平安确认检查与追跟
 public final class SafeCheckScheduler {
     private static final int REMINDER_HOUR = 9;
     private static final int FOLLOW_UP_HOUR = 12;

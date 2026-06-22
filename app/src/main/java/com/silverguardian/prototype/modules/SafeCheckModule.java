@@ -3,7 +3,6 @@ package com.silverguardian.prototype.modules;
 import com.silverguardian.prototype.data.Repository;
 import com.silverguardian.prototype.models.SafeCheckRecord;
 
-// 每日平安确认业务模块：生成平安确认请求、处理老人确认/否认
 public class SafeCheckModule {
     private final Repository repository;
 

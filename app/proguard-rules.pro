@@ -24,6 +24,9 @@
 -keep public class * extends com.bumptech.glide.module.AppGlideModule
 -keep class com.bumptech.glide.GeneratedAppGlideModuleImpl { *; }
 
+# WorkManager — Worker 通过反射实例化，必须保留
+-keep class com.silverguardian.prototype.reminder.FraudReminderWorker { *; }
+
 # OkHttp
 -dontwarn okhttp3.**
 -keep class okhttp3.** { *; }

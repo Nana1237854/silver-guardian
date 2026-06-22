@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-// SQLite数据库管理：创建users表及所有业务表，数据库版本升级
 public class ElderlyDbHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "elderly_guardian.db";
     private static final int DB_VERSION = 5;
@@ -23,7 +22,6 @@ public class ElderlyDbHelper extends SQLiteOpenHelper {
         db.setForeignKeyConstraintsEnabled(true);
     }
 
-    // 数据库首次创建：建users表及所有业务表
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, pin TEXT NOT NULL, avatar TEXT, age INTEGER, health_conditions TEXT, hint_question TEXT, hint_answer TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')))");
@@ -49,7 +47,6 @@ public class ElderlyDbHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_safe_check_user_date ON safe_check_records(user_id, record_date)");
     }
 
-    // 数据库版本升级：按版本号递增执行迁移脚本
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {

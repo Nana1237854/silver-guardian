@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// 天气结果数据模型：首页天气卡片展示数据
 public final class WeatherReport {
     public final String summary;
     public final String advice;

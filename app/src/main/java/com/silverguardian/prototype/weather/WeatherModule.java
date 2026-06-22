@@ -76,7 +76,7 @@ public final class WeatherModule {
     private static WeatherReport unavailableReport(String place) {
         String summary = place + " 天气与空气质量暂不可用";
         String advice = "暂不建议安排外出；如有不适请联系家属或就医。";
-        return new WeatherReport(summary, advice, summary + "；" + advice, false);
+        return new WeatherReport(summary, advice, summary + "；" + advice, false, Collections.emptyList());
     }
 
     private interface LocationCallback { void done(LatLonPoint point, String city, String district); }
@@ -196,7 +196,38 @@ public final class WeatherModule {
         } else advice.append("建议在家活动。");
         if (hospital != null) advice.append("如需就医，").append(hospital.getTitle()).append("距您").append(distance(hospital)).append("。");
         String notification = summary + "；" + advice;
-        return new WeatherReport(summary, advice.toString(), notification, decision.suitableForOuting && weatherAvailable);
+        return new WeatherReport(
+            summary,
+            advice.toString(),
+            notification,
+            decision.suitableForOuting && weatherAvailable,
+            buildRecommendedPlaces(decision.suitableForOuting && weatherAvailable, leisure, hospital)
+        );
+    }
+
+    private List<WeatherNavigationPlace> buildRecommendedPlaces(boolean suitableForOuting, List<PoiItem> leisure, PoiItem hospital) {
+        List<WeatherNavigationPlace> recommended = new ArrayList<>();
+        if (suitableForOuting && leisure != null) {
+            for (PoiItem poi : leisure) {
+                WeatherNavigationPlace place = toNavigationPlace(poi, "leisure");
+                if (place != null) recommended.add(place);
+            }
+        }
+        WeatherNavigationPlace hospitalPlace = toNavigationPlace(hospital, "hospital");
+        if (hospitalPlace != null) recommended.add(hospitalPlace);
+        return recommended;
+    }
+
+    private WeatherNavigationPlace toNavigationPlace(PoiItem poi, String type) {
+        if (poi == null || poi.getLatLonPoint() == null) return null;
+        return new WeatherNavigationPlace(
+            safe(poi.getTitle()),
+            poi.getLatLonPoint().getLatitude(),
+            poi.getLatLonPoint().getLongitude(),
+            type,
+            distance(poi),
+            poi
+        );
     }
 
     private static String distance(PoiItem poi) {

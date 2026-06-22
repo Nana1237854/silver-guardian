@@ -1,6 +1,5 @@
 package com.silverguardian.prototype.models;
 
-// 相册数据模型：相册ID、名称、封面、照片数量
 public class Album {
     public int id;
     public String name;

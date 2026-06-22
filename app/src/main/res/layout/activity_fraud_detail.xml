@@ -19,6 +19,12 @@
             android:id="@+id/fraud_detail_header"
             layout="@layout/view_page_header" />
 
+        <!-- 离线提示条 -->
+        <include
+            android:id="@+id/fraud_detail_offline_hint"
+            layout="@layout/view_status_strip"
+            android:layout_marginBottom="12dp" />
+
         <TextView
             android:id="@+id/fraud_detail_category"
             style="@style/Widget.SilverGuardian.CompactChip"
@@ -33,12 +39,28 @@
             android:layout_marginTop="@dimen/fraud_detail_title_gap_top"
             android:layout_marginBottom="@dimen/fraud_detail_title_gap_bottom" />
 
+        <!-- 骗局简介 / 案例详情 -->
+        <include
+            android:id="@+id/fraud_detail_summary_section"
+            layout="@layout/view_card_section" />
+
         <include
             android:id="@+id/fraud_detail_case_section"
             layout="@layout/view_card_section" />
 
+        <!-- 风险说明 -->
         <include
-            android:id="@+id/fraud_detail_measures_section"
+            android:id="@+id/fraud_detail_risk_section"
+            layout="@layout/view_card_section" />
+
+        <!-- 防范措施 / 对策建议 -->
+        <include
+            android:id="@+id/fraud_detail_advice_section"
+            layout="@layout/view_card_section" />
+
+        <!-- 内容来源 -->
+        <include
+            android:id="@+id/fraud_detail_source_section"
             layout="@layout/view_card_section" />
     </LinearLayout>
 </ScrollView>

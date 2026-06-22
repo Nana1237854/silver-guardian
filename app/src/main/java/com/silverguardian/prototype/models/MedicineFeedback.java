@@ -1,6 +1,5 @@
 package com.silverguardian.prototype.models;
 
-// 服药反馈模型：药品ID、反馈内容、时间
 public class MedicineFeedback {
     public static final String TYPE_NORMAL = "NORMAL";
     public static final String TYPE_DIZZY = "DIZZY";

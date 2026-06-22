@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// 首页中枢：健康概览、快捷入口、天气卡片、AI入口、一键呼叫
 public class HomeFragment extends BaseFragment {
     private static final int REQUEST_WEATHER_LOCATION = 410;
     private static final int REMIND_LATER_MINUTES = 30;
@@ -36,7 +35,6 @@ public class HomeFragment extends BaseFragment {
     private View rootView;
     private boolean locationPermissionRequested;
 
-    // 加载首页布局：根据字体模式选择标准/加大/特大布局
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle state) {
@@ -64,7 +62,6 @@ public class HomeFragment extends BaseFragment {
         }
     }
 
-    // 快捷入口绑定：一键呼叫、SOS、健康、用药、相册、AI对话等
     private void bindCommon(View root) {
         User user = userSession().getActiveUser();
         setText(root, R.id.home_mode_greeting, "您好，" + (user == null ? "长辈" : user.name));
@@ -91,7 +88,6 @@ public class HomeFragment extends BaseFragment {
         setText(root, R.id.home_medicine_summary, "今日用药：" + taken + "/" + total + " 已打卡");
     }
 
-    // 健康概览区域：血压/心率/血氧/睡眠指标卡片显示
     private void bindFull(View root) {
         bindWeather(root);
         User user = userSession().getActiveUser();
@@ -246,7 +242,6 @@ public class HomeFragment extends BaseFragment {
         return getString(R.string.safe_check_card_title);
     }
 
-    // 天气卡片加载：定位获取天气、出行建议、导航入口
     private void bindWeather(View root) {
         TextView summary = root.findViewById(R.id.home_weather_summary);
         TextView advice = root.findViewById(R.id.home_weather_advice);

@@ -593,7 +593,7 @@
     <string name="fraud_source_label_type">类型：</string>
     <string name="fraud_source_local">本地内置</string>
     <string name="fraud_source_official">官方数据</string>
-    <string name="family_manage_empty">还没有添加家属联系人</string>
-    <string name="chat_replay_message">重播这条消息</string>
-    <string name="family_manage_edit_hint">点击编辑，长按删除</string>
+    <string name="family_manage_empty">&#x8FD8;&#x6CA1;&#x6709;&#x6DFB;&#x52A0;&#x5BB6;&#x5C5E;&#x8054;&#x7CFB;&#x4EBA;</string>
+    <string name="chat_replay_message">&#x91CD;&#x64AD;&#x8FD9;&#x6761;&#x6D88;&#x606F;</string>
+    <string name="family_manage_edit_hint">&#x70B9;&#x51FB;&#x7F16;&#x8F91;&#xFF0C;&#x957F;&#x6309;&#x5220;&#x9664;</string>
 </resources>

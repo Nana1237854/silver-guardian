@@ -10,7 +10,6 @@ import com.silverguardian.prototype.models.MedicineFeedback;
 import java.util.ArrayList;
 import java.util.List;
 
-// 服药反馈数据读写
 public class MedicineFeedbackDao {
     private final ElderlyDbHelper dbHelper;
 
