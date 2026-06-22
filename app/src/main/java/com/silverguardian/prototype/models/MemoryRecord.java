@@ -1,5 +1,6 @@
 package com.silverguardian.prototype.models;
 
+// 记忆数据模型：标题、内容、分类、创建时间（清单中名为Memory.java）
 public class MemoryRecord {
     public int id;
     public String content;

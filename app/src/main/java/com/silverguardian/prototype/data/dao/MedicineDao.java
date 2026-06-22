@@ -1,5 +1,6 @@
 package com.silverguardian.prototype.data.dao;
 import android.content.ContentValues;import android.database.Cursor;import android.database.sqlite.SQLiteDatabase;import com.silverguardian.prototype.data.ElderlyDbHelper;import com.silverguardian.prototype.models.Medicine;import java.util.*;
+// 用药数据读写：药品计划CRUD、服药打卡记录
 public class MedicineDao{
  private final ElderlyDbHelper h;public MedicineDao(ElderlyDbHelper h){this.h=h;}
  public List<Medicine> readAll(int uid,String today){List<Medicine>r=new ArrayList<>();Cursor c=h.getReadableDatabase().rawQuery("SELECT m.id,m.name,m.type,m.time,m.method,m.description,m.image,CASE WHEN t.id IS NULL THEN 0 ELSE 1 END,m.advance_minutes,m.repeat_count,m.repeat_interval FROM user_medicines m LEFT JOIN medicine_taken t ON t.medicine_id=m.id AND t.user_id=m.user_id AND t.taken_date=? WHERE m.user_id=? ORDER BY m.id",new String[]{today,String.valueOf(uid)});while(c.moveToNext())r.add(new Medicine(c.getInt(0),c.getString(1),c.getString(2),c.getString(3),c.getString(4),c.getString(5),c.getString(6),c.getInt(7)==1,c.getInt(8),c.getInt(9),c.getInt(10)));c.close();return r;}

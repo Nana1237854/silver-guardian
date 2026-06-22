@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+// AI对话业务模块：消息流转、语音识别调度、AI回复TTS播报
 public class AiChatModule {
     public interface Listener {
         void onMessagesChanged(List<ChatMessage> messages);
@@ -56,10 +57,12 @@ public class AiChatModule {
         this.apiClient = new ZhipuApiClient();
     }
 
+    // 绑定UI监听器：消息更新、语音输入、药品推荐回调
     public void bindListener(Listener listener) {
         this.listener = listener;
     }
 
+    // 加载历史消息：首次进入时初始化欢迎消息
     public List<ChatMessage> loadMessages() {
         if (repository.getWelcomeMessages().isEmpty()) {
             repository.resetChatSession(loadSystemPromptFallback());
@@ -82,6 +85,7 @@ public class AiChatModule {
         this.voiceEnabled = enabled;
     }
 
+    // 发送消息核心流程：过滤→API调用→离线兜底→TTS播报
     public void sendMessage(String text) {
         String clean = text == null ? "" : text.trim();
         if (clean.isEmpty()) return;
@@ -175,6 +179,7 @@ public class AiChatModule {
         if (listener != null) listener.onVoiceListeningChanged(listening);
     }
 
+    // 接收AI回复：存储消息、药品推荐解析、TTS语音播报
     private void appendAiReply(String reply) {
         DrugRecommendationParser.Result parsed = DrugRecommendationParser.parse(reply, repository.getMedicineLibrary());
         repository.addChatMessage(parsed.visibleText, ChatMessage.TYPE_AI);

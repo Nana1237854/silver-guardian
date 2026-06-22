@@ -1,14 +1,9 @@
 package com.silverguardian.prototype.ai;
 
-/**
- * 话题过滤器。从 ChatDetailActivity 提取，判断用户输入是否与健康管理相关。
- * SYSTEM_PROMPT 移出代码，由调用方从资源文件注入。
- */
+// AI内容过滤器：健康话题过滤、拦截非健康问题
 public class ContentFilter {
 
-    /**
-     * @return null 表示放行给大模型；非 null 为拦截回复文案
-     */
+    // 内容过滤：健康关键词放行，非健康话题返回拦截提示
     public String check(String text) {
         String t = text.toLowerCase().trim();
 

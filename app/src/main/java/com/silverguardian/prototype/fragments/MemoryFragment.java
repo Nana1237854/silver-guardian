@@ -23,6 +23,7 @@ import com.silverguardian.prototype.utils.FormFieldFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+// 记忆回忆页面：新增记忆、分类筛选、删除记忆
 public class MemoryFragment extends BaseFragment {
     private final List<MemoryRecord> visible = new ArrayList<>();
     private MemoryAdapter adapter;
@@ -31,6 +32,7 @@ public class MemoryFragment extends BaseFragment {
 
     @Nullable
     @Override
+    // 加载记忆页面布局、初始化筛选器与记忆列表
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_memory, container, false);
         bindHeader(root);

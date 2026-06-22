@@ -1,8 +1,10 @@
 package com.silverguardian.prototype.album;
 import android.content.*;import android.content.ContentValues;import android.net.Uri;import android.os.*;import android.provider.MediaStore;import java.io.*;
+// 照片存储管理：App私有副本保存、MediaStore公共副本写入
 public final class PhotoStorage{
  public static class SavedPhoto{public final String privatePath,publicUri;SavedPhoto(String p,String u){privatePath=p;publicUri=u;}}
  private PhotoStorage(){}
+ // 双存照片：写入App私有目录 + MediaStore公共目录
  public static SavedPhoto save(Context c,Uri source)throws IOException{File dir=new File(c.getFilesDir(),"photos");if(!dir.exists()&&!dir.mkdirs())throw new IOException("无法创建照片目录");String name="photo_"+System.currentTimeMillis()+".jpg";File target=new File(dir,name);Uri publicUri=null;try{copy(c.getContentResolver().openInputStream(source),new FileOutputStream(target));ContentValues v=new ContentValues();v.put(MediaStore.Images.Media.DISPLAY_NAME,name);v.put(MediaStore.Images.Media.MIME_TYPE,"image/jpeg");if(Build.VERSION.SDK_INT>=29)v.put(MediaStore.Images.Media.RELATIVE_PATH,Environment.DIRECTORY_PICTURES+"/SilverGuardian");publicUri=c.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,v);if(publicUri==null)throw new IOException("无法创建公共照片");copy(c.getContentResolver().openInputStream(source),c.getContentResolver().openOutputStream(publicUri));return new SavedPhoto(target.getAbsolutePath(),publicUri.toString());}catch(Exception e){target.delete();if(publicUri!=null)c.getContentResolver().delete(publicUri,null,null);throw e instanceof IOException?(IOException)e:new IOException(e);}}
  public static void delete(Context c,String privatePath,String publicUri){if(privatePath!=null&&!privatePath.isEmpty())new File(privatePath).delete();if(publicUri!=null&&!publicUri.isEmpty())try{c.getContentResolver().delete(Uri.parse(publicUri),null,null);}catch(Exception ignored){}}
  private static void copy(InputStream in,OutputStream out)throws IOException{if(in==null||out==null)throw new IOException("照片流不可用");try(InputStream i=in;OutputStream o=out){byte[]b=new byte[8192];int n;while((n=i.read(b))>0)o.write(b,0,n);}}

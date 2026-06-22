@@ -19,6 +19,7 @@ import com.silverguardian.prototype.models.ChatMessage;
 import java.util.ArrayList;
 import java.util.List;
 
+// AI对话页面：消息列表、发送按钮、语音输入、TTS播报开关
 public class ChatDetailActivity extends BaseActivity implements AiChatModule.Listener {
     private final List<ChatMessage> messages = new ArrayList<>();
     private ChatAdapter adapter;
@@ -28,6 +29,7 @@ public class ChatDetailActivity extends BaseActivity implements AiChatModule.Lis
     private ImageButton voiceButton;
     private ImageButton voiceToggleBtn;
 
+    // 初始化AI对话界面：消息列表、输入框、语音按钮、快捷提示
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,11 +93,13 @@ public class ChatDetailActivity extends BaseActivity implements AiChatModule.Lis
         findViewById(R.id.btn_send).setOnClickListener(v -> send());
     }
 
+    // 语音输入按钮：长按说话、松开发送
     private void setupVoice() {
         voiceButton = findViewById(R.id.btn_voice);
         voiceButton.setOnTouchListener((v, event) -> { if (event.getAction() == android.view.MotionEvent.ACTION_DOWN || event.getAction() == android.view.MotionEvent.ACTION_UP || event.getAction() == android.view.MotionEvent.ACTION_CANCEL) aiChat().toggleVoiceInput(this); return true; });
     }
 
+    // 侧边栏：新对话、近期问题快捷输入
     private void setupDrawer() {
         TextView newChat = findViewById(R.id.drawer_new_chat);
         newChat.setOnClickListener(v -> {
@@ -118,6 +122,7 @@ public class ChatDetailActivity extends BaseActivity implements AiChatModule.Lis
         }
     }
 
+    // AI发送消息主流程：用户输入→网络请求→AI回复展示
     private void send() {
         String text = input.getText().toString().trim();
         if (TextUtils.isEmpty(text)) return;

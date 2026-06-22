@@ -28,6 +28,7 @@ import com.silverguardian.prototype.utils.FormFieldFactory;
 
 import java.util.List;
 
+// 子女模式页面：查看老人健康摘要、服药状态、上传照片、平安确认
 public class ChildModeActivity extends BaseActivity {
     private static final int PICK_IMAGE = 601;
     private static final int REQUEST_READ_IMAGES = 602;
@@ -42,6 +43,7 @@ public class ChildModeActivity extends BaseActivity {
     private LinearLayout alertSection;
     private LinearLayout familySection;
 
+    // 初始化子女模式：展示健康摘要、用药进度、告警、家属列表
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -244,6 +246,7 @@ setContentView(R.layout.activity_child_mode);
             .setNegativeButton(R.string.common_cancel, null)
             .show();
     }
+    // 子女上传照片对话框：选择照片、填写标题/分类/留言、保存到亲情相册
     private void showUploadDialog() {
         pendingImageUri = null;
         View form = LayoutInflater.from(this).inflate(R.layout.view_child_mode_upload_form, null, false);

@@ -29,6 +29,7 @@ import com.silverguardian.prototype.models.FamilyMember;
 
 import java.util.List;
 
+// 主页面容器：底部导航栏、Fragment切换管理
 public class MainActivity extends BaseActivity {
     private static final int REQUEST_CALL_PHONE = 101;
     private static final String TAB_HEALTH = "health";
@@ -46,6 +47,7 @@ public class MainActivity extends BaseActivity {
     private BottomNavigationView bottomNavigation;
     private String pendingCallPhone;
 
+    // 主页面初始化：设置当前用户、初始化Fragment、绑定底部导航
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +74,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    // 设置底部导航栏选中切换监听
     private void bindBottomNavigation() {
         bottomNavigation = findViewById(R.id.bottom_navigation);
         bottomNavigation.setOnItemSelectedListener(item -> {

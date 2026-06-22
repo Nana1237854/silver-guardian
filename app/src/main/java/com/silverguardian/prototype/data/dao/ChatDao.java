@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+// AI对话消息数据访问：聊天记录CRUD
 public class ChatDao {
     private final ElderlyDbHelper dbHelper;
 
@@ -20,6 +21,7 @@ public class ChatDao {
         this.dbHelper = dbHelper;
     }
 
+    // 按用户查询聊天消息列表
     public List<ChatMessage> readAll(int userId) {
         List<ChatMessage> list = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -30,6 +32,7 @@ public class ChatDao {
         return list;
     }
 
+    // 插入一条聊天消息
     public void add(int userId, String text, String type) {
         ContentValues values = new ContentValues();
         values.put("user_id", userId);
@@ -38,6 +41,7 @@ public class ChatDao {
         dbHelper.getWritableDatabase().insert("messages", null, values);
     }
 
+    // 删除指定用户的所有聊天记录
     public void clearForUser(int userId) {
         dbHelper.getWritableDatabase().delete("messages", "user_id=?", new String[]{String.valueOf(userId)});
     }

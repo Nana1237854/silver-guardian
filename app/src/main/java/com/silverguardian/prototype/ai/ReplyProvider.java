@@ -1,10 +1,9 @@
 package com.silverguardian.prototype.ai;
 
-/**
- * 离线 Fallback 回复提供器。从 ChatDetailActivity 提取，API 不可用或话题匹配时使用。
- */
+// 离线兜底回复：网络失败或API不可用时返回本地预设回答
 public class ReplyProvider {
 
+    // 离线兜底回复：关键词匹配返回预设健康建议
     public String fallback(String text) {
         if (text.contains("血压") || text.contains("高血压"))
             return "建议先休息5分钟后复测。若多次高于140/90，请联系家属或医生。硝苯地平、缬沙坦等降压药需遵医嘱使用。";

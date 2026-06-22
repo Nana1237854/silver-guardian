@@ -1,4 +1,5 @@
 package com.silverguardian.prototype.models;
+// 健康记录数据模型：指标类型、数值、单位、记录时间
 public class HealthData {
  public int id,iconResId; public String type,value,status,notes,createdAt;
  public HealthData(String type,String value,String status,int iconResId){this(0,type,value,status,"","",iconResId);}

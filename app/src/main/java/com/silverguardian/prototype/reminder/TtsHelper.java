@@ -6,6 +6,7 @@ import android.util.Log;
 
 import java.util.Locale;
 
+// TextToSpeech初始化与播报工具：TTS引擎管理、语音播报调用
 /**
  * TTS 单例 — 使用系统默认引擎（与系统设置中的引擎一致）。
  * 系统文字转语音测试能响 → App 就能响。
@@ -17,6 +18,7 @@ public class TtsHelper {
     private static volatile boolean initialized;
     private static String pendingMessage;
 
+    // 初始化TTS引擎：创建TextToSpeech实例并设置中文语音
     public static void init(Context context) {
         if (instance != null) return;
         Context app = context.getApplicationContext();
@@ -44,6 +46,7 @@ public class TtsHelper {
         });
     }
 
+    // 语音播报：将文字转换为语音输出
     public static void speak(String message) {
         if (instance != null && ready) {
             instance.speak(message, TextToSpeech.QUEUE_FLUSH, null, "med");
@@ -57,6 +60,15 @@ public class TtsHelper {
         }
     }
 
+    // 停止当前语音播报
+    public static void stop() {
+        pendingMessage = null;
+        if (instance != null) {
+            instance.stop();
+        }
+    }
+
+    // 销毁TTS引擎：停止播报、释放资源
     public static void release() {
         if (instance != null) { instance.stop(); instance.shutdown(); instance = null; }
         ready = false; pendingMessage = null; initialized = false;

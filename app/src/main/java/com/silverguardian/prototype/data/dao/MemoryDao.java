@@ -10,6 +10,7 @@ import com.silverguardian.prototype.models.MemoryRecord;
 import java.util.ArrayList;
 import java.util.List;
 
+// 记忆数据读写：用户记忆记录CRUD
 public class MemoryDao {
     private final ElderlyDbHelper dbHelper;
 
@@ -32,6 +33,7 @@ public class MemoryDao {
         return (int) dbHelper.getWritableDatabase().insert("memories", null, values);
     }
 
+    // 根据记忆ID删除记忆记录
     public void delete(int memoryId) {
         dbHelper.getWritableDatabase().delete("memories", "id=?", new String[]{String.valueOf(memoryId)});
     }

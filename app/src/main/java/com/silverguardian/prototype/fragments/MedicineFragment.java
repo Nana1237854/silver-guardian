@@ -26,6 +26,7 @@ import com.silverguardian.prototype.utils.FormFieldFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+// 用药提醒页面：药品列表、添加药品、今日打卡、筛选
 public class MedicineFragment extends BaseFragment {
     private MedicineAdapter adapter;
     private final List<Medicine> visible = new ArrayList<>();
@@ -35,6 +36,7 @@ public class MedicineFragment extends BaseFragment {
 
     @Nullable
     @Override
+    // 创建用药提醒页面视图：绑定列表、控件、刷新数据
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_medicine, container, false);
         bindList(view);

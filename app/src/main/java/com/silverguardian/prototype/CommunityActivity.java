@@ -32,6 +32,7 @@ import com.amap.api.services.route.WalkStep;
 import java.util.ArrayList;
 import java.util.List;
 
+// 社区便民查询页面：高德地图展示、周边POI查询入口
 public class CommunityActivity extends BaseActivity {
     private static final int REQUEST_LOCATION = 301;
 
@@ -53,6 +54,7 @@ public class CommunityActivity extends BaseActivity {
     private boolean locationReady;
     private String initialKeyword;
 
+    // 初始化社区页面：绑定控件、初始化高德地图、启动定位
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,6 +109,7 @@ public class CommunityActivity extends BaseActivity {
         chips.add(chip);
     }
 
+    // 初始化高德地图：配置定位样式、设置定位源、申请位置权限
     private void initMap() {
         aMap = mapView.getMap();
         if (aMap == null) {
@@ -189,6 +192,7 @@ public class CommunityActivity extends BaseActivity {
         locationReady = false;
     }
 
+    // 搜索周边POI：按关键词查询、更新地图标记、显示结果列表
     private void searchPoi(String keyword) {
         selectedKeyword = keyword;
         updateChipStyles();

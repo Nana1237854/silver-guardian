@@ -10,8 +10,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+// 照片详情页：大图查看、标题/留言/收藏展示
 public class PhotoDetailActivity extends BaseActivity {
 
+    // 初始化照片详情页：接收Intent参数，渲染大图与信息卡片
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -20,6 +20,7 @@ import com.silverguardian.prototype.R;
 
 import java.util.List;
 
+// 社区POI搜索模块：周边设施搜索、Marker展示、步行路线规划、高德导航跳转
 public class CommunityPoiSearchModule {
     public interface SearchCallback {
         void onLoading(String status);
@@ -58,6 +59,7 @@ public class CommunityPoiSearchModule {
         return appContext.getString(R.string.community_keyword_market);
     }
 
+    // 搜索周边设施：高德POI关键词搜索，通过回调返回结果
     public void search(String keyword, SearchCallback callback) {
         callback.onLoading(appContext.getString(R.string.community_status_prefix) + appContext.getString(R.string.community_searching_pattern, keyword));
         try {
@@ -101,6 +103,7 @@ public class CommunityPoiSearchModule {
         return poi.getDistance() > 0 ? poi.getDistance() + "m" : appContext.getString(R.string.community_activity_distance_unknown);
     }
 
+    // 步行路线规划：从当前位置到目标POI的步行路径计算
     public void requestWalkRoute(PoiItem poi, RouteCallback callback) {
         try {
             RouteSearch routeSearch = new RouteSearch(appContext);
@@ -132,6 +135,7 @@ public class CommunityPoiSearchModule {
 
     public void openWebNavigation(Context context, PoiItem poi) { String webUrl = "https://uri.amap.com/navigation?to=" + poi.getLatLonPoint().getLongitude() + "," + poi.getLatLonPoint().getLatitude() + ",0&mode=walk&coordinate=gaode"; context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); }
 
+    // 跳转高德地图App导航：步行模式导航到目标POI
     public boolean openNavigation(Context context, PoiItem poi) {
         try {
             String uri = "androidamap://navi?sourceApplication=" + Uri.encode(appContext.getString(R.string.community_activity_source_name))

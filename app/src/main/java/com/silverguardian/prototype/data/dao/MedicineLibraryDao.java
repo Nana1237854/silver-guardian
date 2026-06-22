@@ -1,9 +1,11 @@
 package com.silverguardian.prototype.data.dao;
 import android.content.ContentValues;import android.database.Cursor;import com.silverguardian.prototype.data.ElderlyDbHelper;import com.silverguardian.prototype.models.MedicineLibraryItem;import java.util.*;
+// 药品库数据访问：药品模板库CRUD
 public class MedicineLibraryDao{
  private final ElderlyDbHelper h;public MedicineLibraryDao(ElderlyDbHelper h){this.h=h;}
  public List<MedicineLibraryItem> search(int uid,String keyword){List<MedicineLibraryItem>r=new ArrayList<>();String k="%"+(keyword==null?"":keyword.trim())+"%";Cursor c=h.getReadableDatabase().rawQuery("SELECT id,disease,medicine_name,brand,type,description FROM medicine_library WHERE user_id=? AND (medicine_name LIKE ? OR disease LIKE ? OR brand LIKE ?) ORDER BY disease,medicine_name",new String[]{String.valueOf(uid),k,k,k});while(c.moveToNext())r.add(new MedicineLibraryItem(c.getInt(0),c.getString(1),c.getString(2),c.getString(3),c.getString(4),c.getString(5)));c.close();return r;}
  public int upsert(int uid,MedicineLibraryItem i){ContentValues v=new ContentValues();v.put("user_id",uid);v.put("disease",i.disease);v.put("medicine_name",i.name);v.put("brand",i.brand);v.put("type",i.type);v.put("description",i.description);v.put("image","");return(int)h.getWritableDatabase().insertWithOnConflict("medicine_library",null,v,android.database.sqlite.SQLiteDatabase.CONFLICT_IGNORE);}
  public void update(int uid,MedicineLibraryItem i){ContentValues v=new ContentValues();v.put("disease",i.disease);v.put("medicine_name",i.name);v.put("brand",i.brand);v.put("type",i.type);v.put("description",i.description);h.getWritableDatabase().update("medicine_library",v,"id=? AND user_id=?",new String[]{String.valueOf(i.id),String.valueOf(uid)});}
+ // 根据用户ID和药品ID删除药品库条目
  public void delete(int uid,int id){h.getWritableDatabase().delete("medicine_library","id=? AND user_id=?",new String[]{String.valueOf(id),String.valueOf(uid)});}
 }

@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+// 天气出行建议引擎：根据天气/温度/AQI判断出行适宜度与穿衣建议
 public final class WeatherAdviceEngine {
     private static final String[] UNSAFE_WEATHER = {"雨", "雪", "大风", "台风", "强风", "暴风"};
 
     private WeatherAdviceEngine() { }
 
+    // 评估当前天气是否适合老人外出，返回决策与原因列表
     public static Decision evaluate(WeatherConditions conditions) {
         List<String> reasons = new ArrayList<>();
         for (String token : UNSAFE_WEATHER) {

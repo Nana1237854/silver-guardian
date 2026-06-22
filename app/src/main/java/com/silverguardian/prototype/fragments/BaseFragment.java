@@ -19,6 +19,7 @@ import com.silverguardian.prototype.modules.UserSessionModule;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 import com.silverguardian.prototype.weather.WeatherModule;
 
+// Fragment基类：dp/sp/color/toast公共工具方法
 public abstract class BaseFragment extends Fragment {
     protected AppContainer appContainer() { return SilverGuardianApp.from(requireContext()); }
     protected UserSessionModule userSession() { return appContainer().userSession(); }

@@ -19,9 +19,11 @@ import com.silverguardian.prototype.models.User;
 
 import java.util.Calendar;
 
+// 每日关怀通知广播接收器：整合天气、出行建议、今日用药提醒
 public class DailyCareReceiver extends BroadcastReceiver {
     private static final String CHANNEL = "daily_care";
 
+    // 接收闹钟广播，聚合天气、用药信息并发起语音播报与通知
     @Override public void onReceive(Context context, Intent intent) {
         PendingResult pending = goAsync();
         Repository repository = Repository.init(context);

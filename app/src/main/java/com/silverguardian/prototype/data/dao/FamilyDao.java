@@ -10,6 +10,7 @@ import com.silverguardian.prototype.models.FamilyMember;
 import java.util.ArrayList;
 import java.util.List;
 
+// 家属联系人数据访问：家属信息增删改查
 public class FamilyDao {
     private final ElderlyDbHelper dbHelper;
 
@@ -24,6 +25,31 @@ public class FamilyDao {
         while (c.moveToNext()) list.add(new FamilyMember(c.getInt(0), c.getString(1), c.getString(2), c.getString(3), c.getString(4), "online".equals(c.getString(5))));
         c.close();
         return list;
+    }
+
+    public long add(SQLiteDatabase db, int userId, String name, String relationship, String phone) {
+        ContentValues values = new ContentValues();
+        values.put("user_id", userId);
+        values.put("name", name);
+        values.put("relationship", relationship);
+        values.put("phone", phone);
+        values.put("avatar", "");
+        values.put("status", "offline");
+        return db.insertOrThrow("family_members", null, values);
+    }
+
+    // 更新家属联系人信息
+    public int update(SQLiteDatabase db, int id, String name, String relationship, String phone) {
+        ContentValues values = new ContentValues();
+        values.put("name", name);
+        values.put("relationship", relationship);
+        values.put("phone", phone);
+        return db.update("family_members", values, "id=?", new String[]{String.valueOf(id)});
+    }
+
+    // 删除家属联系人
+    public void delete(SQLiteDatabase db, int id) {
+        db.delete("family_members", "id=?", new String[]{String.valueOf(id)});
     }
 
     public void seed(SQLiteDatabase db, long userId) {

@@ -24,6 +24,7 @@ import com.silverguardian.prototype.MainActivity;
 import com.silverguardian.prototype.R;
 import com.silverguardian.prototype.utils.FontScaleHelper;
 
+// 设置页面：大字体模式切换、高对比度开关、功能入口管理
 public class SettingsFragment extends BaseFragment {
 
     @Nullable
@@ -62,6 +63,7 @@ public class SettingsFragment extends BaseFragment {
         card.setOnClickListener(v -> openSimpleDialog(R.string.settings_profile_name, R.string.settings_profile_detail));
     }
 
+    // 功能入口管理：家属设备、安全记忆、显示辅助、其他设置
     private void bindSections(View root) {
         LinearLayout familyGroup = bindGroupSection(root, R.id.settings_family_section, R.string.settings_section_family_devices);
         LinearLayout safetyGroup = bindGroupSection(root, R.id.settings_safety_section, R.string.settings_section_safety_memory);
@@ -166,6 +168,7 @@ public class SettingsFragment extends BaseFragment {
         group.addView(row);
     }
 
+    // 大字体模式切换：标准/加大/特大三档切换
     private Spinner buildFontSizeControl() {
         Spinner spinner = new Spinner(requireContext());
         String[] fontModes = {
@@ -192,6 +195,7 @@ public class SettingsFragment extends BaseFragment {
         return spinner;
     }
 
+    // 高对比度开关：提升阅读可辨识度
     private TextView buildHighContrastControl() {
         TextView toggle = (TextView) LayoutInflater.from(requireContext())
             .inflate(R.layout.view_settings_row_status, null, false);

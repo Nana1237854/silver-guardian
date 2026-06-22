@@ -13,6 +13,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
+// 和风天气API客户端：网络请求获取实时天气与预报数据
 public final class WeatherClient {
     public interface ResultCallback { void onResult(WeatherConditions conditions); }
 

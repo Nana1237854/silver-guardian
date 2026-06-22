@@ -31,6 +31,7 @@ import com.silverguardian.prototype.models.BluetoothDeviceMock;
 import java.util.ArrayList;
 import java.util.List;
 
+// 蓝牙设备页面：BLE扫描、设备连接、演示设备降级方案
 public class BluetoothActivity extends BaseActivity {
     private static final int REQUEST_BT_PERMISSIONS = 301;
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
@@ -49,6 +50,7 @@ public class BluetoothActivity extends BaseActivity {
     private final List<BluetoothDeviceMock> foundDevices = new ArrayList<>();
 
     @Override
+    // 初始化蓝牙适配器与扫描器，绑定页面控件
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 setContentView(R.layout.activity_bluetooth);
@@ -139,6 +141,7 @@ setContentView(R.layout.activity_bluetooth);
         statusText.setText(R.string.bluetooth_ready);
     }
 
+    // 检查权限后开始BLE设备扫描，5秒超时后回退演示设备
     private void startScan() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
@@ -293,6 +296,7 @@ setContentView(R.layout.activity_bluetooth);
         refreshDevices();
     }
 
+    // 连接指定蓝牙健康设备并将数据同步至健康记录
     private void connectDevice(BluetoothDeviceMock device) {
         healthRecords().addHealthData(device.type, device.value, getString(R.string.bluetooth_health_status_normal));
         device.status = getString(R.string.common_connected);

@@ -5,9 +5,11 @@ import android.content.Context;
 
 import com.silverguardian.prototype.app.AppContainer;
 
+// Application入口：全局模块初始化
 public class SilverGuardianApp extends Application {
     private AppContainer appContainer;
 
+    // 应用启动初始化：创建依赖容器、防诈通知渠道、WorkManager周期任务
     @Override
     public void onCreate() {
         super.onCreate();

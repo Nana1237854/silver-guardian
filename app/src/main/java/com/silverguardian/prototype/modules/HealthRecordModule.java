@@ -1,3 +1,4 @@
 package com.silverguardian.prototype.modules;
 import com.silverguardian.prototype.data.Repository;import com.silverguardian.prototype.models.*;import java.util.*;
+// 健康数据写入业务模块：处理手动录入和蓝牙同步的健康数据
 public class HealthRecordModule{private final Repository r;public HealthRecordModule(Repository r){this.r=r;}public List<HealthData>getHealthData(){return new ArrayList<>(r.getHealthData());}public List<HealthData>getTodayHealthData(){return new ArrayList<>(r.getTodayHealthData());}public HealthData addHealthData(String t,String v,String s){return r.addHealthData(t,v,s);}public HealthData addHealthData(String t,String v,String s,String n){return r.addHealthData(t,v,s,n);}public List<BluetoothDeviceMock>getBluetoothDevices(){return new ArrayList<>(r.getBluetoothDevices());}}

@@ -1,5 +1,6 @@
 package com.silverguardian.prototype.data.dao;
 import android.content.ContentValues;import android.database.Cursor;import com.silverguardian.prototype.R;import com.silverguardian.prototype.data.ElderlyDbHelper;import com.silverguardian.prototype.models.HealthData;import java.util.*;
+// 健康数据表读写：血压/血糖/心率/步数/睡眠/体重CRUD操作
 public class HealthDao{
  private final ElderlyDbHelper h;public HealthDao(ElderlyDbHelper h){this.h=h;}
  public List<HealthData> readAll(int uid){return query(uid,false);}public List<HealthData> readToday(int uid){return query(uid,true);}

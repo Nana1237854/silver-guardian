@@ -15,6 +15,7 @@ import com.silverguardian.prototype.modules.UserSessionModule;
 import com.silverguardian.prototype.reminder.TtsHelper;
 import com.silverguardian.prototype.weather.WeatherModule;
 
+// 全局依赖容器：集中创建Repository、Module、Dispatcher、Adapter实例
 public class AppContainer {
     private final Context appContext;
     private final Repository repository;
@@ -45,6 +46,7 @@ public class AppContainer {
         weatherModule = new WeatherModule(appContext);
     }
 
+    // 各功能模块获取方法
     public Context appContext() { return appContext; }
     public UserSessionModule userSession() { return userSessionModule; }
     public HealthRecordModule healthRecords() { return healthRecordModule; }

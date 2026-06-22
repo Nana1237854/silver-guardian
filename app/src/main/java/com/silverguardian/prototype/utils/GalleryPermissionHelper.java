@@ -11,6 +11,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+// 图片选择/拍照权限处理：运行时权限请求与结果处理
 /**
  * 相册权限 + 打开图库的工具类。
  * 消除 AlbumFragment / ChildModeActivity 中的重复权限代码。
@@ -26,6 +27,7 @@ public class GalleryPermissionHelper {
         this.fragment = fragment;
     }
 
+    // 请求图片读取权限：授权后自动执行回调（打开图库）
     /** 检查权限，授权后执行回调；权限缺失则弹出系统对话框 */
     public void requestPermissionThen(Runnable onGranted) {
         this.onGranted = onGranted;
@@ -45,6 +47,7 @@ public class GalleryPermissionHelper {
         onGranted.run();
     }
 
+    // 处理权限请求结果：授权通过则执行回调
     /** 在 Fragment.onRequestPermissionsResult 中调用 */
     public boolean onRequestPermissionsResult(int requestCode, int[] grantResults) {
         if (requestCode == REQUEST_READ_IMAGES) {

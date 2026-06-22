@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+// 天气模块总入口：定位获取、天气数据加载、出行POI推荐
 public final class WeatherModule {
     public interface Callback { void onResult(WeatherReport report); }
 

@@ -20,12 +20,14 @@ import com.silverguardian.prototype.models.FraudTip;
 import java.util.ArrayList;
 import java.util.List;
 
+// 防诈提醒列表页：远程刷新防诈数据、本地兜底展示
 public class FraudFragment extends BaseFragment {
     private final List<FraudTip> visible = new ArrayList<>();
     private FraudAdapter adapter;
     private TextView loadingHint;
     private FraudApiClient apiClient;
 
+    // 初始化视图、加载本地防诈内容并尝试远程获取
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -68,6 +70,7 @@ public class FraudFragment extends BaseFragment {
         list.setAdapter(adapter);
     }
 
+    // 从远程API拉取防诈数据并更新列表
     private void fetchRemote() {
         loadingHint.setText(R.string.fraud_loading);
         apiClient.fetchFraudTips(new FraudApiClient.FraudCallback() {

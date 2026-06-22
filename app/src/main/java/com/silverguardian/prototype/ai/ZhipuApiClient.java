@@ -14,7 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * 智谱 GLM-4 API 客户端。从 ChatDetailActivity 提取，可独立测试。
+ * 智谱GLM-4 Flash API客户端：网络请求、JSON解析、主线程回调
  */
 public class ZhipuApiClient {
     private static final String TAG = "ZhipuApiClient";
@@ -25,6 +25,7 @@ public class ZhipuApiClient {
         void onFailure(String error);
     }
 
+    // 调用智谱GLM-4 Flash API：构建JSON请求→HTTP POST→回调主线程
     public void chat(String apiKey, String userMessage, String systemPrompt, Callback callback) {
         new Thread(() -> {
             try {

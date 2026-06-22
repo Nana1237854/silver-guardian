@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+// 防诈数据API客户端：OkHttp请求远程JSON、解析防诈内容
 /**
  * OkHttp 客户端 — 防诈骗知识推送内容拉取。
  * 技术考察点：第三方网络请求库（OkHttp）
@@ -44,6 +45,7 @@ public class FraudApiClient {
         void onFailure(String error);
     }
 
+    // 发起OkHttp异步GET请求获取远程防诈JSON数据
     public void fetchFraudTips(FraudCallback callback) {
         Request request = new Request.Builder()
             .url(REMOTE_API)
